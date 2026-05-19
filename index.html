@@ -539,25 +539,25 @@ function applyPreset(btn, mode) {
   const max = DATA_MAX;
   let s, e;
   if(mode === 'last-week') {
-    // 上周自然周：以今天为基准，找上周一~上周日
-    const today = new Date();
-    const dow = today.getDay(); // 0=周日,1=周一...6=周六
-    // 今天是周几，往回找到上周日
+    // 上周自然周：以数据最新日期为基准，找上一个完整自然周（周一~周日）
+    const base = new Date(DATA_MAX);
+    const dow = base.getDay(); // 0=周日,1=周一...6=周六
+    // 找到 base 所在周的上一个周日
+    // 如果 base 本身是周日(0)，上周日就是7天前；否则往回 dow 天
     const daysToLastSun = dow === 0 ? 7 : dow;
-    const lastSun = new Date(today);
-    lastSun.setDate(today.getDate() - daysToLastSun);
+    const lastSun = new Date(base);
+    lastSun.setDate(base.getDate() - daysToLastSun);
     const lastMon = new Date(lastSun);
     lastMon.setDate(lastSun.getDate() - 6);
     e = dateStr(lastSun);
     s = dateStr(lastMon);
   } else if(mode === 'this-week') {
-    // 本周至今：本周一~最新数据日期
-    const today = new Date();
-    const dow = today.getDay();
-    const thisMon = new Date(today);
-    // 周日(0)视为本周第一天（往回6天）
+    // 本周至今：数据最新日期所在周的周一 ~ DATA_MAX
+    const base = new Date(DATA_MAX);
+    const dow = base.getDay();
+    const thisMon = new Date(base);
     const daysToMon = dow === 0 ? 6 : dow - 1;
-    thisMon.setDate(today.getDate() - daysToMon);
+    thisMon.setDate(base.getDate() - daysToMon);
     s = dateStr(thisMon);
     e = DATA_MAX;
   } else if(mode === 'last-30') {
