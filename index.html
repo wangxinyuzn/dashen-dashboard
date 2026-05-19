@@ -171,6 +171,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .cal-note-row:hover .cal-note-del{opacity:1}
 .cal-note-del:hover{color:#ff4d4f}
 .cal-badge{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;background:#fff0f6;color:#eb2f96;margin-right:4px;white-space:nowrap}
+
+/* 流量分析编辑器 */
+.analysis-editor{width:100%;min-height:140px;border:1.5px solid #f0eaff;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfbff;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+.analysis-editor:focus{border-color:#b37feb;box-shadow:0 0 0 3px #f9f0ff}
+.analysis-editor::placeholder{color:#d3c4ef}
+.analysis-meta{font-size:11px;color:#bbb;margin-top:6px;text-align:right}
 </style>
 </head>
 <body>
@@ -492,11 +498,13 @@ const TREND_CFG = {
 
 function switchTrend(platform) {
   _curTrendPlatform = platform;
-  // 更新按钮状态
-  document.querySelectorAll('.trend-btn').forEach(btn => {
+  // 更新趋势图按钮
+  document.querySelectorAll('[data-platform]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.platform === platform);
   });
   renderOverviewTrend();
+  // 同步切换流量分析面板
+  switchAnalysis(platform);
 }
 
 function renderOverviewTrend() {
@@ -921,6 +929,65 @@ function calDelNote(dateKey, idx) {
   calRender();
 }
 
+
+// ====== 流量分析 ======
+const ANALYSIS_KEY = 'dashen_analysis';
+const ANALYSIS_LABELS = {
+  all: '全平台', dy: '抖音', xhs: '小红书', sph: '视频号', ks: '快手'
+};
+const ANALYSIS_COLORS = {
+  all: '#722ed1', dy: '#1d7dfa', xhs: '#ff2442', sph: '#07c160', ks: '#ff6200'
+};
+let _curAnalysisPlatform = 'all';
+
+function analysisLoad() {
+  try { return JSON.parse(localStorage.getItem(ANALYSIS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function analysisSave(data) { localStorage.setItem(ANALYSIS_KEY, JSON.stringify(data)); }
+
+function analysisRender() {
+  const wrap = document.getElementById('analysis-editor-wrap');
+  if(!wrap) return;
+  const data = analysisLoad();
+  const platforms = ['all','dy','xhs','sph','ks'];
+  wrap.innerHTML = platforms.map(p => {
+    const color = ANALYSIS_COLORS[p];
+    const saved = data[p] || '';
+    return `<div class="analysis-pane" id="apane-${p}" style="display:${p===_curAnalysisPlatform?'block':'none'}">
+      <textarea class="analysis-editor" id="aeditor-${p}"
+        placeholder="在此记录${ANALYSIS_LABELS[p]}流量分析、归因总结、优化建议..."
+        onblur="analysisSaveText('${p}', this.value)"
+        style="border-color:${color}22"
+      >${saved}</textarea>
+      <div class="analysis-meta" id="ameta-${p}">${saved ? `已保存 · ${saved.length} 字` : '内容自动保存'}</div>
+    </div>`;
+  }).join('');
+}
+
+function switchAnalysis(platform) {
+  _curAnalysisPlatform = platform;
+  // 更新按钮
+  document.querySelectorAll('[data-aplatform]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.aplatform === platform);
+  });
+  // 更新标题
+  const titleEl = document.getElementById('analysis-platform-title');
+  if(titleEl) titleEl.textContent = ANALYSIS_LABELS[platform] || platform;
+  // 切换面板
+  ['all','dy','xhs','sph','ks'].forEach(p => {
+    const pane = document.getElementById('apane-' + p);
+    if(pane) pane.style.display = p === platform ? 'block' : 'none';
+  });
+}
+
+function analysisSaveText(platform, val) {
+  const data = analysisLoad();
+  data[platform] = val;
+  analysisSave(data);
+  const meta = document.getElementById('ameta-' + platform);
+  if(meta) meta.textContent = val ? `已保存 · ${val.length} 字` : '内容自动保存';
+}
+
 // ====== 折叠功能 ======
 const COLLAPSE_KEY = 'dashen_collapse';
 function toggleCollapse(name) {
@@ -1171,6 +1238,7 @@ window.addEventListener('load', () => {
   todoRender();
   boomRender();
   calRender();
+  analysisRender();
   applyDateRange();
   restoreCollapse();
   document.querySelectorAll('.progress-bar').forEach(bar=>{
