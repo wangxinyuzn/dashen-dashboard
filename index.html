@@ -247,6 +247,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       </div>
 
       <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb)"></span>
+          <span>流量分析 — <span id="analysis-platform-title">全平台</span></span>
+          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px">（点击上方播放量卡片切换平台 · 内容可自由编辑）</span>
+          <button class="collapse-btn" id="analysis-collapse-btn" onclick="toggleCollapse('analysis')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="analysis-collapse-body">
+          <div id="analysis-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+            <button class="trend-btn active" data-aplatform="all"  onclick="switchAnalysis('all')"  style="--c:#722ed1">全部</button>
+            <button class="trend-btn"        data-aplatform="dy"   onclick="switchAnalysis('dy')"   style="--c:#1d7dfa">🎵 抖音</button>
+            <button class="trend-btn"        data-aplatform="xhs"  onclick="switchAnalysis('xhs')"  style="--c:#ff2442">📕 小红书</button>
+            <button class="trend-btn"        data-aplatform="sph"  onclick="switchAnalysis('sph')"  style="--c:#07c160">▶️ 视频号</button>
+            <button class="trend-btn"        data-aplatform="ks"   onclick="switchAnalysis('ks')"   style="--c:#ff6200">⚡ 快手</button>
+          </div>
+          <div id="analysis-editor-wrap"></div>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title" id="boom-card-title" style="display:flex;align-items:center;gap:8px">
           <span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span>
           <span class="editable-goal editable-name" onclick="boomEditTitle()" title="点击修改标题" id="boom-title-text">爆款内容</span>
