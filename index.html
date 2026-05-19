@@ -1043,8 +1043,7 @@ function calRender() {
           onblur="calEditNote('${key}',${ri},this.value)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
           placeholder="">${val}</textarea>
-        <button class="cal-paint-btn" title="修改颜色"
-          onmousedown="calQuickColor('${cellId}',event)">🎨</button>
+
       </td>`;
     }).join('');
     return `<tr>
