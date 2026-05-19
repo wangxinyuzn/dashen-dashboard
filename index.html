@@ -954,7 +954,9 @@ function boomUploadImg(id) {
 // ====== 营销日历（横向表格）======
 const CAL_KEY = 'dashen_mkt_cal';
 const CAL_DAYS   = 15;
-const CAL_ROWS   = 5; // 事项行数
+const CAL_ROWS_KEY = 'dashen_cal_rows';
+function calGetRows() { return parseInt(localStorage.getItem(CAL_ROWS_KEY) || '5'); }
+function calSetRows(n) { localStorage.setItem(CAL_ROWS_KEY, n); }
 const CAL_LABELS_KEY = 'dashen_cal_labels';
 function calLoadLabels() {
   try { return JSON.parse(localStorage.getItem(CAL_LABELS_KEY) || '[]'); } catch(e) { return []; }
@@ -1008,7 +1010,8 @@ function calRender() {
   }).join('');
 
   // ── 事项行（支持合并/颜色恢复）──
-  const noteRows = Array.from({length: CAL_ROWS}, (_, ri) => {
+  const rowCount  = calGetRows();
+  const noteRows = Array.from({length: rowCount}, (_, ri) => {
     // 收集被合并掉（隐藏）的单元格 key 集合
     const hiddenKeys = new Set();
     Object.entries(calMerge).forEach(([mk, mv]) => {
@@ -1078,6 +1081,18 @@ function calRender() {
 
   // 重新绑定交互
   calBindCellEvents();
+}
+
+
+function calAddRow() {
+  calSetRows(calGetRows() + 1);
+  calRender();
+}
+function calRemoveRow() {
+  const n = calGetRows();
+  if(n <= 1) return;
+  calSetRows(n - 1);
+  calRender();
 }
 
 function calEditNote(dateKey, rowIdx, val) {
