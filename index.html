@@ -1025,8 +1025,13 @@ function calRender() {
       const mergeInfo = calMerge[cellId];
       const colspan   = mergeInfo ? mergeInfo.keys.length : 1;
 
-      // 颜色
-      const bgColor = calColors[cellId] || (isToday ? '#fff9fc' : '');
+      // 颜色：手动色 > 自动色（有内容时） > 今天底色
+      let bgColor = calColors[cellId];
+      if(!bgColor) {
+        const noteVal = (data[key] || [])[ri] || '';
+        if(noteVal.trim()) bgColor = CAL_ROW_AUTO_COLORS[ri % CAL_ROW_AUTO_COLORS.length];
+        else if(isToday) bgColor = '#fff9fc';
+      }
       const styleStr = bgColor ? `background:${bgColor}` : '';
 
       const notes = data[key] || [];
@@ -1082,11 +1087,43 @@ function calEditNote(dateKey, rowIdx, val) {
   while(data[dateKey].length <= rowIdx) data[dateKey].push('');
   data[dateKey][rowIdx] = val;
   calSave(data);
+
+  // 自动上色：有文字 → 预设行色；清空 → 移除自动色
+  const cellId = `cal-cell-${rowIdx}-${dateKey}`;
+  const colors = calLoadColors();
+  const isManual = colors[cellId] && !colors[cellId + '__auto']; // 手动上色过
+  if(!isManual) {
+    if(val.trim()) {
+      const autoColor = CAL_ROW_AUTO_COLORS[rowIdx % CAL_ROW_AUTO_COLORS.length];
+      colors[cellId] = autoColor;
+      colors[cellId + '__auto'] = '1'; // 标记为自动色
+    } else {
+      delete colors[cellId];
+      delete colors[cellId + '__auto'];
+    }
+    calSaveColors(colors);
+  }
+
+  // 实时更新 DOM，无需重新渲染整个日历
+  const td = document.getElementById(cellId);
+  if(td) {
+    const finalColor = colors[cellId];
+    td.style.background = finalColor || '';
+  }
 }
 
 // ============================================================
 // 营销日历 — 单元格合并 & 颜色编辑
 // ============================================================
+
+// 有内容时自动上色的预设（按行索引，可被手动颜色覆盖）
+const CAL_ROW_AUTO_COLORS = [
+  '#fff7e6',  // 事项1 - 浅橙
+  '#f6ffed',  // 事项2 - 浅绿
+  '#e6f4ff',  // 事项3 - 浅蓝
+  '#fff0f6',  // 事项4 - 浅粉
+  '#f9f0ff',  // 事项5 - 浅紫
+];
 const CAL_MERGE_KEY  = 'dashen_cal_merge';
 const CAL_COLORS_KEY = 'dashen_cal_colors';
 
@@ -1251,6 +1288,7 @@ function calApplyColor(color) {
   const colors = calLoadColors();
   _calSelected.forEach(td => {
     td.style.background = color;
+    delete colors[td.id + '__auto']; // 标记为手动色
     colors[td.id] = color;
   });
   calSaveColors(colors);
