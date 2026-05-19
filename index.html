@@ -166,6 +166,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .cal-htable tr:hover .row-label{background:#fff0f6;color:#eb2f96}
 .cal-label-input{width:100%;border:none;background:transparent;font-size:12px;color:#666;font-weight:600;text-align:center;outline:none;padding:2px;font-family:inherit;cursor:pointer;border-radius:3px}
 .cal-label-input:focus{background:#fff0f6;color:#eb2f96;cursor:text;box-shadow:0 0 0 1.5px #ffadd2}
+/* 单元格合并&颜色 */
+.cal-selected{outline:2px solid #eb2f96 !important;outline-offset:-2px;z-index:1;position:relative}
+#cal-toolbar{position:fixed;z-index:9999;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:340px}
+#cal-toolbar .cal-tb-swatch{width:20px;height:20px;border-radius:4px;border:1px solid #ccc;cursor:pointer;display:inline-block;flex-shrink:0;transition:transform .1s}
+#cal-toolbar .cal-tb-swatch:hover{transform:scale(1.25);border-color:#eb2f96}
+#cal-toolbar .cal-tb-btn{font-size:12px;padding:3px 9px;border-radius:6px;border:1px solid #d9d9d9;background:#fafafa;cursor:pointer;white-space:nowrap;transition:background .15s}
+#cal-toolbar .cal-tb-btn:hover:not(:disabled){background:#fff0f6;border-color:#eb2f96;color:#eb2f96}
+#cal-toolbar .cal-tb-btn:disabled{opacity:.38;cursor:not-allowed}
+#cal-toolbar .cal-tb-close{margin-left:2px;font-size:14px;line-height:1;background:none;border:none;cursor:pointer;color:#aaa;padding:2px 4px;border-radius:4px}
+#cal-toolbar .cal-tb-close:hover{color:#eb2f96}
+#cal-toolbar label.cal-tb-color-pick{display:flex;align-items:center;gap:3px;font-size:11px;color:#888;cursor:pointer}
+#cal-toolbar input[type=color]{width:22px;height:22px;border:none;padding:0;cursor:pointer;border-radius:4px;background:none}
 
 /* 流量分析编辑器 */
 .analysis-editor{width:100%;min-height:140px;border:1.5px solid #f0eaff;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfbff;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
@@ -883,6 +895,11 @@ function calRender() {
   const data  = calLoad();
   const days  = calGetDays();
 
+  // ── 读取合并&颜色持久化状态 ──
+  let calMerge, calColors;
+  try { calMerge  = JSON.parse(localStorage.getItem('dashen_cal_merge')  || '{}'); } catch(e){ calMerge={}; }
+  try { calColors = JSON.parse(localStorage.getItem('dashen_cal_colors') || '{}'); } catch(e){ calColors={}; }
+
   // ── 表头行：日期 ──
   const dateHeaders = days.map(({d, isToday, dow}) => {
     const isWeekend = dow===0||dow===6;
@@ -899,13 +916,33 @@ function calRender() {
     return `<td class="${cls}">${WEEKDAYS_SHORT[dow]}</td>`;
   }).join('');
 
-  // ── 事项行 ──
+  // ── 事项行（支持合并/颜色恢复）──
   const noteRows = Array.from({length: CAL_ROWS}, (_, ri) => {
+    // 收集被合并掉（隐藏）的单元格 key 集合
+    const hiddenKeys = new Set();
+    Object.entries(calMerge).forEach(([mk, mv]) => {
+      if(mv && mv.row === ri && Array.isArray(mv.keys)) {
+        mv.keys.slice(1).forEach(k => hiddenKeys.add(k));
+      }
+    });
+
     const cells = days.map(({key, isToday}) => {
+      const cellId = `cal-cell-${ri}-${key}`;
+      if(hiddenKeys.has(key)) return ''; // 被合并掉，跳过
+
+      // 检查是否是合并主单元格
+      const mergeInfo = calMerge[cellId];
+      const colspan   = mergeInfo ? mergeInfo.keys.length : 1;
+
+      // 颜色
+      const bgColor = calColors[cellId] || (isToday ? '#fff9fc' : '');
+      const styleStr = bgColor ? `background:${bgColor}` : '';
+
       const notes = data[key] || [];
       const val   = (notes[ri] || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-      const todayCls = isToday ? 'style="background:#fff9fc"' : '';
-      return `<td class="note-cell" ${todayCls}>
+      const colspanAttr = colspan > 1 ? ` colspan="${colspan}"` : '';
+
+      return `<td id="${cellId}" class="note-cell" data-row="${ri}" data-key="${key}"${colspanAttr} style="${styleStr}">
         <textarea class="cal-note-input" rows="1"
           onblur="calEditNote('${key}',${ri},this.value)"
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
@@ -941,6 +978,9 @@ function calRender() {
       </tbody>
     </table>
   </div>`;
+
+  // 重新绑定交互
+  calBindCellEvents();
 }
 
 function calEditNote(dateKey, rowIdx, val) {
@@ -950,6 +990,309 @@ function calEditNote(dateKey, rowIdx, val) {
   data[dateKey][rowIdx] = val;
   calSave(data);
 }
+
+// ============================================================
+// 营销日历 — 单元格合并 & 颜色编辑
+// ============================================================
+const CAL_MERGE_KEY  = 'dashen_cal_merge';
+const CAL_COLORS_KEY = 'dashen_cal_colors';
+
+function calLoadMerge()  { try { return JSON.parse(localStorage.getItem(CAL_MERGE_KEY)  || '{}'); } catch(e){ return {}; } }
+function calLoadColors() { try { return JSON.parse(localStorage.getItem(CAL_COLORS_KEY) || '{}'); } catch(e){ return {}; } }
+function calSaveMerge(d)  { localStorage.setItem(CAL_MERGE_KEY,  JSON.stringify(d)); }
+function calSaveColors(d) { localStorage.setItem(CAL_COLORS_KEY, JSON.stringify(d)); }
+
+// 当前选中的单元格 Set（存 td 元素）
+let _calSelected = new Set();
+let _calDragStart = null;   // 拖拽起始 td
+let _calDragging  = false;
+
+// 工具栏颜色列表
+const CAL_SWATCHES = [
+  {color:'#ffffff', label:'白'},
+  {color:'#fffbe6', label:'浅黄'},
+  {color:'#f6ffed', label:'浅绿'},
+  {color:'#e6f7ff', label:'浅蓝'},
+  {color:'#fff0f6', label:'浅粉'},
+  {color:'#f9f0ff', label:'浅紫'},
+  {color:'#fff7e6', label:'浅橙'},
+  {color:'#f5f5f5', label:'浅灰'},
+];
+
+function calGetOrCreateToolbar() {
+  let tb = document.getElementById('cal-toolbar');
+  if(!tb) {
+    tb = document.createElement('div');
+    tb.id = 'cal-toolbar';
+    tb.style.display = 'none';
+    // 颜色格子
+    const swatchWrap = document.createElement('div');
+    swatchWrap.style.cssText = 'display:flex;align-items:center;gap:4px;flex-shrink:0';
+    CAL_SWATCHES.forEach(({color, label}) => {
+      const s = document.createElement('span');
+      s.className = 'cal-tb-swatch';
+      s.title = label;
+      s.style.background = color;
+      s.dataset.color = color;
+      s.addEventListener('click', e => { e.stopPropagation(); calApplyColor(color); });
+      swatchWrap.appendChild(s);
+    });
+    // 自定义取色器
+    const pickLabel = document.createElement('label');
+    pickLabel.className = 'cal-tb-color-pick';
+    pickLabel.title = '自定义颜色';
+    const pickInput = document.createElement('input');
+    pickInput.type = 'color';
+    pickInput.value = '#ffd6e7';
+    pickInput.id = 'cal-tb-colorpick';
+    pickInput.addEventListener('input', e => { e.stopPropagation(); calApplyColor(e.target.value); });
+    pickLabel.appendChild(pickInput);
+    swatchWrap.appendChild(pickLabel);
+
+    tb.appendChild(swatchWrap);
+
+    // 分隔
+    const sep = document.createElement('span');
+    sep.style.cssText = 'width:1px;height:20px;background:#eee;flex-shrink:0';
+    tb.appendChild(sep);
+
+    // 合并按钮
+    const mergeBtn = document.createElement('button');
+    mergeBtn.className = 'cal-tb-btn';
+    mergeBtn.id = 'cal-tb-merge';
+    mergeBtn.textContent = '合并';
+    mergeBtn.addEventListener('click', e => { e.stopPropagation(); calDoMerge(); });
+    tb.appendChild(mergeBtn);
+
+    // 拆分按钮
+    const splitBtn = document.createElement('button');
+    splitBtn.className = 'cal-tb-btn';
+    splitBtn.id = 'cal-tb-split';
+    splitBtn.textContent = '拆分';
+    splitBtn.addEventListener('click', e => { e.stopPropagation(); calDoSplit(); });
+    tb.appendChild(splitBtn);
+
+    // 关闭
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'cal-tb-close';
+    closeBtn.innerHTML = '✕';
+    closeBtn.title = '关闭';
+    closeBtn.addEventListener('click', e => { e.stopPropagation(); calClearSelection(); });
+    tb.appendChild(closeBtn);
+
+    document.body.appendChild(tb);
+
+    // 点击外部关闭
+    document.addEventListener('mousedown', e => {
+      if(!tb.contains(e.target) && !e.target.closest('.note-cell')) {
+        calClearSelection();
+      }
+    });
+  }
+  return tb;
+}
+
+function calShowToolbar() {
+  const tb = calGetOrCreateToolbar();
+  if(_calSelected.size === 0) { tb.style.display = 'none'; return; }
+
+  // 位置：取第一个选中单元格的 rect
+  const first = Array.from(_calSelected)[0];
+  const rect  = first.getBoundingClientRect();
+  const tbH   = 48;
+  let top  = rect.top - tbH - 8 + window.scrollY;
+  if(top < 8) top = rect.bottom + 8 + window.scrollY;
+  let left = rect.left + window.scrollX;
+  const maxLeft = window.innerWidth - 350;
+  if(left > maxLeft) left = maxLeft;
+  if(left < 8) left = 8;
+
+  tb.style.display   = 'flex';
+  tb.style.top       = top + 'px';
+  tb.style.left      = left + 'px';
+
+  // 更新按钮可用状态
+  const allSameRow = calSelectedSameRow();
+  const hasMerged  = Array.from(_calSelected).some(td => {
+    const merge = calLoadMerge();
+    return !!merge[td.id];
+  });
+  document.getElementById('cal-tb-merge').disabled = !allSameRow || _calSelected.size < 2;
+  document.getElementById('cal-tb-split').disabled = !hasMerged;
+}
+
+function calSelectedSameRow() {
+  if(_calSelected.size < 2) return false;
+  const rows = new Set(Array.from(_calSelected).map(td => td.dataset.row));
+  return rows.size === 1;
+}
+
+function calClearSelection() {
+  _calSelected.forEach(td => td.classList.remove('cal-selected'));
+  _calSelected.clear();
+  const tb = document.getElementById('cal-toolbar');
+  if(tb) tb.style.display = 'none';
+}
+
+function calApplyColor(color) {
+  if(_calSelected.size === 0) return;
+  const colors = calLoadColors();
+  _calSelected.forEach(td => {
+    td.style.background = color;
+    colors[td.id] = color;
+  });
+  calSaveColors(colors);
+}
+
+function calDoMerge() {
+  if(!calSelectedSameRow() || _calSelected.size < 2) return;
+  // 按 DOM 顺序排列选中的 td（通过在 tr 中的 cellIndex 排序）
+  const tds = Array.from(_calSelected).sort((a, b) => {
+    // 用单元格在 tr 中的位置排序
+    const cells = Array.from(a.parentElement.cells);
+    return cells.indexOf(a) - cells.indexOf(b);
+  });
+  const mainTd = tds[0];
+  const mainId = mainTd.id;
+  const keys   = tds.map(td => td.dataset.key);
+
+  const merge  = calLoadMerge();
+  const colors = calLoadColors();
+
+  // 存合并信息：主单元格 id → { row, keys }
+  merge[mainId] = { row: parseInt(mainTd.dataset.row), keys };
+  calSaveMerge(merge);
+
+  // 保留主单元格颜色（如有）
+  if(mainTd.style.background) colors[mainId] = mainTd.style.background;
+  calSaveColors(colors);
+
+  calClearSelection();
+  calRender();
+}
+
+function calDoSplit() {
+  const merge = calLoadMerge();
+  let changed = false;
+  _calSelected.forEach(td => {
+    if(merge[td.id]) {
+      delete merge[td.id];
+      changed = true;
+    }
+  });
+  if(changed) {
+    calSaveMerge(merge);
+    calClearSelection();
+    calRender();
+  }
+}
+
+// 右键菜单：拆分
+function calContextMenu(e, tdId) {
+  e.preventDefault();
+  const td = document.getElementById(tdId);
+  if(!td) return;
+  const merge = calLoadMerge();
+  if(!merge[tdId]) return; // 只对合并单元格显示拆分菜单
+
+  // 选中该单元格，触发工具栏拆分
+  calClearSelection();
+  td.classList.add('cal-selected');
+  _calSelected.add(td);
+  calShowToolbar();
+}
+
+// 绑定事件（calRender 结束后调用）
+function calBindCellEvents() {
+  const table = document.querySelector('#mkt-calendar .cal-htable');
+  if(!table) return;
+
+  // 利用事件委托绑定在 tbody 上
+  const tbody = table.querySelector('tbody');
+  if(!tbody) return;
+
+  tbody.addEventListener('mousedown', calOnCellMousedown);
+  tbody.addEventListener('mouseover', calOnCellMouseover);
+  tbody.addEventListener('mouseup',   calOnCellMouseup);
+  tbody.addEventListener('contextmenu', calOnCellContext);
+}
+
+function calGetNoteTd(e) {
+  return e.target.closest('td.note-cell');
+}
+
+function calOnCellMousedown(e) {
+  const td = calGetNoteTd(e);
+  if(!td) return;
+
+  if(e.shiftKey && _calSelected.size > 0) {
+    // Shift+点击：扩展选区（同行）
+    const anchor = Array.from(_calSelected)[0];
+    if(anchor && anchor.parentElement === td.parentElement) {
+      const cells = Array.from(td.parentElement.querySelectorAll('td.note-cell'));
+      const ai = cells.indexOf(anchor), bi = cells.indexOf(td);
+      const [lo, hi] = [Math.min(ai,bi), Math.max(ai,bi)];
+      calClearSelection();
+      cells.slice(lo, hi+1).forEach(c => { c.classList.add('cal-selected'); _calSelected.add(c); });
+      calShowToolbar();
+      e.preventDefault();
+      return;
+    }
+  }
+
+  // 普通点击：开始拖拽选择
+  _calDragStart = td;
+  _calDragging  = true;
+  calClearSelection();
+  td.classList.add('cal-selected');
+  _calSelected.add(td);
+  // 不 preventDefault 以允许 textarea focus
+}
+
+function calOnCellMouseover(e) {
+  if(!_calDragging || !_calDragStart) return;
+  const td = calGetNoteTd(e);
+  if(!td) return;
+  if(td.parentElement !== _calDragStart.parentElement) return; // 只同行
+
+  // 重新计算从 start 到当前的范围
+  const cells = Array.from(td.parentElement.querySelectorAll('td.note-cell'));
+  const ai = cells.indexOf(_calDragStart), bi = cells.indexOf(td);
+  const [lo, hi] = [Math.min(ai,bi), Math.max(ai,bi)];
+
+  _calSelected.forEach(c => c.classList.remove('cal-selected'));
+  _calSelected.clear();
+  cells.slice(lo, hi+1).forEach(c => { c.classList.add('cal-selected'); _calSelected.add(c); });
+}
+
+function calOnCellMouseup(e) {
+  if(!_calDragging) return;
+  _calDragging  = false;
+  _calDragStart = null;
+  if(_calSelected.size > 0) calShowToolbar();
+}
+
+function calOnCellContext(e) {
+  const td = calGetNoteTd(e);
+  if(!td) return;
+  const merge = calLoadMerge();
+  if(merge[td.id]) {
+    e.preventDefault();
+    calClearSelection();
+    td.classList.add('cal-selected');
+    _calSelected.add(td);
+    calShowToolbar();
+  }
+}
+
+// mouseup 结束拖拽（即使移出 tbody）
+document.addEventListener('mouseup', () => {
+  if(_calDragging) {
+    _calDragging = false;
+    _calDragStart = null;
+    if(_calSelected.size > 0) calShowToolbar();
+  }
+});
 
 
 // ====== 流量分析 ======
