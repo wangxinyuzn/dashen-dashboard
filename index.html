@@ -1799,7 +1799,7 @@ function renderGoalRows(qRows) {
 
   function goalCard(g, i) {
     const realIdx = goals.indexOf(g);
-    const pctColor = parseFloat(g._pct) >= 80 ? '#52c41a' : parseFloat(g._pct) >= 50 ? '#fa8c16' : '#ff4d4f';
+    const _p = parseFloat(g._pct); const pctColor = _p >= 70 ? '#eb2f96' : _p >= 49 ? '#fa8c16' : '#aaaaaa';
     const barBg    = parseFloat(g._pct) < 30 ? 'linear-gradient(90deg,#ff7875,#ff4d4f)'
                    : parseFloat(g._pct) < 70 ? 'linear-gradient(90deg,#ffa940,#ffca00)'
                    : 'linear-gradient(90deg,#95de64,#52c41a)';
