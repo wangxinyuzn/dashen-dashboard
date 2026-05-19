@@ -219,7 +219,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .goal-card-row.play-row{grid-template-columns:1fr 1fr}
 .goal-card-row.boom-row{grid-template-columns:1fr 1fr 1fr 1fr}
 /* 左右两栏总布局 */
-.goal-layout{display:grid;grid-template-columns:auto 1fr 120px 1fr auto;gap:16px;align-items:center}
+.goal-layout{display:grid;grid-template-columns:auto 1fr 120px auto 1fr;gap:16px;align-items:center}
 .goal-col{display:flex;flex-direction:column;gap:12px}
 .goal-col .goal-card{margin:0}
 @media(max-width:768px){.goal-layout{grid-template-columns:1fr}}
@@ -1859,14 +1859,14 @@ function renderGoalRows(qRows) {
         ${playGoals.map(g=>goalCard(g,0)).join('')}
       </div>
       <div></div>
+      <div style="display:flex;align-items:center;justify-content:center">
+        <img src="http://upload.zhenguanyu.com/uploads/698dc1fd_10.png" style="width:110px;height:auto;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.12))" alt="琵琶IP">
+      </div>
       <div class="goal-col">
         <p class="goal-section-label">🔥 爆款目标</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           ${boomGoals.map(g=>goalCard(g,0)).join('')}
         </div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:center">
-        <img src="http://upload.zhenguanyu.com/uploads/698dc1fd_10.png" style="width:110px;height:auto;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.12))" alt="琵琶IP">
       </div>
     </div>
   `;
