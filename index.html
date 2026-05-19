@@ -220,13 +220,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .goal-card-row.boom-row{grid-template-columns:1fr 1fr 1fr 1fr}
 .goal-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);position:relative;overflow:hidden;transition:box-shadow .2s}
 .goal-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)}
-.goal-card .gc-label{font-size:12px;color:#888;margin-bottom:10px;display:flex;align-items:center;gap:4px}
-.goal-card .gc-cur{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
-.goal-card .gc-boom-cur{font-size:36px;font-weight:700;line-height:1;margin-bottom:4px}
-.goal-card .gc-goal{font-size:12px;color:#bbb;margin-bottom:10px}
-.goal-card .gc-bar-wrap{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-bottom:6px}
+.goal-card .gc-label{font-size:11px;color:#aaa;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.goal-card .gc-pct{font-size:44px;font-weight:800;line-height:1;margin-bottom:6px;letter-spacing:-1px}
+.goal-card .gc-cur{font-size:13px;font-weight:600;line-height:1.4}
+.goal-card .gc-boom-cur{font-size:13px;font-weight:600;line-height:1.4}
+.goal-card .gc-goal{font-size:11px;color:#bbb;margin-bottom:8px}
+.goal-card .gc-bar-wrap{height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-bottom:4px}
 .goal-card .gc-bar{height:100%;border-radius:3px;transition:width 1s ease}
-.goal-card .gc-pct{font-size:12px;font-weight:600}
 .goal-card .gc-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
 @media(max-width:768px){.goal-card-row.play-row{grid-template-columns:1fr 1fr}.goal-card-row.boom-row{grid-template-columns:1fr 1fr}}
 
@@ -1758,10 +1758,12 @@ function renderGoalRows(qRows) {
         <div class="gc-label">
           <span class="editable-goal editable-name" onclick="editGoalItem(${realIdx},'name')" title="点击修改名称">${g.name}</span>
         </div>
-        <div class="gc-cur" style="color:${accentColor}">${curW}<span style="font-size:14px;font-weight:400;margin-left:2px">W</span></div>
-        <div class="gc-goal">目标：<span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${goalW}W</span></div>
+        <div class="gc-pct" style="color:${pctColor}">${g._pct}<span style="font-size:20px;font-weight:600">%</span></div>
         <div class="gc-bar-wrap"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
-        <div class="gc-pct" style="color:${pctColor}">${g._pct}%</div>
+        <div class="gc-cur" style="color:${accentColor}">
+          ${curW}W
+          <span style="color:#bbb;font-weight:400;font-size:11px;margin-left:4px">/ 目标 <span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${goalW}W</span></span>
+        </div>
       </div>`;
     } else {
       return `<div class="goal-card">
@@ -1769,12 +1771,12 @@ function renderGoalRows(qRows) {
         <div class="gc-label">
           <span class="editable-goal editable-name" onclick="editGoalItem(${realIdx},'name')" title="点击修改名称">${g.name}</span>
         </div>
+        <div class="gc-pct" style="color:${pctColor}">${g._pct}<span style="font-size:20px;font-weight:600">%</span></div>
+        <div class="gc-bar-wrap"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
         <div class="gc-boom-cur" style="color:${accentColor}">
           <span class="editable-goal" onclick="editGoalItem(${realIdx},'cur')" title="点击修改完成数">${g._cur}</span>
-          <span style="font-size:14px;font-weight:400;color:#bbb;margin-left:2px">/ <span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${g.goal}</span>${g.unit}</span>
+          <span style="color:#bbb;font-weight:400;font-size:11px;margin-left:4px">/ <span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${g.goal}</span>${g.unit}</span>
         </div>
-        <div class="gc-bar-wrap" style="margin-top:10px"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
-        <div class="gc-pct" style="color:${pctColor}">${g._pct}%</div>
       </div>`;
     }
   }
