@@ -104,8 +104,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <span class="sep">至</span>
   <input type="date" id="date-end" value="2025-05-18">
   <div class="preset-btns">
-    <button class="preset-btn active" onclick="applyPreset(this,'last-week')">上周三~本周二</button>
-    <button class="preset-btn" onclick="applyPreset(this,'this-week')">最近7天</button>
+    <button class="preset-btn active" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
+    <button class="preset-btn" onclick="applyPreset(this,'this-week')">本周至今</button>
     <button class="preset-btn" onclick="applyPreset(this,'last-30')">最近30天</button>
     <button class="preset-btn" onclick="applyPreset(this,'q2')">Q2至今</button>
     <button class="preset-btn" onclick="applyPreset(this,'all')">全部</button>
@@ -316,11 +316,29 @@ function applyPreset(btn, mode) {
   const max = DATA_MAX;
   let s, e;
   if(mode === 'last-week') {
-    // 以最新日期为本周二，往前找上周三
-    e = max;
-    s = addDays(e, -6);
+    // 上周自然周：周一~周日
+    // 以最新数据日期为基准，找上一个完整自然周
+    const maxDate = new Date(DATA_MAX);
+    const dow = maxDate.getDay(); // 0=周日,1=周一...6=周六
+    // 找到上周日（最近过去的周日）
+    const lastSun = new Date(maxDate);
+    // 如果今天是周日(0)，上周日是7天前；否则往回找到最近的周日
+    const daysToLastSun = dow === 0 ? 7 : dow;
+    lastSun.setDate(maxDate.getDate() - daysToLastSun);
+    const lastMon = new Date(lastSun);
+    lastMon.setDate(lastSun.getDate() - 6);
+    e = dateStr(lastSun);
+    s = dateStr(lastMon);
   } else if(mode === 'this-week') {
-    e = max; s = addDays(e, -6);
+    // 本周至今：本周一~最新数据日期
+    const maxDate = new Date(DATA_MAX);
+    const dow = maxDate.getDay();
+    const thisMon = new Date(maxDate);
+    // 周日(0)视为上周，往回6天得到周一
+    const daysToMon = dow === 0 ? 6 : dow - 1;
+    thisMon.setDate(maxDate.getDate() - daysToMon);
+    s = dateStr(thisMon);
+    e = DATA_MAX;
   } else if(mode === 'last-30') {
     e = max; s = addDays(e, -29);
   } else if(mode === 'q2') {
