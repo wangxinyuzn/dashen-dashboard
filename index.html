@@ -300,6 +300,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="sidebar-item" onclick="scrollToSection('sec-todo',this)">✅ 本周 TO DO</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
     </div>
+    <div style="padding:12px 8px 0;border-top:1px solid #f0f0f0;margin-top:12px">
+      <button onclick="exportUserData()" style="width:100%;padding:8px 0;background:linear-gradient(135deg,#4f6ef7,#722ed1);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.3px">📤 同步内容到看板</button>
+      <div id="sync-tip" style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5;text-align:center"></div>
+    </div>
   </div>
   <div class="content">
 
@@ -1950,8 +1954,72 @@ function switchTab(idx) {
   if(idx === 1) fetchHotNews(false);
 }
 
+
+// ============================================================
+// 同步用户数据到看板
+// ============================================================
+function exportUserData() {
+  const KEYS = [
+    'dashen_todos',
+    'dashen_boom_rows',
+    'dashen_boom_title',
+    'BOOM_TITLE_KEY',
+    'dashen_analysis',
+    'dashen_mkt_cal',
+    'dashen_cal_labels',
+    'dashen_cal_merge',
+    'dashen_cal_colors',
+    'dashen_cal_rows',
+    'dashen_collapse',
+  ];
+  // 目标相关 key（动态）
+  for(let i = 0; i < 10; i++) {
+    ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
+  }
+
+  const data = {};
+  KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if(v !== null) data[k] = v;
+  });
+
+  const json = JSON.stringify(data);
+  const encoded = btoa(unescape(encodeURIComponent(json)));
+
+  // 复制到剪贴板
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(encoded).then(() => {
+      document.getElementById('sync-tip').innerHTML = '✅ 已复制！<br>粘贴发给 Bot 即可同步';
+    }).catch(() => fallbackCopy(encoded));
+  } else {
+    fallbackCopy(encoded);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  document.getElementById('sync-tip').innerHTML = '✅ 已复制！<br>粘贴发给 Bot 即可同步';
+}
+
+// USER_DATA_INJECT_START
+const BAKED_USER_DATA = null;
+// USER_DATA_INJECT_END
+
 // 初始化
 window.addEventListener('load', () => {
+  // 读取烘焙数据，优先用 localStorage（本地编辑优先），没有时用烘焙数据
+  if(BAKED_USER_DATA) {
+    Object.entries(BAKED_USER_DATA).forEach(([k, v]) => {
+      if(localStorage.getItem(k) === null) localStorage.setItem(k, v);
+    });
+  }
+  
   todoRender();
   boomRender();
   calRender();
