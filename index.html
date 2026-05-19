@@ -34,10 +34,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .tab-item:hover{color:#4f6ef7}
 
 .main{display:flex;min-height:calc(100vh - 140px)}
-.sidebar{width:150px;background:#fff;border-right:1px solid #eee;padding:16px 0;flex-shrink:0}
+.sidebar{width:160px;background:#fff;border-right:1px solid #eee;padding:16px 0;flex-shrink:0;overflow-y:auto;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 110px)}
 .sidebar-label{font-size:11px;color:#999;padding:4px 16px 8px;letter-spacing:.5px}
-.sidebar-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:#555;cursor:pointer;border-left:3px solid transparent}
-.sidebar-item.active{color:#4f6ef7;background:#f0f3ff;border-left-color:#4f6ef7;font-weight:500}
+.sidebar-item{display:flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;color:#666;cursor:pointer;border-left:3px solid transparent;transition:all .15s;border-radius:0 6px 6px 0;margin-right:8px}
+.sidebar-item.active{color:#4f6ef7;background:#f0f3ff;border-left-color:#4f6ef7;font-weight:600}
+.sidebar-item:hover{background:#f5f7ff;color:#4f6ef7}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .content{flex:1;padding:20px 24px;overflow-y:auto}
 .page{display:none}.page.active{display:block}
@@ -284,24 +285,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 </div>
 
 <div class="main">
-  <div class="sidebar">
-    <div class="sidebar-label">板块</div>
-    <div class="sidebar-item active" onclick="switchTab(1)">
-      <span class="dot" style="background:#4f6ef7"></span> 短视频官号
+  <div class="sidebar" id="sidebar">
+    <div id="sidebar-overview-nav">
+      <div class="sidebar-label">数据总览</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-goal',this)">🎯 目标完成</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-kpi',this)">📊 平台数据</div>
+      <div class="sidebar-item" onclick="scrollToSection('overview-trend-card',this)">📈 流量趋势</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-analysis',this)">🔍 流量分析</div>
+      <div class="sidebar-item" onclick="scrollToSection('boom-card-title',this)">🔥 爆款内容</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-todo',this)">✅ 本周 TO DO</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
     </div>
-
   </div>
   <div class="content">
 
     <!-- 总览 -->
     <div class="page active" id="page-0">
       <div class="period-badge">当前周期：<span class="cur" id="overview-period">-</span></div>
-      <div class="card">
+      <div class="card" id="sec-goal">
         <div class="card-title"><span class="bar-icon"></span> 目标完成情况 <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:6px">（本季度累计 · 点击名称或目标值可修改）</span></div>
         <div id="goal-rows"></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="sec-kpi">
         <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span> 各平台核心数据</div>
         <div class="kpi-grid" id="overview-kpi"></div>
       </div>
@@ -320,7 +326,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
         <div class="chart-wrap" style="height:240px"><canvas id="chart-overview-trend"></canvas></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="sec-analysis">
         <div class="card-title" style="display:flex;align-items:center;gap:8px">
           <span class="bar-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb)"></span>
           <span>流量分析 — <span id="analysis-platform-title">全平台</span></span>
@@ -365,7 +371,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="sec-todo">
         <div class="card-title" style="display:flex;align-items:center;gap:8px">
           <span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span>
           <span>本周 TO DO</span>
@@ -377,7 +383,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="sec-cal">
         <div class="card-title" style="display:flex;align-items:center;gap:8px">
           <span class="bar-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c2)"></span>
           <span>营销日历</span>
@@ -1835,9 +1841,21 @@ function editGoal(type) {
   editGoalItem(idx, 'goal');
 }
 
+
+function scrollToSection(id, btn) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  document.querySelectorAll('#sidebar-overview-nav .sidebar-item').forEach(item => item.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function switchTab(idx) {
   document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
   document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  // 侧边栏：总览时显示导航，其他 tab 隐藏
+  const overviewNav = document.getElementById('sidebar-overview-nav');
+  if(overviewNav) overviewNav.style.display = idx === 0 ? 'block' : 'none';
   // 切到抖音时懒加载热点新闻
   if(idx === 1) fetchHotNews(false);
 }
