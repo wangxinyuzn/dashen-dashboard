@@ -164,6 +164,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .cal-note-input:focus{background:#fff5f9;box-shadow:inset 0 0 0 1.5px #ffadd2;border-radius:3px}
 .cal-note-input::placeholder{color:#ddd;font-size:11px}
 .cal-htable tr:hover .row-label{background:#fff0f6;color:#eb2f96}
+.cal-label-input{width:100%;border:none;background:transparent;font-size:12px;color:#666;font-weight:600;text-align:center;outline:none;padding:2px;font-family:inherit;cursor:pointer;border-radius:3px}
+.cal-label-input:focus{background:#fff0f6;color:#eb2f96;cursor:text;box-shadow:0 0 0 1.5px #ffadd2}
 
 /* 流量分析编辑器 */
 .analysis-editor{width:100%;min-height:140px;border:1.5px solid #f0eaff;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfbff;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
@@ -850,6 +852,16 @@ function boomUploadImg(id) {
 const CAL_KEY = 'dashen_mkt_cal';
 const CAL_DAYS   = 15;
 const CAL_ROWS   = 5; // 事项行数
+const CAL_LABELS_KEY = 'dashen_cal_labels';
+function calLoadLabels() {
+  try { return JSON.parse(localStorage.getItem(CAL_LABELS_KEY) || '[]'); } catch(e) { return []; }
+}
+function calSaveLabel(ri, val) {
+  const labels = calLoadLabels();
+  while(labels.length <= ri) labels.push('');
+  labels[ri] = val;
+  localStorage.setItem(CAL_LABELS_KEY, JSON.stringify(labels));
+}
 const WEEKDAYS_SHORT = ['周日','周一','周二','周三','周四','周五','周六'];
 
 function calLoad() {
@@ -901,7 +913,13 @@ function calRender() {
       </td>`;
     }).join('');
     return `<tr>
-      <td class="row-label">事项${ri+1}</td>
+      <td class="row-label" title="点击修改名称">
+        <input class="cal-label-input"
+          value="${(calLoadLabels()[ri]||('事项'+(ri+1))).replace(/"/g,'&quot;')}"
+          onblur="calSaveLabel(${ri},this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()"
+          title="点击修改行名称">
+      </td>
       ${cells}
     </tr>`;
   }).join('');
