@@ -218,6 +218,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .goal-card-row{display:grid;gap:12px;margin-bottom:12px}
 .goal-card-row.play-row{grid-template-columns:1fr 1fr}
 .goal-card-row.boom-row{grid-template-columns:1fr 1fr 1fr 1fr}
+/* 左右两栏总布局 */
+.goal-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.goal-col{display:flex;flex-direction:column;gap:12px}
+.goal-col .goal-card{margin:0}
+@media(max-width:768px){.goal-layout{grid-template-columns:1fr}}
 .goal-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);position:relative;overflow:hidden;transition:box-shadow .2s}
 .goal-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)}
 .goal-card .gc-label{font-size:11px;color:#aaa;margin-bottom:6px;display:flex;align-items:center;gap:4px}
@@ -1793,10 +1798,18 @@ function renderGoalRows(qRows) {
   });
 
   el.innerHTML = `
-    <p class="goal-section-label">播放量目标</p>
-    <div class="goal-card-row play-row">${playGoals.map(g=>goalCard(g,0)).join('')}</div>
-    <p class="goal-section-label">爆款目标</p>
-    <div class="goal-card-row boom-row">${boomGoals.map(g=>goalCard(g,0)).join('')}</div>
+    <div class="goal-layout">
+      <div class="goal-col">
+        <p class="goal-section-label">📹 播放量目标</p>
+        ${playGoals.map(g=>goalCard(g,0)).join('')}
+      </div>
+      <div class="goal-col">
+        <p class="goal-section-label">🔥 爆款目标</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${boomGoals.map(g=>goalCard(g,0)).join('')}
+        </div>
+      </div>
+    </div>
   `;
 }
 
