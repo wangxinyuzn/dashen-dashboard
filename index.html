@@ -86,7 +86,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .hit-name{flex:1;color:#333}.hit-views{color:#4f6ef7;font-weight:600}
 
 .todo-list{display:flex;flex-direction:column;gap:8px}
-.todo-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#fafbff;border-radius:6px;font-size:13px;color:#555}
+.todo-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fafbff;border-radius:6px;font-size:13px;color:#555;transition:background .15s}
+.todo-item:hover{background:#f0f4ff}
+.todo-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#4f6ef7;flex-shrink:0}
+.todo-item .todo-emoji{font-size:15px;cursor:pointer;flex-shrink:0;user-select:none;border-radius:4px;padding:1px 3px}
+.todo-item .todo-emoji:hover{background:#e8edff}
+.todo-item .todo-text{flex:1;border:none;background:transparent;font-size:13px;color:#555;outline:none;cursor:pointer;padding:2px 4px;border-radius:4px;min-width:0}
+.todo-item .todo-text:focus{background:#fff;box-shadow:0 0 0 2px #4f6ef766;cursor:text}
+.todo-item .todo-del{opacity:0;cursor:pointer;color:#bbb;font-size:16px;flex-shrink:0;transition:opacity .15s,color .15s;line-height:1}
+.todo-item:hover .todo-del{opacity:1}
+.todo-item .todo-del:hover{color:#ff4d4f}
+.todo-item.done .todo-text{text-decoration:line-through;color:#bbb}
+.todo-add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;color:#4f6ef7;font-size:13px;cursor:pointer;border-radius:6px;transition:background .15s;user-select:none;margin-top:2px}
+.todo-add-btn:hover{background:#f0f4ff}
 
 @media(max-width:768px){.sidebar{display:none}.kpi-grid{grid-template-columns:1fr 1fr}}
 </style>
@@ -165,13 +177,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
       <div class="card">
         <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span> 本周 TO DO</div>
-        <div class="todo-list">
-          <div class="todo-item"><span style="font-size:15px">🎬</span><span>本周剪辑《火星》主题宣传片一条</span></div>
-          <div class="todo-item"><span style="font-size:15px">🏛️</span><span>5月18日博物馆日，推送《带你认识唐三彩》</span></div>
-          <div class="todo-item"><span style="font-size:15px">🗺️</span><span>5月19日中国旅游日，推送《斑马百科景点推荐》</span></div>
-          <div class="todo-item"><span style="font-size:15px">🎥</span><span>开始《三国演义》拉片</span></div>
-          <div class="todo-item"><span style="font-size:15px">💰</span><span>完成第一季度所有投放还票</span></div>
-        </div>
+        <div class="todo-list" id="todo-list"></div>
+        <div class="todo-add-btn" onclick="todoAdd()">＋ 添加待办</div>
       </div>
     </div>
 
@@ -493,6 +500,89 @@ function applyDateRange() {
   makeChart('chart-xhs',    chartLabels, cur.map(d=>d.xhs_play), pre.map(d=>d.xhs_play), '#ff2442');
   makeChart('chart-sph',    chartLabels, cur.map(d=>d.sph_play), pre.map(d=>d.sph_play), '#07c160');
   makeChart('chart-ks',     chartLabels, cur.map(d=>d.ks_play),  pre.map(d=>d.ks_play),  '#ff6200');
+}
+
+
+// ====== TODO 列表 ======
+const TODO_KEY = 'dashen_todos';
+const TODO_EMOJIS = ['📌','🎬','🏛️','🗺️','🎥','💰','📊','✍️','📢','🔥','🎯','💡','📝','🚀','⚡'];
+
+function todoLoad() {
+  try { return JSON.parse(localStorage.getItem(TODO_KEY)) || todoDefaults(); }
+  catch(e) { return todoDefaults(); }
+}
+function todoDefaults() {
+  return [
+    {id:1, emoji:'🎬', text:'本周剪辑《火星》主题宣传片一条', done:false},
+    {id:2, emoji:'🏛️', text:'5月18日博物馆日，推送《带你认识唐三彩》', done:false},
+    {id:3, emoji:'🗺️', text:'5月19日中国旅游日，推送《斑马百科景点推荐》', done:false},
+    {id:4, emoji:'🎥', text:'开始《三国演义》拉片', done:false},
+    {id:5, emoji:'💰', text:'完成第一季度所有投放还票', done:false},
+  ];
+}
+function todoSave(todos) { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }
+
+function todoRender() {
+  const todos = todoLoad();
+  const el = document.getElementById('todo-list');
+  if(!el) return;
+  el.innerHTML = todos.map(t => `
+    <div class="todo-item${t.done?' done':''}" data-id="${t.id}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="todoToggle(${t.id})">
+      <span class="todo-emoji" onclick="todoChangeEmoji(${t.id})" title="点击换表情">${t.emoji}</span>
+      <input class="todo-text" value="${t.text.replace(/"/g,'&quot;')}" 
+             onblur="todoEdit(${t.id}, this.value)"
+             onkeydown="if(event.key==='Enter'){this.blur();todoAddAfter(${t.id})}"
+             title="点击编辑，Enter 新增下一条">
+      <span class="todo-del" onclick="todoDel(${t.id})" title="删除">×</span>
+    </div>`).join('');
+}
+
+function todoToggle(id) {
+  const todos = todoLoad();
+  const t = todos.find(x=>x.id===id);
+  if(t) { t.done = !t.done; todoSave(todos); todoRender(); }
+}
+function todoEdit(id, val) {
+  const todos = todoLoad();
+  const t = todos.find(x=>x.id===id);
+  if(t && val.trim()) { t.text = val.trim(); todoSave(todos); }
+  else if(t && !val.trim()) { todoRender(); } // 恢复
+}
+function todoDel(id) {
+  const todos = todoLoad().filter(x=>x.id!==id);
+  todoSave(todos); todoRender();
+}
+function todoAdd() {
+  const todos = todoLoad();
+  const newId = Date.now();
+  todos.push({id:newId, emoji:'📌', text:'新建待办', done:false});
+  todoSave(todos); todoRender();
+  // 聚焦新输入框
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#todo-list .todo-text');
+    const last = inputs[inputs.length-1];
+    if(last){ last.select(); last.focus(); }
+  }, 50);
+}
+function todoAddAfter(id) {
+  const todos = todoLoad();
+  const idx = todos.findIndex(x=>x.id===id);
+  const newId = Date.now();
+  todos.splice(idx+1, 0, {id:newId, emoji:'📌', text:'', done:false});
+  todoSave(todos); todoRender();
+  setTimeout(()=>{
+    const items = document.querySelectorAll('#todo-list .todo-text');
+    if(items[idx+1]){ items[idx+1].focus(); }
+  }, 50);
+}
+function todoChangeEmoji(id) {
+  const todos = todoLoad();
+  const t = todos.find(x=>x.id===id);
+  if(!t) return;
+  const cur = TODO_EMOJIS.indexOf(t.emoji);
+  t.emoji = TODO_EMOJIS[(cur+1) % TODO_EMOJIS.length];
+  todoSave(todos); todoRender();
 }
 
 // 目标配置：默认值
