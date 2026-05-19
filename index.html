@@ -184,6 +184,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .analysis-editor:focus{border-color:#b37feb;box-shadow:0 0 0 3px #f9f0ff}
 .analysis-editor::placeholder{color:#d3c4ef}
 .analysis-meta{font-size:11px;color:#bbb;margin-top:6px;text-align:right}
+
+/* 热点新闻 */
+.hot-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
+.hot-item:last-child{border-bottom:none}
+.hot-item:hover{background:#fffbe6;border-radius:6px;padding-left:6px;padding-right:6px;margin:0 -6px}
+.hot-rank{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.hot-rank.r1{background:#ff4d4f;color:#fff}
+.hot-rank.r2{background:#fa8c16;color:#fff}
+.hot-rank.r3{background:#fadb14;color:#333}
+.hot-rank.rn{background:#f0f0f0;color:#999}
+.hot-title{flex:1;font-size:13px;color:#333;line-height:1.5}
+.hot-title a{color:inherit;text-decoration:none}
+.hot-title a:hover{color:#1d7dfa;text-decoration:underline}
+.hot-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:6px;vertical-align:middle}
+.hot-badge.science{background:#e6fffb;color:#08979c}
+.hot-badge.kids{background:#fff0f6;color:#c41d7f}
+.hot-badge.wiki{background:#f0f5ff;color:#2f54eb}
+.hot-heat{font-size:11px;color:#bbb;flex-shrink:0;white-space:nowrap;margin-top:3px}
+.hot-error{color:#ff4d4f;font-size:12px;padding:12px;background:#fff2f0;border-radius:6px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -346,6 +365,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="card">
         <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 每日播放量趋势</div>
         <div class="chart-wrap"><canvas id="chart-douyin"></canvas></div>
+      </div>
+
+      <div class="card" id="hot-news-card">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#ff4d4f,#ff7a45)"></span>
+          <span>🔥 近期社会热点</span>
+          <span style="font-size:11px;color:#aaa;font-weight:400">（优先百科·科普·少儿相关）</span>
+          <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+            <span id="hot-update-time" style="font-size:11px;color:#bbb"></span>
+            <button onclick="fetchHotNews(true)" style="padding:3px 10px;border-radius:12px;border:1px solid #ffbb96;color:#fa541c;background:#fff2e8;font-size:11px;cursor:pointer;font-family:inherit">🔄 刷新</button>
+          </div>
+        </div>
+        <div id="hot-source-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="trend-btn active" data-hsource="weibo"  onclick="switchHotSource('weibo')"  style="--c:#e6162d">微博热搜</button>
+          <button class="trend-btn"        data-hsource="baidu"  onclick="switchHotSource('baidu')"  style="--c:#2932e1">百度热搜</button>
+          <button class="trend-btn"        data-hsource="zhihu"  onclick="switchHotSource('zhihu')"  style="--c:#0084ff">知乎热榜</button>
+        </div>
+        <div id="hot-news-list" style="min-height:80px">
+          <div style="color:#bbb;font-size:13px;padding:20px 0;text-align:center">加载中...</div>
+        </div>
       </div>
     </div>
 
@@ -1353,6 +1392,123 @@ function analysisSaveText(platform, val) {
   if(meta) meta.textContent = val ? `已保存 · ${val.length} 字` : '内容自动保存';
 }
 
+
+// ====== 热点新闻 ======
+const HOT_CACHE_KEY   = 'dashen_hot_cache';
+const HOT_SCIENCE_KWS = ['百科','科普','知识','生物','物理','化学','天文','地理','历史','医学',
+  '动物','植物','宇宙','科学','发现','研究','技术','自然','人体','疾病','健康',
+  '少儿','儿童','孩子','教育','学习','小学','幼儿','亲子','育儿'];
+
+let _curHotSource = 'weibo';
+
+// 多源 API（使用聚合热搜 API，CORS friendly）
+const HOT_APIS = {
+  weibo: 'https://api.vvhan.com/api/hotlist/wbHot',
+  baidu: 'https://api.vvhan.com/api/hotlist/baiduRD',
+  zhihu: 'https://api.vvhan.com/api/hotlist/zhihuHot',
+};
+
+function hotScoreItem(title) {
+  let score = 0;
+  const t = title || '';
+  HOT_SCIENCE_KWS.forEach(kw => { if(t.includes(kw)) score++; });
+  return score;
+}
+
+function hotBadges(title) {
+  const t = title || '';
+  let badges = '';
+  if(['百科','科普','知识','生物','物理','化学','天文','地理','历史','医学',
+      '动物','植物','宇宙','科学','自然','人体','疾病'].some(k=>t.includes(k)))
+    badges += '<span class="hot-badge wiki">百科</span>';
+  if(['少儿','儿童','孩子','小学','幼儿','亲子','育儿','宝宝'].some(k=>t.includes(k)))
+    badges += '<span class="hot-badge kids">少儿</span>';
+  if(['研究','发现','技术','科学','实验','数据'].some(k=>t.includes(k)))
+    badges += '<span class="hot-badge science">科研</span>';
+  return badges;
+}
+
+function switchHotSource(source) {
+  _curHotSource = source;
+  document.querySelectorAll('[data-hsource]').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.hsource === source));
+  fetchHotNews(false);
+}
+
+async function fetchHotNews(forceRefresh) {
+  const el = document.getElementById('hot-news-list');
+  if(!el) return;
+
+  // 检查缓存（10分钟内不重复请求）
+  const cacheKey = HOT_CACHE_KEY + '_' + _curHotSource;
+  if(!forceRefresh) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if(cached && Date.now() - cached.ts < 10 * 60 * 1000) {
+        renderHotNews(cached.data);
+        return;
+      }
+    } catch(e) {}
+  }
+
+  el.innerHTML = '<div style="color:#bbb;font-size:13px;padding:20px 0;text-align:center">🔄 获取热点中...</div>';
+
+  try {
+    const url = HOT_APIS[_curHotSource];
+    const resp = await fetch(url, {signal: AbortSignal.timeout(8000)});
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+
+    // 统一格式：[{title, url, hot}]
+    let items = [];
+    if(Array.isArray(json.data)) {
+      items = json.data.slice(0, 50).map(d => ({
+        title: d.title || d.name || d.word || '',
+        url:   d.url  || d.link || '',
+        hot:   d.hot  || d.desc || '',
+      }));
+    } else if(Array.isArray(json)) {
+      items = json.slice(0,50).map(d => ({
+        title: d.title||d.name||d.word||'', url: d.url||d.link||'', hot: d.hot||d.desc||''
+      }));
+    }
+
+    // 把有科普/百科/少儿标签的排前面
+    items.sort((a,b) => hotScoreItem(b.title) - hotScoreItem(a.title));
+
+    // 缓存
+    localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), data: items}));
+    const timeEl = document.getElementById('hot-update-time');
+    if(timeEl) timeEl.textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    renderHotNews(items);
+  } catch(e) {
+    el.innerHTML = `<div class="hot-error">
+      ⚠️ 获取热点失败（${e.message}）<br>
+      可能是网络限制或跨域问题。<br>
+      <a href="https://weibo.com/hot/search" target="_blank" style="color:#1d7dfa">→ 点此前往微博热搜查看</a>
+    </div>`;
+  }
+}
+
+function renderHotNews(items) {
+  const el = document.getElementById('hot-news-list');
+  if(!el || !items.length) return;
+  const top30 = items.slice(0, 30);
+  el.innerHTML = top30.map((item, i) => {
+    const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    const badges  = hotBadges(item.title);
+    const heatStr = item.hot ? `<span class="hot-heat">${item.hot}</span>` : '';
+    const titleHtml = item.url
+      ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>`
+      : item.title;
+    return `<div class="hot-item">
+      <div class="hot-rank ${rankCls}">${i+1}</div>
+      <div class="hot-title">${titleHtml}${badges}</div>
+      ${heatStr}
+    </div>`;
+  }).join('');
+}
+
 // ====== 折叠功能 ======
 const COLLAPSE_KEY = 'dashen_collapse';
 function toggleCollapse(name) {
@@ -1596,6 +1752,8 @@ function editGoal(type) {
 function switchTab(idx) {
   document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
   document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  // 切到抖音时懒加载热点新闻
+  if(idx === 1) fetchHotNews(false);
 }
 
 // 初始化
