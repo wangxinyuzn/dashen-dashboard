@@ -181,11 +181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div class="sidebar-item active" onclick="switchTab(1)">
       <span class="dot" style="background:#4f6ef7"></span> 短视频官号
     </div>
-    <div style="margin-top:20px">
-      <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:1px;margin-bottom:8px;padding-left:4px">本周 TO DO</div>
-      <div class="todo-list" id="todo-list" style="gap:6px"></div>
-      <div class="todo-add-btn" onclick="todoAdd()" style="padding:6px 4px;font-size:12px">＋ 添加待办</div>
-    </div>
+
   </div>
   <div class="content">
 
@@ -237,6 +233,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
         </div>
         <div class="boom-add-btn" onclick="boomAdd()">＋ 添加爆款</div>
         <input type="file" id="boom-img-input" accept="image/*" style="display:none">
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span> 本周 TO DO</div>
+        <div class="todo-list" id="todo-list"></div>
+        <div class="todo-add-btn" onclick="todoAdd()">＋ 添加待办</div>
       </div>
 
     </div>
