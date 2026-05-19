@@ -1079,6 +1079,27 @@ function calRender() {
     </table>
   </div>`;
 
+  // 按钮行（DOM 插入，避免模板嵌套问题）
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'padding:8px 0 2px;display:flex;align-items:center;gap:8px';
+  const addBtn = document.createElement('button');
+  addBtn.textContent = '＋ 添加事项行';
+  addBtn.style.cssText = 'display:flex;align-items:center;gap:5px;padding:5px 14px;color:#eb2f96;background:#fff0f6;border:1px dashed #ffadd2;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s';
+  addBtn.onmouseover = () => addBtn.style.background = '#ffd6e7';
+  addBtn.onmouseout  = () => addBtn.style.background = '#fff0f6';
+  addBtn.onclick = calAddRow;
+  btnRow.appendChild(addBtn);
+  if(calGetRows() > 1) {
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '－ 删除末行';
+    delBtn.style.cssText = 'display:flex;align-items:center;gap:5px;padding:5px 14px;color:#aaa;background:#fafafa;border:1px dashed #eee;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s';
+    delBtn.onmouseover = () => delBtn.style.background = '#f0f0f0';
+    delBtn.onmouseout  = () => delBtn.style.background = '#fafafa';
+    delBtn.onclick = calRemoveRow;
+    btnRow.appendChild(delBtn);
+  }
+  el.appendChild(btnRow);
+
   // 重新绑定交互
   calBindCellEvents();
 }
