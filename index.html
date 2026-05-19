@@ -271,7 +271,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <input type="date" id="date-end" value="2025-05-18">
   <div class="preset-btns">
     <button class="preset-btn active" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
-    <button class="preset-btn" onclick="applyPreset(this,'this-week')">本周至今</button>
     <button class="preset-btn" onclick="applyPreset(this,'last-30')">最近30天</button>
     <button class="preset-btn" onclick="applyPreset(this,'q2')">Q2至今</button>
     <button class="preset-btn" onclick="applyPreset(this,'all')">全部</button>
@@ -539,28 +538,21 @@ function applyPreset(btn, mode) {
   const max = DATA_MAX;
   let s, e;
   if(mode === 'last-week') {
-    // 上周：以今天实际日期为基准，上周一~上周五
+    // 上周：以今天实际日期为基准，上周一~上周日
     const today = new Date();
     const dow = today.getDay(); // 0=周日,1=周一...6=周六
-    // 今天距本周一的天数（周日算7，避免0）
     const daysToThisMon = dow === 0 ? 6 : dow - 1;
     const thisMonDate = new Date(today);
     thisMonDate.setDate(today.getDate() - daysToThisMon);
     const lastMon = new Date(thisMonDate);
     lastMon.setDate(thisMonDate.getDate() - 7);
-    const lastFri = new Date(lastMon);
-    lastFri.setDate(lastMon.getDate() + 4);
+    const lastSun = new Date(lastMon);
+    lastSun.setDate(lastMon.getDate() + 6);
     s = dateStr(lastMon);
-    e = dateStr(lastFri);
+    e = dateStr(lastSun);
   } else if(mode === 'this-week') {
-    // 本周至今：今天实际日期所在周的周一 ~ DATA_MAX（数据截止日）
-    const today = new Date();
-    const dow = today.getDay();
-    const daysToThisMon = dow === 0 ? 6 : dow - 1;
-    const thisMon = new Date(today);
-    thisMon.setDate(today.getDate() - daysToThisMon);
-    s = dateStr(thisMon);
-    e = DATA_MAX;
+    // 占位（按钮已移除，保留逻辑不报错）
+    s = DATA_MIN; e = DATA_MAX;
   } else if(mode === 'last-30') {
     e = max; s = addDays(e, -29);
   } else if(mode === 'q2') {
