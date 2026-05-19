@@ -1028,7 +1028,7 @@ function calRender() {
           onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
           placeholder="">${val}</textarea>
         <button class="cal-paint-btn" title="修改颜色"
-          onclick="calQuickColor('${cellId}',event)">🎨</button>
+          onmousedown="calQuickColor('${cellId}',event)">🎨</button>
       </td>`;
     }).join('');
     return `<tr>
@@ -1166,9 +1166,11 @@ function calGetOrCreateToolbar() {
 
     // 点击外部关闭
     document.addEventListener('mousedown', e => {
-      if(!tb.contains(e.target) && !e.target.closest('.note-cell')) {
-        calClearSelection();
-      }
+      // 点击颜色按钮、工具栏本身、单元格内部都不关闭
+      if(tb.contains(e.target)) return;
+      if(e.target.closest('.cal-paint-btn')) return;
+      if(e.target.closest('.note-cell')) return;
+      calClearSelection();
     });
   }
   return tb;
@@ -1178,13 +1180,18 @@ function calGetOrCreateToolbar() {
 // 快速上色：点击单元格内 🎨 按钮
 function calQuickColor(cellId, e) {
   e.stopPropagation();
-  // 先清除其他选中
-  calClearSelection();
+  e.preventDefault();
   const td = document.getElementById(cellId);
   if(!td) return;
+  // 如果已选中该单元格且工具栏可见，直接返回（防止重复弹）
+  const tb = document.getElementById('cal-toolbar');
+  if(_calSelected.has(td) && tb && tb.style.display !== 'none') return;
+  // 清除其他选中，选中本格
+  calClearSelection();
   td.classList.add('cal-selected');
   _calSelected.add(td);
-  calShowToolbar();
+  // 用 setTimeout 让 mousedown 的冒泡事件先结束，再显示工具栏
+  setTimeout(() => calShowToolbar(), 0);
 }
 function calShowToolbar() {
   const tb = calGetOrCreateToolbar();
