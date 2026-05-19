@@ -208,6 +208,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .cal-paint-btn{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:3px;border:none;background:none;font-size:11px;cursor:pointer;opacity:0;transition:opacity .15s;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;z-index:2}
 .note-cell:hover .cal-paint-btn{opacity:1}
 .cal-paint-btn:hover{background:#fff0f6}
+
+/* 目标完成情况 - 卡片式 */
+.goal-section-label{font-size:11px;color:#aaa;font-weight:600;letter-spacing:.5px;margin:0 0 8px;padding:0}
+.goal-card-row{display:grid;gap:12px;margin-bottom:12px}
+.goal-card-row.play-row{grid-template-columns:1fr 1fr}
+.goal-card-row.boom-row{grid-template-columns:1fr 1fr 1fr 1fr}
+.goal-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);position:relative;overflow:hidden;transition:box-shadow .2s}
+.goal-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)}
+.goal-card .gc-label{font-size:12px;color:#888;margin-bottom:10px;display:flex;align-items:center;gap:4px}
+.goal-card .gc-cur{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.goal-card .gc-boom-cur{font-size:36px;font-weight:700;line-height:1;margin-bottom:4px}
+.goal-card .gc-goal{font-size:12px;color:#bbb;margin-bottom:10px}
+.goal-card .gc-bar-wrap{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-bottom:6px}
+.goal-card .gc-bar{height:100%;border-radius:3px;transition:width 1s ease}
+.goal-card .gc-pct{font-size:12px;font-weight:600}
+.goal-card .gc-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
+@media(max-width:768px){.goal-card-row.play-row{grid-template-columns:1fr 1fr}.goal-card-row.boom-row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -1687,42 +1704,66 @@ function renderGoalRows(qRows) {
   const el = document.getElementById('goal-rows');
   if(!el) return;
 
-  el.innerHTML = goals.map((g, i) => {
-    let cur, curDisplay, goalDisplay, pct, pctColor;
+  // 分组：播放量(前2) / 爆款(后4)
+  const playGoals = goals.slice(0, 2);
+  const boomGoals = goals.slice(2);
+
+  function goalCard(g, i) {
+    const realIdx = goals.indexOf(g);
+    const pctColor = parseFloat(g._pct) >= 80 ? '#52c41a' : parseFloat(g._pct) >= 50 ? '#fa8c16' : '#ff4d4f';
+    const barBg    = parseFloat(g._pct) < 30 ? 'linear-gradient(90deg,#ff7875,#ff4d4f)'
+                   : parseFloat(g._pct) < 70 ? 'linear-gradient(90deg,#ffa940,#ffca00)'
+                   : 'linear-gradient(90deg,#95de64,#52c41a)';
+    const accentColor = g.type==='play'
+      ? (realIdx===0?'#4f6ef7':'#ff2442')
+      : (['#1d7dfa','#1d7dfa','#ff2442','#ff2442'][realIdx-2]||'#4f6ef7');
 
     if(g.type === 'play') {
-      cur = g.curFn(qRows);
-      const curW = (cur/10000).toFixed(1);
+      const curW  = (g._cur/10000).toFixed(1);
       const goalW = g.goal;
-      pct = Math.min(cur / (goalW * 10000) * 100, 100).toFixed(1);
-      pctColor = pct >= 80 ? '#52c41a' : pct >= 50 ? '#fa8c16' : '#ff4d4f';
-      curDisplay = `<strong>${curW}W</strong>`;
-      goalDisplay = `<span class="editable-goal editable-val" onclick="editGoalItem(${i},'goal')" title="点击修改目标值 ✏️">${goalW}W</span>`;
+      return `<div class="goal-card">
+        <div class="gc-accent" style="background:${accentColor}"></div>
+        <div class="gc-label">
+          <span class="editable-goal editable-name" onclick="editGoalItem(${realIdx},'name')" title="点击修改名称">${g.name}</span>
+        </div>
+        <div class="gc-cur" style="color:${accentColor}">${curW}<span style="font-size:14px;font-weight:400;margin-left:2px">W</span></div>
+        <div class="gc-goal">目标：<span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${goalW}W</span></div>
+        <div class="gc-bar-wrap"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
+        <div class="gc-pct" style="color:${pctColor}">${g._pct}%</div>
+      </div>`;
     } else {
-      cur = g.curVal;
-      pct = Math.min(cur / g.goal * 100, 100).toFixed(1);
-      pctColor = pct >= 80 ? '#52c41a' : pct >= 50 ? '#fa8c16' : '#ff4d4f';
-      curDisplay = `<strong style="color:${pctColor}">${cur}</strong>`;
-      goalDisplay = `<span class="editable-goal editable-val" onclick="editGoalItem(${i},'goal')" title="点击修改目标值 ✏️">${g.goal}${g.unit}</span>`;
+      return `<div class="goal-card">
+        <div class="gc-accent" style="background:${accentColor}"></div>
+        <div class="gc-label">
+          <span class="editable-goal editable-name" onclick="editGoalItem(${realIdx},'name')" title="点击修改名称">${g.name}</span>
+        </div>
+        <div class="gc-boom-cur" style="color:${accentColor}">
+          <span class="editable-goal" onclick="editGoalItem(${realIdx},'cur')" title="点击修改完成数">${g._cur}</span>
+          <span style="font-size:14px;font-weight:400;color:#bbb;margin-left:2px">/ <span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${g.goal}</span>${g.unit}</span>
+        </div>
+        <div class="gc-bar-wrap" style="margin-top:10px"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
+        <div class="gc-pct" style="color:${pctColor}">${g._pct}%</div>
+      </div>`;
     }
+  }
 
-    const barColor = parseFloat(pct) < 30 ? 'bar-red' : (parseFloat(pct) < 70 ? 'bar-orange' : 'bar-green');
+  // 预计算
+  goals.forEach((g, i) => {
+    if(g.type === 'play') {
+      g._cur = g.curFn(qRows);
+      g._pct = Math.min(g._cur / (g.goal * 10000) * 100, 100).toFixed(1);
+    } else {
+      g._cur = g.curVal;
+      g._pct = Math.min(g._cur / g.goal * 100, 100).toFixed(1);
+    }
+  });
 
-    return `<div class="progress-row">
-      <div class="progress-label">
-        <span class="editable-goal editable-name" onclick="editGoalItem(${i},'name')" title="点击修改名称 ✏️">${g.name}</span>
-      </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar ${barColor}" style="width:${pct}%"></div>
-      </div>
-      <div class="progress-value">
-        ${g.type==='count'
-          ? `<span class="editable-goal editable-val" onclick="editGoalItem(${i},'cur')" title="点击修改当前完成数 ✏️" style="font-weight:600;color:${pctColor}">${cur}</span>`
-          : curDisplay} / ${goalDisplay}
-        <span style="color:${pctColor};font-size:11px;margin-left:4px">${pct}%</span>
-      </div>
-    </div>`;
-  }).join('');
+  el.innerHTML = `
+    <p class="goal-section-label">播放量目标</p>
+    <div class="goal-card-row play-row">${playGoals.map(g=>goalCard(g,0)).join('')}</div>
+    <p class="goal-section-label">爆款目标</p>
+    <div class="goal-card-row boom-row">${boomGoals.map(g=>goalCard(g,0)).join('')}</div>
+  `;
 }
 
 function editGoalItem(idx, field) {
