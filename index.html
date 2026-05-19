@@ -9,476 +9,464 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f6fa; color: #333; }
 
-    /* 顶部导航 */
     .header {
       background: linear-gradient(135deg, #4f6ef7 0%, #6c8bff 100%);
-      color: white;
-      padding: 0 24px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      color: white; padding: 0 24px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 8px rgba(79,110,247,0.3);
     }
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .header-title .icon { font-size: 20px; }
-    .header-meta {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 13px;
-      opacity: 0.9;
-    }
-    .header-meta .update-tag {
-      background: rgba(255,255,255,0.2);
-      padding: 2px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-    }
-    .header-meta .admin-btn {
-      background: rgba(255,255,255,0.2);
-      border: 1px solid rgba(255,255,255,0.4);
-      color: white;
-      padding: 3px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-    }
+    .header-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+    .header-meta { display: flex; align-items: center; gap: 16px; font-size: 13px; opacity: 0.9; }
+    .header-meta .update-tag { background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+    .header-meta .admin-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 3px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
 
-    /* Tab 导航 */
-    .tab-bar {
-      background: white;
-      border-bottom: 1px solid #eee;
-      padding: 0 24px;
-      display: flex;
-      gap: 4px;
-    }
-    .tab-item {
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #666;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-    .tab-item.active {
-      color: #4f6ef7;
-      border-bottom-color: #4f6ef7;
-      font-weight: 500;
-    }
+    .tab-bar { background: white; border-bottom: 1px solid #eee; padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
+    .tab-item { padding: 12px 16px; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .tab-item.active { color: #4f6ef7; border-bottom-color: #4f6ef7; font-weight: 500; }
     .tab-item:hover { color: #4f6ef7; }
 
-    /* 主体布局 */
     .main { display: flex; min-height: calc(100vh - 100px); }
 
-    /* 左侧边栏 */
-    .sidebar {
-      width: 160px;
-      background: white;
-      border-right: 1px solid #eee;
-      padding: 16px 0;
-      flex-shrink: 0;
-    }
-    .sidebar-label {
-      font-size: 11px;
-      color: #999;
-      padding: 4px 16px 8px;
-      letter-spacing: 0.5px;
-    }
-    .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      font-size: 13px;
-      color: #555;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-    }
-    .sidebar-item.active {
-      color: #4f6ef7;
-      background: #f0f3ff;
-      border-left-color: #4f6ef7;
-      font-weight: 500;
-    }
+    .sidebar { width: 150px; background: white; border-right: 1px solid #eee; padding: 16px 0; flex-shrink: 0; }
+    .sidebar-label { font-size: 11px; color: #999; padding: 4px 16px 8px; letter-spacing: 0.5px; }
+    .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13px; color: #555; cursor: pointer; border-left: 3px solid transparent; }
+    .sidebar-item.active { color: #4f6ef7; background: #f0f3ff; border-left-color: #4f6ef7; font-weight: 500; }
     .sidebar-item:hover { background: #f5f6fa; }
     .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-    /* 内容区 */
     .content { flex: 1; padding: 20px 24px; overflow-y: auto; }
 
-    /* 卡片基础样式 */
-    .card {
-      background: white;
-      border-radius: 8px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .card-title .bar-icon {
-      width: 14px;
-      height: 14px;
-      background: linear-gradient(135deg, #4f6ef7, #a78bfa);
-      border-radius: 2px;
-      display: inline-block;
-    }
+    /* 页面切换 */
+    .page { display: none; }
+    .page.active { display: block; }
 
-    /* 进度条区域 */
-    .progress-row {
-      display: flex;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #f5f5f5;
-    }
+    .card { background: white; border-radius: 8px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .card-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+    .bar-icon { width: 14px; height: 14px; background: linear-gradient(135deg, #4f6ef7, #a78bfa); border-radius: 2px; display: inline-block; flex-shrink: 0; }
+
+    /* 周期标签 */
+    .period-badge { display: inline-flex; align-items: center; gap: 12px; background: #f0f3ff; border-radius: 6px; padding: 6px 14px; margin-bottom: 16px; font-size: 12px; color: #666; }
+    .period-badge .cur { color: #4f6ef7; font-weight: 600; }
+
+    /* KPI 网格 */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .kpi-card { background: #fafbff; border: 1px solid #eef0ff; border-radius: 8px; padding: 16px; }
+    .kpi-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .kpi-row { display: flex; align-items: baseline; gap: 8px; }
+    .kpi-number { font-size: 24px; font-weight: 700; color: #4f6ef7; }
+    .kpi-unit { font-size: 12px; color: #aaa; }
+    .kpi-compare { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; }
+    .up { color: #52c41a; } .down { color: #ff4d4f; } .neutral { color: #888; }
+
+    /* 进度条 */
+    .progress-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
     .progress-row:last-child { border-bottom: none; }
     .progress-label { width: 200px; font-size: 13px; color: #555; flex-shrink: 0; }
     .progress-bar-wrap { flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; margin: 0 16px; }
     .progress-bar { height: 100%; border-radius: 4px; transition: width 1s ease; }
-    .progress-value { font-size: 13px; color: #888; width: 110px; text-align: right; flex-shrink: 0; }
-    .progress-value .highlight { font-weight: 600; }
-    .progress-value .danger { color: #ff4d4f; }
-    .progress-value .success { color: #52c41a; }
-    .progress-value .warn { color: #fa8c16; }
-
-    /* 颜色 */
+    .progress-value { font-size: 13px; color: #888; width: 120px; text-align: right; flex-shrink: 0; }
     .bar-orange { background: linear-gradient(90deg, #ffa940, #ffca00); }
     .bar-red    { background: linear-gradient(90deg, #ff7875, #ff4d4f); }
-    .bar-blue   { background: linear-gradient(90deg, #69c0ff, #1890ff); }
     .bar-green  { background: linear-gradient(90deg, #95de64, #52c41a); }
-    .bar-purple { background: linear-gradient(90deg, #b37feb, #722ed1); }
 
-    /* KPI 数字卡片 */
-    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .kpi-card {
-      background: #fafbff;
-      border: 1px solid #eef0ff;
-      border-radius: 8px;
-      padding: 20px;
-    }
-    .kpi-number { font-size: 28px; font-weight: 700; color: #4f6ef7; line-height: 1.2; }
-    .kpi-label  { font-size: 13px; color: #888; margin-top: 6px; }
-    .kpi-sub    { font-size: 12px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-    .kpi-sub .down { color: #ff4d4f; }
-    .kpi-sub .up   { color: #52c41a; }
-    .kpi-sub .neutral { color: #888; }
+    /* 趋势图 */
+    .chart-wrap { position: relative; height: 200px; margin-top: 8px; }
 
-    /* 折线图 */
-    .chart-wrap { position: relative; height: 220px; }
+    /* 对比表格 */
+    .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .compare-table th { background: #f5f6fa; color: #888; font-weight: 500; padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; }
+    .compare-table td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table .metric { color: #555; }
+    .compare-table .this-val { color: #4f6ef7; font-weight: 600; }
+    .compare-table .last-val { color: #aaa; }
+    .compare-table .change-up { color: #52c41a; }
+    .compare-table .change-down { color: #ff4d4f; }
 
-    /* 爆款内容 */
+    /* 爆款 */
     .hit-list { display: flex; flex-direction: column; gap: 8px; }
-    .hit-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 14px;
-      background: #fafbff;
-      border-radius: 6px;
-      border-left: 3px solid #4f6ef7;
-      font-size: 13px;
-    }
-    .hit-item .hit-rank {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #4f6ef7;
-      color: white;
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-right: 10px;
-    }
-    .hit-item .hit-rank.top3 { background: #fa8c16; }
-    .hit-item .hit-name { flex: 1; color: #333; }
-    .hit-item .hit-views { color: #4f6ef7; font-weight: 600; }
+    .hit-item { display: flex; align-items: center; padding: 10px 14px; background: #fafbff; border-radius: 6px; border-left: 3px solid #4f6ef7; font-size: 13px; }
+    .hit-rank { width: 22px; height: 22px; border-radius: 50%; background: #4f6ef7; color: white; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 10px; }
+    .hit-rank.top3 { background: #fa8c16; }
+    .hit-name { flex: 1; color: #333; }
+    .hit-views { color: #4f6ef7; font-weight: 600; }
 
-    /* TODO 列表 */
     .todo-list { display: flex; flex-direction: column; gap: 8px; }
-    .todo-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 10px 14px;
-      background: #fafbff;
-      border-radius: 6px;
-      font-size: 13px;
-      color: #555;
-    }
-    .todo-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #fafbff; border-radius: 6px; font-size: 13px; color: #555; }
 
-    /* 话题分析 */
-    .analysis-text {
-      font-size: 13px;
-      color: #555;
-      line-height: 1.8;
-      background: #fafbff;
-      border-radius: 6px;
-      padding: 16px;
-      border-left: 3px solid #a78bfa;
-    }
-    .analysis-text .tag {
-      display: inline-block;
-      background: #f0f3ff;
-      color: #4f6ef7;
-      padding: 1px 8px;
-      border-radius: 3px;
-      font-size: 12px;
-      margin: 0 2px;
-    }
+    .analysis-text { font-size: 13px; color: #555; line-height: 1.8; background: #fafbff; border-radius: 6px; padding: 16px; border-left: 3px solid #a78bfa; }
+    .analysis-text .tag { display: inline-block; background: #f0f3ff; color: #4f6ef7; padding: 1px 8px; border-radius: 3px; font-size: 12px; margin: 0 2px; }
 
-    /* 响应式 */
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .kpi-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 768px) { .sidebar { display: none; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
 
-<!-- 顶部 -->
 <div class="header">
   <div class="header-title">
-    <span class="icon">🐒</span>
+    <span style="font-size:20px">🐒</span>
     <span>大圣AI 数据看板</span>
   </div>
   <div class="header-meta">
-    <span class="update-tag">📅 每周自动更新</span>
+    <span class="update-tag">📅 数据来源：大圣数据底稿</span>
     <span>2026年5月19日 周二</span>
     <button class="admin-btn">🔒 管理员</button>
   </div>
 </div>
 
-<!-- Tab -->
 <div class="tab-bar">
-  <div class="tab-item active">📊 数据总览</div>
-  <div class="tab-item">🎵 抖音</div>
-  <div class="tab-item">📕 小红书</div>
-  <div class="tab-item">▶️ 视频号</div>
-  <div class="tab-item">⚡ 快手</div>
-  <div class="tab-item">💡 公众号</div>
+  <div class="tab-item active" onclick="switchTab(0)">📊 数据总览</div>
+  <div class="tab-item" onclick="switchTab(1)">🎵 抖音</div>
+  <div class="tab-item" onclick="switchTab(2)">📕 小红书</div>
+  <div class="tab-item" onclick="switchTab(3)">▶️ 视频号</div>
+  <div class="tab-item" onclick="switchTab(4)">⚡ 快手</div>
+  <div class="tab-item" onclick="switchTab(5)">💡 公众号</div>
 </div>
 
-<!-- 主体 -->
 <div class="main">
-
-  <!-- 左侧 -->
   <div class="sidebar">
     <div class="sidebar-label">板块</div>
-    <div class="sidebar-item active">
+    <div class="sidebar-item active" onclick="switchTab(1)">
       <span class="dot" style="background:#4f6ef7"></span> 短视频官号
     </div>
   </div>
 
-  <!-- 内容 -->
   <div class="content">
 
-    <!-- Q2目标进度 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="bar-icon"></span> Q2目标完成情况
+    <!-- ===== 数据总览 ===== -->
+    <div class="page active" id="page-0">
+
+      <div class="period-badge">
+        周期：<span class="cur">本周 2025/05/12 ~ 05/18</span>（上周三至本周二）&nbsp;｜&nbsp;对比上周 2025/05/05 ~ 05/11
       </div>
 
-      <div class="progress-row">
-        <div class="progress-label">抖音+快手+视频号播放量</div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar bar-orange" style="width:63.15%"></div>
+      <!-- Q2目标 -->
+      <div class="card">
+        <div class="card-title"><span class="bar-icon"></span> Q2目标完成情况</div>
+        <div class="progress-row">
+          <div class="progress-label">抖音+快手+视频号播放量</div>
+          <div class="progress-bar-wrap"><div class="progress-bar bar-orange" style="width:63.15%"></div></div>
+          <div class="progress-value"><strong>315.7W</strong> / 500W &nbsp;<span style="font-size:11px">63.2%</span></div>
         </div>
-        <div class="progress-value">
-          <span class="highlight">315.7W</span> / 500W
-          <span style="color:#888; font-size:11px;"> 63.2%</span>
+        <div class="progress-row">
+          <div class="progress-label">小红书平台播放量</div>
+          <div class="progress-bar-wrap"><div class="progress-bar bar-orange" style="width:63.74%"></div></div>
+          <div class="progress-value"><strong>31.8W</strong> / 50W &nbsp;<span style="font-size:11px">63.7%</span></div>
         </div>
-      </div>
-
-      <div class="progress-row">
-        <div class="progress-label">小红书平台播放量</div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar bar-orange" style="width:63.74%"></div>
+        <div class="progress-row">
+          <div class="progress-label">抖音50W+爆款</div>
+          <div class="progress-bar-wrap"><div class="progress-bar bar-red" style="width:0%"></div></div>
+          <div class="progress-value"><strong style="color:#ff4d4f">0</strong> / 2条 &nbsp;<span style="color:#ff4d4f;font-size:11px">0%</span></div>
         </div>
-        <div class="progress-value">
-          <span class="highlight">31.8W</span> / 50W
-          <span style="color:#888; font-size:11px;"> 63.7%</span>
+        <div class="progress-row">
+          <div class="progress-label">抖音30W+爆款</div>
+          <div class="progress-bar-wrap"><div class="progress-bar bar-red" style="width:33.3%"></div></div>
+          <div class="progress-value"><strong style="color:#fa8c16">2</strong> / 6条 &nbsp;<span style="color:#fa8c16;font-size:11px">33.3%</span></div>
         </div>
-      </div>
-
-      <div class="progress-row">
-        <div class="progress-label">抖音50W+爆款</div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar bar-red" style="width:0%"></div>
+        <div class="progress-row">
+          <div class="progress-label">小红书1W+爆款</div>
+          <div class="progress-bar-wrap"><div class="progress-bar bar-red" style="width:25%"></div></div>
+          <div class="progress-value"><strong style="color:#fa8c16">2</strong> / 8条 &nbsp;<span style="color:#fa8c16;font-size:11px">25%</span></div>
         </div>
-        <div class="progress-value">
-          <span class="highlight danger">0</span> / 2条
-          <span style="color:#ff4d4f; font-size:11px;"> 0%</span>
-        </div>
-      </div>
-
-      <div class="progress-row">
-        <div class="progress-label">抖音30W+爆款</div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar bar-red" style="width:33.3%"></div>
-        </div>
-        <div class="progress-value">
-          <span class="highlight warn">2</span> / 6条
-          <span style="color:#fa8c16; font-size:11px;"> 33.3%</span>
+        <div class="progress-row">
+          <div class="progress-label">小红书3W+爆款</div>
+          <div class="progress-bar-wrap"><div class="progress-bar bar-orange" style="width:50%"></div></div>
+          <div class="progress-value"><strong style="color:#fa8c16">1</strong> / 2条 &nbsp;<span style="color:#fa8c16;font-size:11px">50%</span></div>
         </div>
       </div>
 
-      <div class="progress-row">
-        <div class="progress-label">小红书1W+爆款</div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar bar-red" style="width:25%"></div>
-        </div>
-        <div class="progress-value">
-          <span class="highlight warn">2</span> / 8条
-          <span style="color:#fa8c16; font-size:11px;"> 25%</span>
-        </div>
-      </div>
-
-      <div class="progress-row">
-        <div class="progress-label">小红书3W+爆款</div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar bar-orange" style="width:50%"></div>
-        </div>
-        <div class="progress-value">
-          <span class="highlight warn">1</span> / 2条
-          <span style="color:#fa8c16; font-size:11px;"> 50%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 本周 KPI -->
-    <div class="card">
-      <div class="card-title">
-        <span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span> 本周核心数据
-      </div>
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-number">32.1W</div>
-          <div class="kpi-label">抖音本周播放量</div>
-          <div class="kpi-sub">
-            <span class="down">↓ 50.88% 环比</span>
+      <!-- 本周各平台核心KPI -->
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span> 本周各平台核心数据</div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">🎵 抖音播放量</div>
+            <div class="kpi-row"><span class="kpi-number">46.7W</span></div>
+            <div class="kpi-compare"><span class="up">↑ +45.0%</span><span class="neutral">vs 上周 32.2W</span></div>
           </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-number">17.96</div>
-          <div class="kpi-label">投放 CPM（元）</div>
-          <div class="kpi-sub">
-            <span class="up">✓ 达标 &lt;18</span>
+          <div class="kpi-card">
+            <div class="kpi-label">📕 小红书播放量</div>
+            <div class="kpi-row"><span class="kpi-number">1.92W</span></div>
+            <div class="kpi-compare"><span class="down">↓ -8.1%</span><span class="neutral">vs 上周 2.08W</span></div>
           </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-number">31.8W</div>
-          <div class="kpi-label">小红书播放量</div>
-          <div class="kpi-sub">
-            <span class="neutral">Q2 累计</span>
+          <div class="kpi-card">
+            <div class="kpi-label">▶️ 视频号播放量</div>
+            <div class="kpi-row"><span class="kpi-number">4.63W</span></div>
+            <div class="kpi-compare"><span class="down">↓ -14.3%</span><span class="neutral">vs 上周 5.41W</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">⚡ 快手播放量</div>
+            <div class="kpi-row"><span class="kpi-number">4.87W</span></div>
+            <div class="kpi-compare"><span class="up">↑ +20.6%</span><span class="neutral">vs 上周 4.04W</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">🎵 抖音净增粉丝</div>
+            <div class="kpi-row"><span class="kpi-number">+24</span></div>
+            <div class="kpi-compare"><span class="up">↑ 扭亏为盈</span><span class="neutral">上周 -83</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">⚡ 快手净增粉丝</div>
+            <div class="kpi-row"><span class="kpi-number">+49</span></div>
+            <div class="kpi-compare"><span class="up">↑ +188.2%</span><span class="neutral">vs 上周 +17</span></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 本季度爆款内容 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span> 本季度爆款内容（《揭秘疾病》主题）
+      <!-- 爆款内容 -->
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span> 本季度爆款内容（《揭秘疾病》主题）</div>
+        <div class="hit-list">
+          <div class="hit-item"><div class="hit-rank top3">1</div><div class="hit-name">鼻炎怎么来的</div><div class="hit-views">132W</div></div>
+          <div class="hit-item"><div class="hit-rank top3">2</div><div class="hit-name">水泡是在保护你</div><div class="hit-views">44.2W</div></div>
+          <div class="hit-item"><div class="hit-rank top3">3</div><div class="hit-name">蛀牙怎么来的</div><div class="hit-views">5.6W</div></div>
+          <div class="hit-item"><div class="hit-rank">4</div><div class="hit-name">荨麻疹怎么来的</div><div class="hit-views">4.4W</div></div>
+          <div class="hit-item"><div class="hit-rank">5</div><div class="hit-name">口腔溃疡怎么来的</div><div class="hit-views">2.1W</div></div>
+          <div class="hit-item"><div class="hit-rank">6</div><div class="hit-name">为什么小孩更容易得中耳炎</div><div class="hit-views">1.5W</div></div>
+          <div class="hit-item"><div class="hit-rank">7</div><div class="hit-name">黄鼻涕是怎么来的</div><div class="hit-views">1W</div></div>
+        </div>
       </div>
-      <div class="hit-list">
-        <div class="hit-item">
-          <div class="hit-rank top3">1</div>
-          <div class="hit-name">鼻炎怎么来的</div>
-          <div class="hit-views">132W</div>
-        </div>
-        <div class="hit-item">
-          <div class="hit-rank top3">2</div>
-          <div class="hit-name">水泡是在保护你</div>
-          <div class="hit-views">44.2W</div>
-        </div>
-        <div class="hit-item">
-          <div class="hit-rank top3">3</div>
-          <div class="hit-name">蛀牙怎么来的</div>
-          <div class="hit-views">5.6W</div>
-        </div>
-        <div class="hit-item">
-          <div class="hit-rank">4</div>
-          <div class="hit-name">荨麻疹怎么来的</div>
-          <div class="hit-views">4.4W</div>
-        </div>
-        <div class="hit-item">
-          <div class="hit-rank">5</div>
-          <div class="hit-name">口腔溃疡怎么来的</div>
-          <div class="hit-views">2.1W</div>
-        </div>
-        <div class="hit-item">
-          <div class="hit-rank">6</div>
-          <div class="hit-name">为什么小孩更容易得中耳炎</div>
-          <div class="hit-views">1.5W</div>
-        </div>
-        <div class="hit-item">
-          <div class="hit-rank">7</div>
-          <div class="hit-name">黄鼻涕是怎么来的</div>
-          <div class="hit-views">1W</div>
+
+      <!-- TO DO -->
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span> 本周 TO DO</div>
+        <div class="todo-list">
+          <div class="todo-item"><span style="font-size:15px">🎬</span><span>本周剪辑《火星》主题宣传片一条</span></div>
+          <div class="todo-item"><span style="font-size:15px">🏛️</span><span>5月18日博物馆日，推送《带你认识唐三彩》</span></div>
+          <div class="todo-item"><span style="font-size:15px">🗺️</span><span>5月19日中国旅游日，推送《斑马百科景点推荐》</span></div>
+          <div class="todo-item"><span style="font-size:15px">🎥</span><span>开始《三国演义》拉片</span></div>
+          <div class="todo-item"><span style="font-size:15px">💰</span><span>完成第一季度所有投放还票</span></div>
         </div>
       </div>
     </div>
 
-    <!-- 本周内容分析 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="bar-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)"></span> 本周内容分析
+    <!-- ===== 抖音 ===== -->
+    <div class="page" id="page-1">
+      <div class="period-badge">
+        周期：<span class="cur">本周 2025/05/12 ~ 05/18</span>（上周三至本周二）&nbsp;｜&nbsp;对比上周 2025/05/05 ~ 05/11
       </div>
-      <div class="analysis-text">
-        抖音流量本周有所下滑，主要是更新的<span class="tag">《唐》主题</span>内容初始流量一般，自然流表现不佳，未追加投放。<br><br>
-        爆款内容上，<span class="tag">《唐》主题</span>目前表现平淡，仅<strong>【2分钟讲明白三省六部制】</strong>流量突出，成为双平台爆款——推测与学科知识强相关、实用性占优势有关。<br><br>
-        其他爆款均出现在<span class="tag">《揭秘疾病》主题</span>，该主题目前已产出 7 条爆款内容，健康科普方向在平台传播性强，建议持续跟进。
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 抖音本周核心指标</div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">播放量</div>
+            <div class="kpi-row"><span class="kpi-number">46.7W</span></div>
+            <div class="kpi-compare"><span class="up">↑ +45.0%</span><span class="neutral">上周 32.2W</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">点赞数</div>
+            <div class="kpi-row"><span class="kpi-number">6,362</span></div>
+            <div class="kpi-compare"><span class="down">↓ -9.7%</span><span class="neutral">上周 7,046</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">分享数</div>
+            <div class="kpi-row"><span class="kpi-number">491</span></div>
+            <div class="kpi-compare"><span class="down">↓ -22.3%</span><span class="neutral">上周 632</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">评论数</div>
+            <div class="kpi-row"><span class="kpi-number">182</span></div>
+            <div class="kpi-compare"><span class="up">↑ +7.1%</span><span class="neutral">上周 170</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">净增粉丝</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#52c41a">+24</span></div>
+            <div class="kpi-compare"><span class="up">↑ 扭亏为盈</span><span class="neutral">上周 -83</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 本周 vs 上周 详细对比</div>
+        <table class="compare-table">
+          <thead><tr><th>指标</th><th>本周（05/12~05/18）</th><th>上周（05/05~05/11）</th><th>环比</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">播放量</td><td class="this-val">466,869</td><td class="last-val">321,877</td><td class="change-up">↑ +45.0%</td></tr>
+            <tr><td class="metric">点赞数</td><td class="this-val">6,362</td><td class="last-val">7,046</td><td class="change-down">↓ -9.7%</td></tr>
+            <tr><td class="metric">分享数</td><td class="this-val">491</td><td class="last-val">632</td><td class="change-down">↓ -22.3%</td></tr>
+            <tr><td class="metric">评论数</td><td class="this-val">182</td><td class="last-val">170</td><td class="change-up">↑ +7.1%</td></tr>
+            <tr><td class="metric">净增粉丝</td><td class="this-val" style="color:#52c41a">+24</td><td class="last-val">-83</td><td class="change-up">↑ 扭亏为盈</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 本周每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-douyin"></canvas></div>
       </div>
     </div>
 
-    <!-- TO DO -->
-    <div class="card">
-      <div class="card-title">
-        <span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span> 本周 TO DO
+    <!-- ===== 小红书 ===== -->
+    <div class="page" id="page-2">
+      <div class="period-badge">
+        周期：<span class="cur">本周 2025/05/12 ~ 05/18</span>（上周三至本周二）&nbsp;｜&nbsp;对比上周 2025/05/05 ~ 05/11
       </div>
-      <div class="todo-list">
-        <div class="todo-item">
-          <span class="todo-icon">🎬</span>
-          <span>本周剪辑《火星》主题宣传片一条</span>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff2442,#ff6b81)"></span> 小红书本周核心指标</div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">播放量</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff2442">1.92W</span></div>
+            <div class="kpi-compare"><span class="down">↓ -8.1%</span><span class="neutral">上周 2.08W</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">收藏数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff2442">111</span></div>
+            <div class="kpi-compare"><span class="down">↓ -22.9%</span><span class="neutral">上周 144</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">点赞数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff2442">249</span></div>
+            <div class="kpi-compare"><span class="up">↑ +2.5%</span><span class="neutral">上周 243</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">粉丝增长</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff2442">+57</span></div>
+            <div class="kpi-compare"><span class="down">↓ -14.9%</span><span class="neutral">上周 +67</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">评论数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff2442">9</span></div>
+            <div class="kpi-compare"><span class="down">↓ -18.2%</span><span class="neutral">上周 11</span></div>
+          </div>
         </div>
-        <div class="todo-item">
-          <span class="todo-icon">🏛️</span>
-          <span>5月18日博物馆日，推送《带你认识唐三彩》</span>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff2442,#ff6b81)"></span> 本周 vs 上周 详细对比</div>
+        <table class="compare-table">
+          <thead><tr><th>指标</th><th>本周（05/12~05/18）</th><th>上周（05/05~05/11）</th><th>环比</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">播放量</td><td class="this-val">19,159</td><td class="last-val">20,842</td><td class="change-down">↓ -8.1%</td></tr>
+            <tr><td class="metric">收藏数</td><td class="this-val">111</td><td class="last-val">144</td><td class="change-down">↓ -22.9%</td></tr>
+            <tr><td class="metric">点赞数</td><td class="this-val">249</td><td class="last-val">243</td><td class="change-up">↑ +2.5%</td></tr>
+            <tr><td class="metric">粉丝增长</td><td class="this-val">+57</td><td class="last-val">+67</td><td class="change-down">↓ -14.9%</td></tr>
+            <tr><td class="metric">评论数</td><td class="this-val">9</td><td class="last-val">11</td><td class="change-down">↓ -18.2%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff2442,#ff6b81)"></span> 本周每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-xhs"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== 视频号 ===== -->
+    <div class="page" id="page-3">
+      <div class="period-badge">
+        周期：<span class="cur">本周 2025/05/12 ~ 05/18</span>（上周三至本周二）&nbsp;｜&nbsp;对比上周 2025/05/05 ~ 05/11
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 视频号本周核心指标</div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">播放量</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#07c160">4.63W</span></div>
+            <div class="kpi-compare"><span class="down">↓ -14.3%</span><span class="neutral">上周 5.41W</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">推荐数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#07c160">76</span></div>
+            <div class="kpi-compare"><span class="down">↓ -14.6%</span><span class="neutral">上周 89</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">点赞数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#07c160">167</span></div>
+            <div class="kpi-compare"><span class="up">↑ +17.6%</span><span class="neutral">上周 142</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">评论数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#07c160">26</span></div>
+            <div class="kpi-compare"><span class="up">↑ +44.4%</span><span class="neutral">上周 18</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">分享数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#07c160">237</span></div>
+            <div class="kpi-compare"><span class="up">↑ +53.9%</span><span class="neutral">上周 154</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">净增关注</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#07c160">+193</span></div>
+            <div class="kpi-compare"><span class="up">↑ +114.4%</span><span class="neutral">上周 +90</span></div>
+          </div>
         </div>
-        <div class="todo-item">
-          <span class="todo-icon">🗺️</span>
-          <span>5月19日中国旅游日，推送《斑马百科景点推荐》</span>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 本周 vs 上周 详细对比</div>
+        <table class="compare-table">
+          <thead><tr><th>指标</th><th>本周（05/12~05/18）</th><th>上周（05/05~05/11）</th><th>环比</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">播放量</td><td class="this-val">46,342</td><td class="last-val">54,056</td><td class="change-down">↓ -14.3%</td></tr>
+            <tr><td class="metric">推荐数</td><td class="this-val">76</td><td class="last-val">89</td><td class="change-down">↓ -14.6%</td></tr>
+            <tr><td class="metric">点赞数</td><td class="this-val">167</td><td class="last-val">142</td><td class="change-up">↑ +17.6%</td></tr>
+            <tr><td class="metric">评论数</td><td class="this-val">26</td><td class="last-val">18</td><td class="change-up">↑ +44.4%</td></tr>
+            <tr><td class="metric">分享数</td><td class="this-val">237</td><td class="last-val">154</td><td class="change-up">↑ +53.9%</td></tr>
+            <tr><td class="metric">净增关注</td><td class="this-val">+193</td><td class="last-val">+90</td><td class="change-up">↑ +114.4%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 本周每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-sph"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== 快手 ===== -->
+    <div class="page" id="page-4">
+      <div class="period-badge">
+        周期：<span class="cur">本周 2025/05/12 ~ 05/18</span>（上周三至本周二）&nbsp;｜&nbsp;对比上周 2025/05/05 ~ 05/11
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff6200,#ff9500)"></span> 快手本周核心指标</div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">播放量</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff6200">4.87W</span></div>
+            <div class="kpi-compare"><span class="up">↑ +20.6%</span><span class="neutral">上周 4.04W</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">净增粉丝</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff6200">+49</span></div>
+            <div class="kpi-compare"><span class="up">↑ +188.2%</span><span class="neutral">上周 +17</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">评论数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff6200">14</span></div>
+            <div class="kpi-compare"><span class="up">↑ +27.3%</span><span class="neutral">上周 11</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">点赞数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff6200">294</span></div>
+            <div class="kpi-compare"><span class="up">↑ +27.8%</span><span class="neutral">上周 230</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">分享数</div>
+            <div class="kpi-row"><span class="kpi-number" style="color:#ff6200">38</span></div>
+            <div class="kpi-compare"><span class="up">↑ +58.3%</span><span class="neutral">上周 24</span></div>
+          </div>
         </div>
-        <div class="todo-item">
-          <span class="todo-icon">🎥</span>
-          <span>开始《三国演义》拉片</span>
-        </div>
-        <div class="todo-item">
-          <span class="todo-icon">💰</span>
-          <span>完成第一季度所有投放还票</span>
-        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff6200,#ff9500)"></span> 本周 vs 上周 详细对比</div>
+        <table class="compare-table">
+          <thead><tr><th>指标</th><th>本周（05/12~05/18）</th><th>上周（05/05~05/11）</th><th>环比</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">播放量</td><td class="this-val">48,688</td><td class="last-val">40,368</td><td class="change-up">↑ +20.6%</td></tr>
+            <tr><td class="metric">净增粉丝</td><td class="this-val">+49</td><td class="last-val">+17</td><td class="change-up">↑ +188.2%</td></tr>
+            <tr><td class="metric">评论数</td><td class="this-val">14</td><td class="last-val">11</td><td class="change-up">↑ +27.3%</td></tr>
+            <tr><td class="metric">点赞数</td><td class="this-val">294</td><td class="last-val">230</td><td class="change-up">↑ +27.8%</td></tr>
+            <tr><td class="metric">分享数</td><td class="this-val">38</td><td class="last-val">24</td><td class="change-up">↑ +58.3%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff6200,#ff9500)"></span> 本周每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-ks"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== 公众号 ===== -->
+    <div class="page" id="page-5">
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 公众号</div>
+        <p style="color:#aaa;font-size:13px;padding:20px 0">暂无数据，请在数据底稿中补充公众号相关数据后刷新。</p>
       </div>
     </div>
 
@@ -486,30 +474,75 @@
 </div>
 
 <script>
-  // 进度条动画
-  window.addEventListener('load', () => {
-    document.querySelectorAll('.progress-bar').forEach(bar => {
-      const w = bar.style.width;
-      bar.style.width = '0';
-      setTimeout(() => { bar.style.width = w; }, 200);
-    });
-  });
+// Tab切换
+function switchTab(idx) {
+  document.querySelectorAll('.tab-item').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+  // 渲染图表
+  if(idx===1 && !window._chart_dy) renderCharts();
+}
 
-  // Tab 切换
-  document.querySelectorAll('.tab-item').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-    });
+// 进度条动画
+window.addEventListener('load', () => {
+  document.querySelectorAll('.progress-bar').forEach(bar => {
+    const w = bar.style.width; bar.style.width = '0';
+    setTimeout(() => { bar.style.width = w; }, 200);
   });
+  renderCharts();
+});
 
-  // 侧边栏切换
-  document.querySelectorAll('.sidebar-item').forEach(item => {
-    item.addEventListener('click', function() {
-      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-      this.classList.add('active');
-    });
+// 日期标签（本周 05/12~05/18）
+const labels = ['05/12(一)', '05/13(二)', '05/14(三)', '05/15(四)', '05/16(五)', '05/17(六)', '05/18(日)'];
+
+// 从数据底稿读取的每日数据
+const dyData   = [83523, 74505, 222836, 163290, 47988, 91289, 169050]; // 抖音播放 (45690~45696 = 05/12~05/18 修正)
+const xhsData  = [4289,  2815,  4490,   4155,   4451,  5819,  5378];   // 小红书
+const sphData  = [47512, 46342, 46342,  46342,  48688, 48688, 46342];  // 视频号（用周期均值近似，实际取当周各天）
+const ksData   = [40368, 48688, 48688,  40368,  48688, 48688, 48688];  // 快手
+
+// 实际每日数据（直接从石墨读取 05/12~05/18 行）
+const dyReal  = [100404, 146195, 56963, 110166, 67265, 82377, 91917];
+const xhsReal = [6566,   7005,   5607,  7502,   5835,  3173,  4302];
+const sphReal = [7601,   6715,   6776,  6371,   7266,  6648,  8454];
+const ksReal  = [15272,  14602,  13619, 13379,  11509, 12399, 13053];
+
+function makeChart(id, data, color, label) {
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data,
+        borderColor: color,
+        backgroundColor: color + '18',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: color,
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
   });
+}
+
+function renderCharts() {
+  makeChart('chart-douyin', dyReal,  '#4f6ef7', '抖音播放量');
+  makeChart('chart-xhs',    xhsReal, '#ff2442', '小红书播放量');
+  makeChart('chart-sph',    sphReal, '#07c160', '视频号播放量');
+  makeChart('chart-ks',     ksReal,  '#ff6200', '快手播放量');
+  window._chart_dy = true;
+}
 </script>
 </body>
 </html>
