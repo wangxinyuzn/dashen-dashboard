@@ -319,7 +319,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="card" id="overview-trend-card">
         <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
           <span><span class="bar-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb)"></span> 流量趋势 — <span id="trend-title">全平台播放量</span></span>
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="trend-platform-btns">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="trend-platform-btns">
             <button class="trend-btn active" data-platform="all"   onclick="switchTrend('all')"   style="--c:#4f6ef7">全部</button>
             <button class="trend-btn"        data-platform="dy"    onclick="switchTrend('dy')"    style="--c:#1d7dfa">🎵 抖音</button>
             <button class="trend-btn"        data-platform="xhs"   onclick="switchTrend('xhs')"   style="--c:#ff2442">📕 小红书</button>
@@ -327,7 +327,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
             <button class="trend-btn"        data-platform="ks"    onclick="switchTrend('ks')"    style="--c:#ff6200">⚡ 快手</button>
           </div>
         </div>
-        <div class="chart-wrap" style="height:240px"><canvas id="chart-overview-trend"></canvas></div>
+        <!-- 趋势图独立控制栏 -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <!-- 维度切换 -->
+          <div style="display:flex;gap:4px">
+            <button id="trend-dim-day" onclick="switchTrendDim('day')"
+              style="padding:3px 12px;font-size:12px;border-radius:5px;border:1px solid #d9d9d9;background:#4f6ef7;color:#fff;cursor:pointer;font-family:inherit">日</button>
+            <button id="trend-dim-week" onclick="switchTrendDim('week')"
+              style="padding:3px 12px;font-size:12px;border-radius:5px;border:1px solid #d9d9d9;background:#fff;color:#666;cursor:pointer;font-family:inherit">周</button>
+          </div>
+          <!-- 独立时间范围 -->
+          <input type="date" id="trend-start" value="2026-01-01"
+            style="padding:3px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:5px;color:#333">
+          <span style="color:#aaa;font-size:12px">~</span>
+          <input type="date" id="trend-end" value="2026-05-18"
+            style="padding:3px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:5px;color:#333">
+          <button onclick="renderOverviewTrend()"
+            style="padding:3px 12px;font-size:12px;border-radius:5px;border:none;background:#f0f4ff;color:#4f6ef7;cursor:pointer;font-family:inherit">🔄 刷新</button>
+          <!-- 快捷预设 -->
+          <div style="display:flex;gap:4px">
+            <button onclick="trendPreset('last-week')"  style="padding:3px 10px;font-size:11px;border-radius:5px;border:1px solid #eee;background:#fafafa;color:#666;cursor:pointer;font-family:inherit">上周</button>
+            <button onclick="trendPreset('last-30')"    style="padding:3px 10px;font-size:11px;border-radius:5px;border:1px solid #eee;background:#fafafa;color:#666;cursor:pointer;font-family:inherit">近30天</button>
+            <button onclick="trendPreset('q2')"         style="padding:3px 10px;font-size:11px;border-radius:5px;border:1px solid #eee;background:#fafafa;color:#666;cursor:pointer;font-family:inherit">Q2</button>
+            <button onclick="trendPreset('all')"        style="padding:3px 10px;font-size:11px;border-radius:5px;border:1px solid #eee;background:#fafafa;color:#666;cursor:pointer;font-family:inherit">全部</button>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:260px"><canvas id="chart-overview-trend"></canvas></div>
       </div>
 
       <div class="card" id="sec-analysis">
@@ -615,9 +640,68 @@ function switchTrend(platform) {
   switchAnalysis(platform);
 }
 
+
+let _trendDim = 'day'; // 'day' | 'week'
+
+function switchTrendDim(dim) {
+  _trendDim = dim;
+  document.getElementById('trend-dim-day').style.background  = dim==='day'  ? '#4f6ef7' : '#fff';
+  document.getElementById('trend-dim-day').style.color       = dim==='day'  ? '#fff'    : '#666';
+  document.getElementById('trend-dim-week').style.background = dim==='week' ? '#4f6ef7' : '#fff';
+  document.getElementById('trend-dim-week').style.color      = dim==='week' ? '#fff'    : '#666';
+  renderOverviewTrend();
+}
+
+function trendPreset(mode) {
+  const max = DATA_MAX;
+  let s, e;
+  if(mode === 'last-week') {
+    const today = new Date();
+    const dow = today.getDay();
+    const daysToThisMon = dow === 0 ? 6 : dow - 1;
+    const thisMon = new Date(today);
+    thisMon.setDate(today.getDate() - daysToThisMon);
+    const lastMon = new Date(thisMon);
+    lastMon.setDate(thisMon.getDate() - 7);
+    const lastSun = new Date(lastMon);
+    lastSun.setDate(lastMon.getDate() + 6);
+    s = dateStr(lastMon); e = dateStr(lastSun);
+  } else if(mode === 'last-30') {
+    e = max; s = addDays(e, -29);
+  } else if(mode === 'q2') {
+    s = '2026-04-01'; e = max;
+  } else {
+    s = DATA_MIN; e = max;
+  }
+  document.getElementById('trend-start').value = s;
+  document.getElementById('trend-end').value   = e;
+  renderOverviewTrend();
+}
+
+// 按自然周聚合数据
+function aggregateByWeek(rows, getVal) {
+  const weekMap = {};
+  rows.forEach(d => {
+    const dt = new Date(d.date);
+    // 找本周的周一
+    const dow = dt.getDay();
+    const diff = dow === 0 ? -6 : 1 - dow;
+    const mon = new Date(dt);
+    mon.setDate(dt.getDate() + diff);
+    const key = dateStr(mon);
+    if(!weekMap[key]) weekMap[key] = 0;
+    weekMap[key] += getVal(d);
+  });
+  const keys = Object.keys(weekMap).sort();
+  return {
+    labels: keys.map(k => k.slice(5)), // MM-DD（周一日期）
+    data: keys.map(k => weekMap[k])
+  };
+}
+
 function renderOverviewTrend() {
-  const s = document.getElementById('date-start')?.value;
-  const e = document.getElementById('date-end')?.value;
+  const s = (document.getElementById('trend-start') || document.getElementById('date-start'))?.value;
+  const e = (document.getElementById('trend-end')   || document.getElementById('date-end'))?.value;
   if(!s || !e) return;
   const rows = filterData(s, e);
   if(!rows.length) return;
@@ -625,17 +709,26 @@ function renderOverviewTrend() {
   const cfg = TREND_CFG[_curTrendPlatform] || TREND_CFG.all;
   document.getElementById('trend-title').textContent = cfg.title;
 
-  // 用完整日期范围内每天的数据
-  const labels   = rows.map(d => d.date.slice(5)); // MM-DD
-  const curData  = rows.map(d => cfg.getData(d));
+  let labels, curData, preData = [];
 
-  // 同等长度的前一期对比
-  const dayCount = rows.length;
-  const preStart = addDays(s, -dayCount);
-  const preEnd   = addDays(s, -1);
-  const preRows  = filterData(preStart, preEnd);
-  const preData  = preRows.map(d => cfg.getData(d));
-  // 补齐或截断到相同长度
+  if(_trendDim === 'week') {
+    // 周维度聚合
+    const agg = aggregateByWeek(rows, cfg.getData);
+    labels  = agg.labels;
+    curData = agg.data;
+    // 前一期：往前推相同天数
+    const dayCount = rows.length;
+    const preRows  = filterData(addDays(s, -dayCount), addDays(s, -1));
+    const preAgg   = aggregateByWeek(preRows, cfg.getData);
+    preData = preAgg.data;
+  } else {
+    // 日维度
+    labels  = rows.map(d => d.date.slice(5));
+    curData = rows.map(d => cfg.getData(d));
+    const dayCount = rows.length;
+    const preRows  = filterData(addDays(s, -dayCount), addDays(s, -1));
+    preData = preRows.map(d => cfg.getData(d));
+  }
   while(preData.length < curData.length) preData.push(null);
 
   const ctx = document.getElementById('chart-overview-trend');
