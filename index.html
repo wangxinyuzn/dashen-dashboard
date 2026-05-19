@@ -42,7 +42,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .content{flex:1;padding:20px 24px;overflow-y:auto}
 .page{display:none}.page.active{display:block}
 
-.card{background:#fff;border-radius:8px;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.03);transition:box-shadow .2s}
+.card:hover{box-shadow:0 6px 24px rgba(0,0,0,.13),0 0 0 1px rgba(0,0,0,.05)}
 .card-title{font-size:14px;font-weight:600;color:#333;margin-bottom:16px;display:flex;align-items:center;gap:6px}
 .bar-icon{width:14px;height:14px;background:linear-gradient(135deg,#4f6ef7,#a78bfa);border-radius:2px;display:inline-block;flex-shrink:0}
 .period-badge{display:inline-flex;align-items:center;gap:8px;background:#f0f3ff;border-radius:6px;padding:6px 14px;margin-bottom:16px;font-size:12px;color:#666}
@@ -50,9 +51,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
 #overview-kpi.kpi-grid{grid-template-columns:repeat(4,1fr);gap:16px}
-.kpi-card{background:#fafbff;border:1px solid #eef0ff;border-radius:8px;padding:16px}
-.kpi-label{font-size:12px;color:#888;margin-bottom:6px}
-.kpi-number{font-size:24px;font-weight:700;color:#4f6ef7;line-height:1.2}
+.kpi-card{background:#fff;border:none;border-radius:10px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.03);transition:box-shadow .2s}
+.kpi-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05)}
+.kpi-label{font-size:11px;color:#aaa;margin-bottom:8px;font-weight:500}
+.kpi-number{font-size:28px;font-weight:700;color:#4f6ef7;line-height:1.1}
 .kpi-compare{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;flex-wrap:wrap}
 .up{color:#52c41a}.down{color:#ff4d4f}.neutral{color:#888}
 
@@ -225,6 +227,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .goal-card .gc-pct{font-size:12px;font-weight:600}
 .goal-card .gc-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
 @media(max-width:768px){.goal-card-row.play-row{grid-template-columns:1fr 1fr}.goal-card-row.boom-row{grid-template-columns:1fr 1fr}}
+
+/* 平台页彩色左竖条 */
+#page-1 .card{border-left:4px solid #1d7dfa}
+#page-2 .card{border-left:4px solid #ff2442}
+#page-3 .card{border-left:4px solid #07c160}
+#page-4 .card{border-left:4px solid #ff6200}
+/* 平台页 KPI 数字也用对应平台色 */
+#page-1 .kpi-number{color:#1d7dfa}
+#page-2 .kpi-number{color:#ff2442}
+#page-3 .kpi-number{color:#07c160}
+#page-4 .kpi-number{color:#ff6200}
+/* 平台页进度/对比表头 */
+#page-1 .compare-table th{border-bottom-color:#1d7dfa33}
+#page-2 .compare-table th{border-bottom-color:#ff244233}
+#page-3 .compare-table th{border-bottom-color:#07c16033}
+#page-4 .compare-table th{border-bottom-color:#ff620033}
 </style>
 </head>
 <body>
