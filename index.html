@@ -145,32 +145,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .collapsible-body{overflow:hidden;transition:max-height .3s ease,opacity .2s ease;max-height:2000px;opacity:1}
 .collapsible-body.collapsed{max-height:0;opacity:0}
 
-/* 营销日历 */
-.cal-table{width:100%;border-collapse:collapse;font-size:13px}
-.cal-table th{background:#fff0f6;color:#c41d7f;font-weight:600;padding:8px 12px;text-align:left;border-bottom:2px solid #ffd6e7;white-space:nowrap}
-.cal-table td{padding:0;border-bottom:1px solid #f9f0ff;vertical-align:top}
-.cal-table tr:last-child td{border-bottom:none}
-.cal-date-cell{padding:10px 12px;white-space:nowrap;width:100px}
-.cal-date-day{font-size:20px;font-weight:700;color:#333;line-height:1}
-.cal-date-info{font-size:11px;color:#aaa;margin-top:2px}
-.cal-date-info .weekday{font-weight:600}
-.cal-date-info .weekday.weekend{color:#ff4d4f}
-.cal-date-info .lunar{color:#bbb}
-.cal-today .cal-date-day{color:#eb2f96}
-.cal-today td{background:#fff9fc}
-.cal-today .cal-date-cell{border-left:3px solid #eb2f96}
-.cal-notes-cell{padding:4px 0;min-width:200px}
-.cal-note-row{display:flex;align-items:center;gap:6px;padding:3px 8px}
-.cal-note-input{flex:1;border:none;background:transparent;font-size:12px;color:#555;outline:none;padding:3px 6px;border-radius:4px;font-family:inherit}
-.cal-note-input:focus{background:#fff5f9;box-shadow:0 0 0 1.5px #ffadd2}
-.cal-note-input::placeholder{color:#ddd}
-.cal-note-add{opacity:0;color:#ffadd2;font-size:18px;cursor:pointer;transition:opacity .15s,color .15s;line-height:1;padding:0 2px;flex-shrink:0;background:none;border:none}
-.cal-table tr:hover .cal-note-add{opacity:1}
-.cal-note-add:hover{color:#eb2f96}
-.cal-note-del{opacity:0;color:#ffd6e7;font-size:14px;cursor:pointer;transition:opacity .15s,color .15s;line-height:1;background:none;border:none;flex-shrink:0}
-.cal-note-row:hover .cal-note-del{opacity:1}
-.cal-note-del:hover{color:#ff4d4f}
-.cal-badge{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;background:#fff0f6;color:#eb2f96;margin-right:4px;white-space:nowrap}
+/* 营销日历 - 横向表格 */
+.cal-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cal-htable{border-collapse:collapse;font-size:12px;min-width:100%;table-layout:fixed}
+.cal-htable th,.cal-htable td{border:1px solid #eee;padding:0;vertical-align:middle}
+.cal-htable .row-label{width:52px;min-width:52px;background:#fafafa;font-size:12px;color:#666;font-weight:600;text-align:center;padding:6px 4px;white-space:nowrap;position:sticky;left:0;z-index:2;border-right:2px solid #e8e8e8}
+.cal-htable .date-header{min-width:90px;width:90px;text-align:center;background:#fff0f6;padding:7px 4px}
+.cal-htable .date-header.today{background:#eb2f96;color:#fff}
+.cal-htable .date-header .date-num{font-size:13px;font-weight:700;line-height:1.2}
+.cal-htable .date-header .date-week{font-size:10px;opacity:.8;margin-top:1px}
+.cal-htable .date-header.weekend-col .date-num{color:#ff4d4f}
+.cal-htable .date-header.today .date-num{color:#fff}
+.cal-htable .week-row td{background:#fafbff;text-align:center;font-size:11px;color:#888;padding:4px 2px;font-weight:500}
+.cal-htable .week-row td.today-col{background:#fff0f6;color:#eb2f96;font-weight:700}
+.cal-htable .week-row td.weekend-col{color:#ff4d4f}
+.cal-htable .note-cell{padding:2px 4px;min-height:28px}
+.cal-note-input{width:100%;border:none;background:transparent;font-size:12px;color:#333;outline:none;padding:4px 4px;font-family:inherit;display:block;min-height:28px;box-sizing:border-box;resize:none;line-height:1.4}
+.cal-note-input:focus{background:#fff5f9;box-shadow:inset 0 0 0 1.5px #ffadd2;border-radius:3px}
+.cal-note-input::placeholder{color:#ddd;font-size:11px}
+.cal-htable tr:hover .row-label{background:#fff0f6;color:#eb2f96}
 
 /* 流量分析编辑器 */
 .analysis-editor{width:100%;min-height:140px;border:1.5px solid #f0eaff;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfbff;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
@@ -834,99 +827,91 @@ function boomUploadImg(id) {
 }
 
 
-// ====== 营销日历 ======
+// ====== 营销日历（横向表格）======
 const CAL_KEY = 'dashen_mkt_cal';
-const WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
+const CAL_DAYS   = 15;
+const CAL_ROWS   = 5; // 事项行数
+const WEEKDAYS_SHORT = ['周日','周一','周二','周三','周四','周五','周六'];
 
 function calLoad() {
   try { return JSON.parse(localStorage.getItem(CAL_KEY) || '{}'); } catch(e) { return {}; }
 }
 function calSave(data) { localStorage.setItem(CAL_KEY, JSON.stringify(data)); }
 
+function calGetDays() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Array.from({length: CAL_DAYS}, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    return { d, key: d.toISOString().slice(0,10), isToday: i===0, dow: d.getDay() };
+  });
+}
+
 function calRender() {
   const el = document.getElementById('mkt-calendar');
   if(!el) return;
-  const data = calLoad();
-  const today = new Date();
-  today.setHours(0,0,0,0);
+  const data  = calLoad();
+  const days  = calGetDays();
 
-  let rows = '';
-  for(let i = 0; i < 15; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const key = d.toISOString().slice(0,10); // YYYY-MM-DD
-    const isToday = i === 0;
-    const dow = d.getDay();
-    const isWeekend = dow === 0 || dow === 6;
-    const notes = data[key] || ['','','','',''];
-    // 确保至少5行
-    while(notes.length < 5) notes.push('');
+  // ── 表头行：日期 ──
+  const dateHeaders = days.map(({d, isToday, dow}) => {
+    const isWeekend = dow===0||dow===6;
+    const cls = [isToday?'today':'',(isWeekend&&!isToday)?'weekend-col':''].filter(Boolean).join(' ');
+    return `<th class="date-header ${cls}">
+      <div class="date-num">${d.getMonth()+1}月${d.getDate()}日</div>
+    </th>`;
+  }).join('');
 
-    const noteRows = notes.map((n, ni) => `
-      <div class="cal-note-row">
-        <input class="cal-note-input" value="${n.replace(/"/g,'&quot;')}"
-               placeholder="${ni===0?'点击输入备注...':''}"
-               onblur="calEditNote('${key}',${ni},this.value)"
-               onkeydown="if(event.key==='Enter')this.blur()">
-        ${ni >= 5 ? `<button class="cal-note-del" onclick="calDelNote('${key}',${ni})" title="删除">×</button>` : ''}
-      </div>`).join('');
+  // ── 星期行 ──
+  const weekCells = days.map(({isToday, dow}) => {
+    const isWeekend = dow===0||dow===6;
+    const cls = [isToday?'today-col':'',(isWeekend&&!isToday)?'weekend-col':''].filter(Boolean).join(' ');
+    return `<td class="${cls}">${WEEKDAYS_SHORT[dow]}</td>`;
+  }).join('');
 
-    rows += `
-      <tr class="${isToday?'cal-today':''}">
-        <td class="cal-date-cell">
-          <div class="cal-date-day">${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}</div>
-          <div class="cal-date-info">
-            <span class="weekday${isWeekend?' weekend':''}">${WEEKDAYS[dow]}</span>
-            ${isToday ? ' <span style="color:#eb2f96;font-size:10px">今天</span>' : ''}
-          </div>
-        </td>
-        <td class="cal-notes-cell">
-          ${noteRows}
-        </td>
-        <td style="width:30px;vertical-align:middle">
-          <button class="cal-note-add" onclick="calAddNote('${key}')" title="添加一行">＋</button>
-        </td>
-      </tr>`;
-  }
+  // ── 事项行 ──
+  const noteRows = Array.from({length: CAL_ROWS}, (_, ri) => {
+    const cells = days.map(({key, isToday}) => {
+      const notes = data[key] || [];
+      const val   = (notes[ri] || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const todayCls = isToday ? 'style="background:#fff9fc"' : '';
+      return `<td class="note-cell" ${todayCls}>
+        <textarea class="cal-note-input" rows="1"
+          onblur="calEditNote('${key}',${ri},this.value)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          placeholder="">${val}</textarea>
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td class="row-label">事项${ri+1}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
 
-  el.innerHTML = `<table class="cal-table">
-    <thead><tr>
-      <th>日期</th>
-      <th>营销备注（每格可独立编辑）</th>
-      <th></th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
+  el.innerHTML = `<div class="cal-wrap">
+    <table class="cal-htable">
+      <thead>
+        <tr>
+          <th class="row-label" style="background:#fafafa">日期</th>
+          ${dateHeaders}
+        </tr>
+        <tr class="week-row">
+          <td class="row-label">星期</td>
+          ${weekCells}
+        </tr>
+      </thead>
+      <tbody>
+        ${noteRows}
+      </tbody>
+    </table>
+  </div>`;
 }
 
-function calEditNote(dateKey, idx, val) {
+function calEditNote(dateKey, rowIdx, val) {
   const data = calLoad();
-  if(!data[dateKey]) data[dateKey] = ['','','','',''];
-  while(data[dateKey].length <= idx) data[dateKey].push('');
-  data[dateKey][idx] = val.trim();
+  if(!data[dateKey]) data[dateKey] = [];
+  while(data[dateKey].length <= rowIdx) data[dateKey].push('');
+  data[dateKey][rowIdx] = val;
   calSave(data);
-  // 不重新渲染，避免失焦时光标丢失
-}
-
-function calAddNote(dateKey) {
-  const data = calLoad();
-  if(!data[dateKey]) data[dateKey] = ['','','','',''];
-  data[dateKey].push('');
-  calSave(data);
-  calRender();
-  // 聚焦新增行
-  setTimeout(() => {
-    const rows = document.querySelectorAll(`[data-key="${dateKey}"] .cal-note-input`);
-    if(rows.length) rows[rows.length-1].focus();
-  }, 50);
-}
-
-function calDelNote(dateKey, idx) {
-  const data = calLoad();
-  if(!data[dateKey]) return;
-  data[dateKey].splice(idx, 1);
-  calSave(data);
-  calRender();
 }
 
 
