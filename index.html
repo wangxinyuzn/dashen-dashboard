@@ -64,8 +64,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .bar-orange{background:linear-gradient(90deg,#ffa940,#ffca00)}
 .bar-red{background:linear-gradient(90deg,#ff7875,#ff4d4f)}
 .bar-green{background:linear-gradient(90deg,#95de64,#52c41a)}
-.editable-goal{cursor:pointer;border-bottom:1px dashed #bbb;color:#888;transition:color .15s}
-.editable-goal:hover{color:#4f6ef7;border-bottom-color:#4f6ef7}
+.editable-goal{cursor:pointer;border-bottom:1px dashed #ccc;transition:color .15s,border-color .15s}
+.editable-goal:hover{color:#4f6ef7 !important;border-bottom-color:#4f6ef7 !important}
+.editable-name{color:#333}
+.editable-val{color:#888}
 
 .compare-table{width:100%;border-collapse:collapse;font-size:13px}
 .compare-table th{background:#f5f6fa;color:#888;font-weight:500;padding:8px 12px;text-align:left;border-bottom:1px solid #eee}
@@ -527,28 +529,29 @@ function renderGoalRows(qRows) {
       pct = Math.min(cur / (goalW * 10000) * 100, 100).toFixed(1);
       pctColor = pct >= 80 ? '#52c41a' : pct >= 50 ? '#fa8c16' : '#ff4d4f';
       curDisplay = `<strong>${curW}W</strong>`;
-      goalDisplay = `<span class="editable-goal" onclick="editGoalItem(${i},'goal')" title="点击修改目标值">${goalW}W</span>`;
+      goalDisplay = `<span class="editable-goal editable-val" onclick="editGoalItem(${i},'goal')" title="点击修改目标值 ✏️">${goalW}W</span>`;
     } else {
       cur = g.curVal;
       pct = Math.min(cur / g.goal * 100, 100).toFixed(1);
       pctColor = pct >= 80 ? '#52c41a' : pct >= 50 ? '#fa8c16' : '#ff4d4f';
       curDisplay = `<strong style="color:${pctColor}">${cur}</strong>`;
-      goalDisplay = `<span class="editable-goal" onclick="editGoalItem(${i},'goal')" title="点击修改目标值">${g.goal}${g.unit}</span>`;
+      goalDisplay = `<span class="editable-goal editable-val" onclick="editGoalItem(${i},'goal')" title="点击修改目标值 ✏️">${g.goal}${g.unit}</span>`;
     }
 
     const barColor = parseFloat(pct) < 30 ? 'bar-red' : (parseFloat(pct) < 70 ? 'bar-orange' : 'bar-green');
 
     return `<div class="progress-row">
       <div class="progress-label">
-        <span class="editable-goal" onclick="editGoalItem(${i},'name')" title="点击修改名称">${g.name}</span>
+        <span class="editable-goal editable-name" onclick="editGoalItem(${i},'name')" title="点击修改名称 ✏️">${g.name}</span>
       </div>
       <div class="progress-bar-wrap">
         <div class="progress-bar ${barColor}" style="width:${pct}%"></div>
       </div>
       <div class="progress-value">
-        ${curDisplay} / ${goalDisplay}
+        ${g.type==='count'
+          ? `<span class="editable-goal editable-val" onclick="editGoalItem(${i},'cur')" title="点击修改当前完成数 ✏️" style="font-weight:600;color:${pctColor}">${cur}</span>`
+          : curDisplay} / ${goalDisplay}
         <span style="color:${pctColor};font-size:11px;margin-left:4px">${pct}%</span>
-        ${g.type==='count' ? `<span class="editable-goal" onclick="editGoalItem(${i},'cur')" title="点击修改当前完成数" style="margin-left:4px;font-size:11px">✏️</span>` : ''}
       </div>
     </div>`;
   }).join('');
