@@ -161,8 +161,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .cal-htable .week-row td{background:#fafbff;text-align:center;font-size:11px;color:#888;padding:4px 2px;font-weight:500}
 .cal-htable .week-row td.today-col{background:#fff0f6;color:#eb2f96;font-weight:700}
 .cal-htable .week-row td.weekend-col{color:#ff4d4f}
-.cal-htable .note-cell{padding:2px 4px;min-height:28px}
-.cal-note-input{width:100%;border:none;background:transparent;font-size:12px;color:#333;outline:none;padding:4px 4px;font-family:inherit;display:block;min-height:28px;box-sizing:border-box;resize:none;line-height:1.4}
+.cal-htable .note-cell{padding:2px 4px;min-height:32px;position:relative}
+.cal-note-input{width:100%;border:none;background:transparent;font-size:12px;color:#333;outline:none;padding:4px 20px 4px 4px;font-family:inherit;display:block;min-height:32px;box-sizing:border-box;resize:none;line-height:1.4}
 .cal-note-input:focus{background:#fff5f9;box-shadow:inset 0 0 0 1.5px #ffadd2;border-radius:3px}
 .cal-note-input::placeholder{color:#ddd;font-size:11px}
 .cal-htable tr:hover .row-label{background:#fff0f6;color:#eb2f96}
@@ -208,6 +208,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
 .note-cell{position:relative}
 .cal-paint-btn{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:3px;border:none;background:none;font-size:11px;cursor:pointer;opacity:0;transition:opacity .15s;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.note-cell .cal-paint-btn{opacity:.25}
 .note-cell:hover .cal-paint-btn{opacity:1}
 .cal-paint-btn:hover{background:#fff0f6}
 
