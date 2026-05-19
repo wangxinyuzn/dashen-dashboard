@@ -101,6 +101,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .todo-add-btn:hover{background:#f0f4ff}
 
 @media(max-width:768px){.sidebar{display:none}.kpi-grid{grid-template-columns:1fr 1fr}}
+
+/* 爆款内容表格 */
+.boom-table{width:100%;border-collapse:collapse;font-size:13px}
+.boom-table th{background:#f5f7ff;color:#666;font-weight:600;padding:9px 10px;text-align:left;border-bottom:2px solid #e8edff;white-space:nowrap}
+.boom-table td{padding:8px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.boom-table tr:hover td{background:#fafbff}
+.boom-table tr:last-child td{border-bottom:none}
+.boom-seq{color:#aaa;font-size:12px;text-align:center;width:36px}
+.boom-platform-tags{display:flex;flex-wrap:wrap;gap:4px}
+.boom-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;user-select:none;transition:opacity .15s}
+.boom-tag:hover{opacity:.75}
+.boom-tag.dy{background:#e8f4ff;color:#1d7dfa}
+.boom-tag.xhs{background:#ffe8ec;color:#ff2442}
+.boom-tag.sph{background:#e8faf0;color:#07c160}
+.boom-tag.ks{background:#fff3e0;color:#ff6b00}
+.boom-tag.inactive{background:#f5f5f5 !important;color:#bbb !important}
+.boom-img-cell{width:80px}
+.boom-img-wrap{width:72px;height:48px;background:#f5f5f5;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1.5px dashed #ddd;transition:border-color .15s;position:relative}
+.boom-img-wrap:hover{border-color:#4f6ef7}
+.boom-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.boom-img-wrap .upload-hint{font-size:10px;color:#bbb;text-align:center;line-height:1.4;pointer-events:none}
+.boom-input{border:none;background:transparent;font-size:13px;color:#333;outline:none;width:100%;padding:2px 4px;border-radius:4px;cursor:pointer;font-family:inherit}
+.boom-input:focus{background:#fff;box-shadow:0 0 0 2px #4f6ef766;cursor:text}
+.boom-input.views{color:#4f6ef7;font-weight:600}
+.boom-input.analysis{color:#666;font-size:12px}
+.boom-del-btn{opacity:0;cursor:pointer;color:#bbb;font-size:18px;transition:opacity .15s,color .15s;padding:0 4px;line-height:1;background:none;border:none}
+.boom-table tr:hover .boom-del-btn{opacity:1}
+.boom-del-btn:hover{color:#ff4d4f}
+.boom-add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;color:#4f6ef7;font-size:13px;cursor:pointer;border-radius:6px;transition:background .15s;user-select:none;margin-top:4px}
+.boom-add-btn:hover{background:#f0f4ff}
 </style>
 </head>
 <body>
@@ -163,16 +193,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       </div>
 
       <div class="card">
-        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span> 本季度爆款内容（《揭秘疾病》主题）</div>
-        <div class="hit-list">
-          <div class="hit-item"><div class="hit-rank top3">1</div><div class="hit-name">鼻炎怎么来的</div><div class="hit-views">132W</div></div>
-          <div class="hit-item"><div class="hit-rank top3">2</div><div class="hit-name">水泡是在保护你</div><div class="hit-views">44.2W</div></div>
-          <div class="hit-item"><div class="hit-rank top3">3</div><div class="hit-name">蛀牙怎么来的</div><div class="hit-views">5.6W</div></div>
-          <div class="hit-item"><div class="hit-rank">4</div><div class="hit-name">荨麻疹怎么来的</div><div class="hit-views">4.4W</div></div>
-          <div class="hit-item"><div class="hit-rank">5</div><div class="hit-name">口腔溃疡怎么来的</div><div class="hit-views">2.1W</div></div>
-          <div class="hit-item"><div class="hit-rank">6</div><div class="hit-name">为什么小孩更容易得中耳炎</div><div class="hit-views">1.5W</div></div>
-          <div class="hit-item"><div class="hit-rank">7</div><div class="hit-name">黄鼻涕是怎么来的</div><div class="hit-views">1W</div></div>
+        <div class="card-title" id="boom-card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span>
+          <span class="editable-goal editable-name" onclick="boomEditTitle()" title="点击修改标题" id="boom-title-text">爆款内容</span>
         </div>
+        <div style="overflow-x:auto">
+          <table class="boom-table">
+            <thead><tr>
+              <th class="boom-seq">#</th>
+              <th style="min-width:140px">内容标题</th>
+              <th style="min-width:130px">平台</th>
+              <th style="width:90px">截图</th>
+              <th style="min-width:80px">播放量</th>
+              <th style="min-width:180px">浅析</th>
+              <th style="width:30px"></th>
+            </tr></thead>
+            <tbody id="boom-tbody"></tbody>
+          </table>
+        </div>
+        <div class="boom-add-btn" onclick="boomAdd()">＋ 添加爆款</div>
+        <input type="file" id="boom-img-input" accept="image/*" style="display:none">
       </div>
 
       <div class="card">
@@ -502,6 +542,136 @@ function applyDateRange() {
   makeChart('chart-ks',     chartLabels, cur.map(d=>d.ks_play),  pre.map(d=>d.ks_play),  '#ff6200');
 }
 
+
+
+// ====== 爆款内容表格 ======
+const BOOM_KEY    = 'dashen_boom_rows';
+const BOOM_TITLE_KEY = 'dashen_boom_title';
+const BOOM_PLATFORMS = [
+  {key:'dy',  label:'抖音',  cls:'dy'},
+  {key:'xhs', label:'小红书',cls:'xhs'},
+  {key:'sph', label:'视频号',cls:'sph'},
+  {key:'ks',  label:'快手',  cls:'ks'},
+];
+
+function boomLoad() {
+  try { return JSON.parse(localStorage.getItem(BOOM_KEY)) || boomDefaults(); }
+  catch(e) { return boomDefaults(); }
+}
+function boomDefaults() {
+  return [
+    {id:1, title:'鼻炎怎么来的',     platforms:['dy'], img:'', views:'132W', analysis:'短平快科普，引发共鸣，完播率高'},
+    {id:2, title:'水泡是在保护你',    platforms:['dy','xhs'], img:'', views:'44.2W', analysis:'反认知标题，互动率强'},
+    {id:3, title:'蛀牙怎么来的',      platforms:['dy'], img:'', views:'5.6W', analysis:''},
+    {id:4, title:'荨麻疹怎么来的',    platforms:['xhs'], img:'', views:'4.4W', analysis:''},
+    {id:5, title:'口腔溃疡怎么来的',  platforms:['dy'], img:'', views:'2.1W', analysis:''},
+    {id:6, title:'为什么小孩更容易得中耳炎', platforms:['dy'], img:'', views:'1.5W', analysis:''},
+    {id:7, title:'黄鼻涕是怎么来的',  platforms:['dy'], img:'', views:'1W', analysis:''},
+  ];
+}
+function boomSave(rows) { localStorage.setItem(BOOM_KEY, JSON.stringify(rows)); }
+
+let _boomImgTarget = null; // 当前待上传图片的行id
+
+function boomRender() {
+  const rows  = boomLoad();
+  const tbody = document.getElementById('boom-tbody');
+  const titleEl = document.getElementById('boom-title-text');
+  if(titleEl) titleEl.textContent = localStorage.getItem(BOOM_TITLE_KEY) || '爆款内容';
+  if(!tbody) return;
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const platforms = BOOM_PLATFORMS.map(p => {
+      const active = r.platforms.includes(p.key);
+      return `<span class="boom-tag ${p.cls}${active?'':' inactive'}" onclick="boomTogglePlatform(${r.id},'${p.key}')">${p.label}</span>`;
+    }).join('');
+
+    const imgHtml = r.img
+      ? `<img src="${r.img}" alt="截图">`
+      : `<div class="upload-hint">📷<br>点击上传</div>`;
+
+    return `<tr>
+      <td class="boom-seq">${i+1}</td>
+      <td><input class="boom-input" value="${r.title.replace(/"/g,'&quot;')}"
+           onblur="boomEdit(${r.id},'title',this.value)"
+           onkeydown="if(event.key==='Enter')this.blur()"
+           title="点击编辑标题"></td>
+      <td><div class="boom-platform-tags">${platforms}</div></td>
+      <td class="boom-img-cell">
+        <div class="boom-img-wrap" onclick="boomUploadImg(${r.id})" title="点击上传截图">${imgHtml}</div>
+      </td>
+      <td><input class="boom-input views" value="${r.views.replace(/"/g,'&quot;')}"
+           onblur="boomEdit(${r.id},'views',this.value)"
+           onkeydown="if(event.key==='Enter')this.blur()"
+           title="点击编辑播放量"></td>
+      <td><input class="boom-input analysis" value="${r.analysis.replace(/"/g,'&quot;')}"
+           onblur="boomEdit(${r.id},'analysis',this.value)"
+           onkeydown="if(event.key==='Enter')this.blur()"
+           placeholder="输入浅析..."
+           title="点击编辑浅析"></td>
+      <td><button class="boom-del-btn" onclick="boomDel(${r.id})" title="删除">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function boomEdit(id, field, val) {
+  const rows = boomLoad();
+  const r = rows.find(x=>x.id===id);
+  if(r) { r[field] = val.trim(); boomSave(rows); }
+}
+function boomTogglePlatform(id, pkey) {
+  const rows = boomLoad();
+  const r = rows.find(x=>x.id===id);
+  if(!r) return;
+  const idx = r.platforms.indexOf(pkey);
+  if(idx >= 0) r.platforms.splice(idx,1);
+  else r.platforms.push(pkey);
+  boomSave(rows); boomRender();
+}
+function boomDel(id) {
+  boomSave(boomLoad().filter(x=>x.id!==id)); boomRender();
+}
+function boomAdd() {
+  const rows = boomLoad();
+  rows.push({id:Date.now(), title:'新内容', platforms:['dy'], img:'', views:'', analysis:''});
+  boomSave(rows); boomRender();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#boom-tbody .boom-input');
+    if(inputs.length) inputs[inputs.length-5]?.focus();
+  },50);
+}
+function boomUploadImg(id) {
+  _boomImgTarget = id;
+  document.getElementById('boom-img-input').click();
+}
+function boomEditTitle() {
+  const cur = localStorage.getItem(BOOM_TITLE_KEY) || '爆款内容';
+  const v = prompt('修改模块标题', cur);
+  if(v !== null && v.trim()) {
+    localStorage.setItem(BOOM_TITLE_KEY, v.trim());
+    boomRender();
+  }
+}
+
+// 图片上传处理
+document.addEventListener('DOMContentLoaded', () => {
+  const imgInput = document.getElementById('boom-img-input');
+  if(imgInput) {
+    imgInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if(!file || !_boomImgTarget) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const rows = boomLoad();
+        const r = rows.find(x=>x.id===_boomImgTarget);
+        if(r) { r.img = e.target.result; boomSave(rows); boomRender(); }
+        _boomImgTarget = null;
+        this.value = '';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
 
 // ====== TODO 列表 ======
 const TODO_KEY = 'dashen_todos';
