@@ -136,6 +136,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .trend-btn{padding:4px 12px;border-radius:14px;border:1.5px solid var(--c,#4f6ef7);color:var(--c,#4f6ef7);background:#fff;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit}
 .trend-btn:hover{background:color-mix(in srgb,var(--c,#4f6ef7) 10%,#fff)}
 .trend-btn.active{background:var(--c,#4f6ef7);color:#fff}
+
+/* 折叠按钮 */
+.collapse-btn{margin-left:auto;width:22px;height:22px;border-radius:50%;border:none;background:#f0f0f0;color:#888;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .2s;flex-shrink:0;line-height:1}
+.collapse-btn:hover{background:#e0e6ff;color:#4f6ef7}
+.collapse-btn.collapsed{transform:rotate(-90deg)}
+.collapsible-body{overflow:hidden;transition:max-height .3s ease,opacity .2s ease;max-height:2000px;opacity:1}
+.collapsible-body.collapsed{max-height:0;opacity:0}
 </style>
 </head>
 <body>
@@ -216,29 +223,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
         <div class="card-title" id="boom-card-title" style="display:flex;align-items:center;gap:8px">
           <span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span>
           <span class="editable-goal editable-name" onclick="boomEditTitle()" title="点击修改标题" id="boom-title-text">爆款内容</span>
+          <button class="collapse-btn" id="boom-collapse-btn" onclick="toggleCollapse('boom')" title="折叠/展开">▾</button>
         </div>
-        <div style="overflow-x:auto">
-          <table class="boom-table">
-            <thead><tr>
-              <th class="boom-seq">#</th>
-              <th style="min-width:140px">内容标题</th>
-              <th style="min-width:130px">平台</th>
-              <th style="width:90px">截图</th>
-              <th style="min-width:80px">播放量</th>
-              <th style="min-width:180px">浅析</th>
-              <th style="width:30px"></th>
-            </tr></thead>
-            <tbody id="boom-tbody"></tbody>
-          </table>
+        <div class="collapsible-body" id="boom-collapse-body">
+          <div style="overflow-x:auto">
+            <table class="boom-table">
+              <thead><tr>
+                <th class="boom-seq">#</th>
+                <th style="min-width:140px">内容标题</th>
+                <th style="min-width:130px">平台</th>
+                <th style="width:90px">截图</th>
+                <th style="min-width:80px">播放量</th>
+                <th style="min-width:180px">浅析</th>
+                <th style="width:30px"></th>
+              </tr></thead>
+              <tbody id="boom-tbody"></tbody>
+            </table>
+          </div>
+          <div class="boom-add-btn" onclick="boomAdd()">＋ 添加爆款</div>
+          <input type="file" id="boom-img-input" accept="image/*" style="display:none">
         </div>
-        <div class="boom-add-btn" onclick="boomAdd()">＋ 添加爆款</div>
-        <input type="file" id="boom-img-input" accept="image/*" style="display:none">
       </div>
 
       <div class="card">
-        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span> 本周 TO DO</div>
-        <div class="todo-list" id="todo-list"></div>
-        <div class="todo-add-btn" onclick="todoAdd()">＋ 添加待办</div>
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span>
+          <span>本周 TO DO</span>
+          <button class="collapse-btn" id="todo-collapse-btn" onclick="toggleCollapse('todo')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="todo-collapse-body">
+          <div class="todo-list" id="todo-list"></div>
+          <div class="todo-add-btn" onclick="todoAdd()">＋ 添加待办</div>
+        </div>
       </div>
 
     </div>
@@ -766,6 +782,31 @@ function boomUploadImg(id) {
   _boomImgTarget = id;
   document.getElementById('boom-img-input').click();
 }
+
+// ====== 折叠功能 ======
+const COLLAPSE_KEY = 'dashen_collapse';
+function toggleCollapse(name) {
+  const body = document.getElementById(name + '-collapse-body');
+  const btn  = document.getElementById(name + '-collapse-btn');
+  if(!body) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  if(btn) btn.classList.toggle('collapsed', isCollapsed);
+  // 持久化
+  const state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}');
+  state[name] = isCollapsed;
+  localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
+}
+function restoreCollapse() {
+  const state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}');
+  Object.entries(state).forEach(([name, isCollapsed]) => {
+    if(!isCollapsed) return;
+    const body = document.getElementById(name + '-collapse-body');
+    const btn  = document.getElementById(name + '-collapse-btn');
+    if(body) body.classList.add('collapsed');
+    if(btn)  btn.classList.add('collapsed');
+  });
+}
+
 function boomEditTitle() {
   const cur = localStorage.getItem(BOOM_TITLE_KEY) || '爆款内容';
   const v = prompt('修改模块标题', cur);
