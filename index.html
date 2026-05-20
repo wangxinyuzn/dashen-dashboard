@@ -300,10 +300,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="sidebar-item" onclick="scrollToSection('sec-todo',this)">✅ 本周 TO DO</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
     </div>
-    <div style="padding:12px 8px 0;border-top:1px solid #f0f0f0;margin-top:12px">
-      <button onclick="uploadUserData()" id="sync-btn" style="width:100%;padding:8px 0;background:linear-gradient(135deg,#4f6ef7,#722ed1);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.3px">📤 同步内容到看板</button>
-      <div id="sync-tip" style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5;text-align:center"></div>
-    </div>
+
   </div>
   <div class="content">
 
@@ -311,7 +308,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div class="page active" id="page-0">
       <div class="period-badge">当前周期：<span class="cur" id="overview-period">-</span></div>
       <div class="card" id="sec-goal">
-        <div class="card-title"><span class="bar-icon"></span> 目标完成情况 <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:6px">（本季度累计 · 点击名称或目标值可修改）</span></div>
+        <div class="card-title"><span class="bar-icon"></span> 目标完成情况 <span id="goal-period-label" style="font-size:11px;color:#aaa;font-weight:400;margin-left:6px">（当前周期 · 点击名称或目标值可修改）</span></div>
         <div id="goal-rows"></div>
       </div>
 
@@ -749,14 +746,10 @@ function applyDateRange() {
   // 汇总
   const S = (rows, f) => sumField(rows, f);
 
-  // 目标完成情况 —— 固定统计当前季度
-  const latestDate = new Date(DATA_MAX);
-  const latestMonth = latestDate.getMonth() + 1;
-  const latestYear  = latestDate.getFullYear();
-  const qStartMonth = Math.floor((latestMonth - 1) / 3) * 3 + 1;
-  const qStart = `${latestYear}-${String(qStartMonth).padStart(2,'0')}-01`;
-  const qEnd   = DATA_MAX;
-  const qRows  = filterData(qStart, qEnd);
+  // 目标完成情况 —— 使用时间选择器所选时间范围
+  const qRows  = filterData(s, e);
+  const goalLabel = document.getElementById('goal-period-label');
+  if(goalLabel) goalLabel.textContent = `（${s.slice(5)}~${e.slice(5)} · 点击名称或目标值可修改）`;
   renderGoalRows(qRows);
 
   // 总览 KPI
@@ -1972,32 +1965,9 @@ function collectUserData() {
   return data;
 }
 
-async function uploadUserData() {
-  const btn = document.getElementById('sync-btn');
-  const tip = document.getElementById('sync-tip');
-  const data = collectUserData();
-  const payload = JSON.stringify(data);
-  // 写入隐藏节点，供 Bot 浏览器读取
-  let el = document.getElementById('__sync_data__');
-  if(!el) { el = document.createElement('div'); el.id = '__sync_data__'; el.style.display='none'; document.body.appendChild(el); }
-  el.textContent = payload;
-  // 同时写 sessionStorage
-  sessionStorage.setItem('dashen_sync_payload', payload);
-  tip.innerHTML = '✅ 数据已就绪！<br>告诉 Bot：<b>读取看板同步数据</b>';
-}
-
-// USER_DATA_INJECT_START
-const BAKED_USER_DATA = {"dashen_todos": "[{\"id\":1,\"emoji\":\"🔥\",\"text\":\"《三国演义》主题传播：主题曲+先导片传播，并追加投放进行推流传播\",\"done\":false},{\"id\":2,\"emoji\":\"🎥\",\"text\":\"四周年斑马拍用户互动模板视频拍摄及剪辑制作\",\"done\":false},{\"id\":3,\"emoji\":\"🗺️\",\"text\":\"公众号侵权内容处理&内部协作沟通\",\"done\":false}]", "dashen_boom_rows": "[{\"id\":1,\"title\":\"鼻炎怎么来的\",\"platforms\":[\"dy\",\"sph\"],\"img\":\"\",\"views\":\"132W\",\"analysis\":\"短平快科普，引发共鸣，完播率高\"},{\"id\":2,\"title\":\"水泡是在保护你\",\"platforms\":[\"dy\",\"xhs\"],\"img\":\"\",\"views\":\"44.2W\",\"analysis\":\"反认知标题，互动率强\"},{\"id\":3,\"title\":\"蛀牙怎么来的\",\"platforms\":[\"dy\"],\"img\":\"\",\"views\":\"5.6W\",\"analysis\":\"\"},{\"id\":4,\"title\":\"荨麻疹怎么来的\",\"platforms\":[\"xhs\"],\"img\":\"\",\"views\":\"4.4W\",\"analysis\":\"\"},{\"id\":5,\"title\":\"口腔溃疡怎么来的\",\"platforms\":[\"dy\"],\"img\":\"\",\"views\":\"2.1W\",\"analysis\":\"\"},{\"id\":6,\"title\":\"为什么小孩更容易得中耳炎\",\"platforms\":[\"dy\"],\"img\":\"\",\"views\":\"1.5W\",\"analysis\":\"\"},{\"id\":7,\"title\":\"黄鼻涕是怎么来的\",\"platforms\":[\"dy\"],\"img\":\"\",\"views\":\"1W\",\"analysis\":\"\"}]", "dashen_analysis": "{\"dy\":\"【流量变化】本周流量有所提升，主要原因是一方面上周流量较低，本周属于正常流量趋势，一方面本周《揭秘疾病》的【为什么会涨痱子】和《三国演义》的【三国演义宣传片】获得了不错的流量加持，使得流量提升。\n【投放变化】本周围绕《三国演义》宣传片进行了投放测试，CPM10.86＜18，较为优秀，使得本周CPM均值较低，后续也会改变投放策略，给予主题上新更对的宣传投放。\",\"xhs\":\"本周爆款无新增，但小红书【为什么会得痱子】流量持续增长。\",\"all\":\"【流量变化】本周流量有所提升，主要原因是一方面上周流量较低，本周属于正常流量趋势，一方面本周《揭秘疾病》的【为什么会涨痱子】和《三国演义》的【三国演义宣传片】获得了不错的流量加持，使得流量提升。\n【投放变化】本周围绕《三国演义》宣传片进行了投放测试，CPM10.86＜18，较为优秀，使得本周CPM均值较低，后续也会改变投放策略，给予主题上新更对的宣传投放。\"}", "dashen_mkt_cal": "{\"2026-05-18\":[\"\",\"\",\"\",\"\",\"\"],\"2026-05-19\":[\"\",\"\",\"\",\"\",\"\"],\"2026-05-20\":[\"\",\"\",\"\",\"\",\"\"],\"2026-05-27\":[\"交付\"],\"2026-05-24\":[\"\",\"\",\"\",\"测试\",\"\"],\"2026-05-25\":[\"拍摄\",\"\",\"\",\"\"],\"2026-05-23\":[\"\",\"\",\"\",\"\",\"\",\"侧事故\",\"测试\"],\"2026-05-31\":[\"\",\"物料传播\",\"\"],\"2026-05-26\":[\"\",\"\"],\"2026-05-28\":[\"\",\"\",\"\",\"\"],\"2026-05-21\":[\"\",\"\",\"\",\"\"],\"2026-05-22\":[\"\",\"\",\"\",\"\"],\"2026-06-01\":[\"\",\"\",\"\"]}", "dashen_cal_labels": "[\"斑马拍\",\"四周年\",\"\",\"\",\"事项5\"]", "dashen_cal_colors": "{\"cal-cell-3-2026-05-24\":\"#fff0f6\",\"cal-cell-3-2026-05-24__auto\":\"1\",\"cal-cell-6-2026-05-23\":\"#f6ffed\",\"cal-cell-6-2026-05-23__auto\":\"1\",\"cal-cell-5-2026-05-23\":\"#fff7e6\",\"cal-cell-5-2026-05-23__auto\":\"1\"}", "dashen_cal_rows": "7", "dashen_collapse": "{\"todo\":false,\"cal\":false,\"analysis\":false,\"boom\":true,\"trend\":true}"};
-// USER_DATA_INJECT_END
 
 // 初始化
 window.addEventListener('load', () => {
-  // 读取烘焙数据，优先用 localStorage（本地编辑优先），没有时用烘焙数据
-  if(BAKED_USER_DATA) {
-    Object.entries(BAKED_USER_DATA).forEach(([k, v]) => {
-      if(localStorage.getItem(k) === null) localStorage.setItem(k, v);
-    });
-  }
   
   todoRender();
   boomRender();
