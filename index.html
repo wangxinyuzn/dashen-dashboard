@@ -103,6 +103,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .todo-item.done .todo-text{text-decoration:line-through;color:#bbb}
 .todo-add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;color:#4f6ef7;font-size:13px;cursor:pointer;border-radius:6px;transition:background .15s;user-select:none;margin-top:2px}
 .todo-add-btn:hover{background:#f0f4ff}
+.todo-share-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#f0f4ff;color:#4f6ef7;border:1px solid #d0dcff;border-radius:14px;font-size:12px;cursor:pointer;transition:background .15s,border-color .15s;user-select:none;margin-left:auto}
+.todo-share-btn:hover{background:#e0eaff;border-color:#4f6ef7}
+.todo-readonly-banner{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;font-size:13px;color:#ad6800;margin-bottom:10px}
+.todo-readonly-banner a{color:#4f6ef7;text-decoration:none;margin-left:auto;font-size:12px}
+.todo-readonly-banner a:hover{text-decoration:underline}
+.todo-item.readonly input[type=checkbox]{pointer-events:none}
+.todo-item.readonly .todo-text{pointer-events:none;cursor:default}
+.todo-item.readonly .todo-emoji{pointer-events:none;cursor:default}
+.todo-item.readonly .todo-del{display:none}
+.todo-item.readonly.done .todo-text{text-decoration:line-through;color:#bbb}
 
 @media(max-width:768px){.sidebar{display:none}.kpi-grid{grid-template-columns:1fr 1fr}}
 
@@ -384,6 +394,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
           <span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span>
           <span>本周 TO DO</span>
           <button class="collapse-btn" id="todo-collapse-btn" onclick="toggleCollapse('todo')" title="折叠/展开">▾</button>
+          <span class="todo-share-btn" onclick="todoShare()" title="生成只读分享链接">🔗 分享</span>
         </div>
         <div class="collapsible-body" id="todo-collapse-body">
           <div class="todo-list" id="todo-list"></div>
@@ -1708,7 +1719,60 @@ document.addEventListener('DOMContentLoaded', () => {
 const TODO_KEY = 'dashen_todos';
 const TODO_EMOJIS = ['📌','🎬','🏛️','🗺️','🎥','💰','📊','✍️','📢','🔥','🎯','💡','📝','🚀','⚡'];
 
+// ====== TODO 分享（只读模式）======
+const TODO_SHARE_PARAM = 'todo_share';
+let TODO_READONLY = false;
+let TODO_SHARED_DATA = null;
+
+(function detectTodoShare() {
+  try {
+    const hash = location.hash; // e.g. #todo_share=xxxx
+    const match = hash.match(/#todo_share=([^&]*)/);
+    if (match) {
+      const decoded = JSON.parse(decodeURIComponent(atob(match[1])));
+      if (Array.isArray(decoded)) {
+        TODO_READONLY = true;
+        TODO_SHARED_DATA = decoded;
+      }
+    }
+  } catch(e) {}
+})();
+
+function todoShare() {
+  const todos = todoLoad();
+  const encoded = btoa(encodeURIComponent(JSON.stringify(todos)));
+  const url = location.origin + location.pathname + '#todo_share=' + encoded;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('✅ 分享链接已复制到剪贴板！打开链接可只读查看当前 TO DO 状态。');
+    }).catch(() => promptCopy(url));
+  } else {
+    promptCopy(url);
+  }
+}
+
+function promptCopy(url) {
+  const box = document.createElement('div');
+  box.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:24px 28px;z-index:9999;min-width:320px;max-width:90vw';
+  box.innerHTML=`<div style="font-weight:600;margin-bottom:10px;font-size:14px">🔗 复制分享链接</div>
+    <input id="share-url-input" style="width:100%;padding:8px 10px;border:1px solid #d0dcff;border-radius:8px;font-size:12px;outline:none;box-sizing:border-box" value="${url}" readonly onclick="this.select()">
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+      <button onclick="this.closest('div[style]').remove()" style="padding:7px 18px;border-radius:8px;border:1px solid #e5e7eb;background:#f5f5f5;cursor:pointer;font-size:13px">关闭</button>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('share-url-input').value);this.textContent='✅ 已复制'" style="padding:7px 18px;border-radius:8px;border:none;background:#4f6ef7;color:#fff;cursor:pointer;font-size:13px">复制链接</button>
+    </div>`;
+  document.body.appendChild(box);
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;z-index:9999;opacity:1;transition:opacity .5s';
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(), 600); }, 3000);
+}
+
 function todoLoad() {
+  if (TODO_READONLY) return TODO_SHARED_DATA;
   try { return JSON.parse(localStorage.getItem(TODO_KEY)) || todoDefaults(); }
   catch(e) { return todoDefaults(); }
 }
@@ -1727,15 +1791,30 @@ function todoRender() {
   const todos = todoLoad();
   const el = document.getElementById('todo-list');
   if(!el) return;
+  // 只读模式：显示 banner，隐藏添加按钮
+  if (TODO_READONLY) {
+    const addBtn = document.querySelector('.todo-add-btn');
+    if (addBtn) addBtn.style.display = 'none';
+    const shareBtn = document.querySelector('.todo-share-btn');
+    if (shareBtn) shareBtn.style.display = 'none';
+    const existing = document.getElementById('todo-readonly-banner');
+    if (!existing) {
+      const banner = document.createElement('div');
+      banner.id = 'todo-readonly-banner';
+      banner.className = 'todo-readonly-banner';
+      banner.innerHTML = '👁️ 只读预览 · 此为分享快照，不会影响原始看板数据 <a href="' + location.origin + location.pathname + '" target="_blank">查看完整看板 →</a>';
+      el.parentNode.insertBefore(banner, el);
+    }
+  }
   el.innerHTML = todos.map(t => `
-    <div class="todo-item${t.done?' done':''}" data-id="${t.id}">
-      <input type="checkbox" ${t.done?'checked':''} onchange="todoToggle(${t.id})">
-      <span class="todo-emoji" onclick="todoChangeEmoji(${t.id})" title="点击换表情">${t.emoji}</span>
+    <div class="todo-item${t.done?' done':''}${TODO_READONLY?' readonly':''}" data-id="${t.id}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="${TODO_READONLY?'':('todoToggle('+t.id+')')}">
+      <span class="todo-emoji" onclick="${TODO_READONLY?'':('todoChangeEmoji('+t.id+')')}" title="${TODO_READONLY?'':'点击换表情'}">${t.emoji}</span>
       <input class="todo-text" value="${t.text.replace(/"/g,'&quot;')}" 
-             onblur="todoEdit(${t.id}, this.value)"
-             onkeydown="if(event.key==='Enter'){this.blur();todoAddAfter(${t.id})}"
-             title="点击编辑，Enter 新增下一条">
-      <span class="todo-del" onclick="todoDel(${t.id})" title="删除">×</span>
+             onblur="${TODO_READONLY?'':('todoEdit('+t.id+', this.value)')}"
+             onkeydown="${TODO_READONLY?'':('if(event.key===\'Enter\'){this.blur();todoAddAfter('+t.id+');}')}"
+             title="${TODO_READONLY?t.text:'点击编辑，Enter 新增下一条'}" ${TODO_READONLY?'readonly':''}>
+      <span class="todo-del" onclick="${TODO_READONLY?'':('todoDel('+t.id+')')}" title="删除">×</span>
     </div>`).join('');
 }
 
