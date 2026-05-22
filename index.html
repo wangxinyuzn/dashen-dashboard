@@ -575,7 +575,8 @@ const GistStorage = {
 
   // ---- 配置读取 ----
   token()  { return localStorage.getItem(this.TOKEN_KEY)   || ''; },
-  gistId() { return localStorage.getItem(this.GIST_ID_KEY) || ''; },
+  DEFAULT_GIST_ID: '705d29e14b8e6840628336b5d1bc7b7c',
+  gistId() { return localStorage.getItem(this.GIST_ID_KEY) || this.DEFAULT_GIST_ID; },
   isConfigured() { return !!(this.token() && this.gistId()); },
 
   // ---- 状态指示器 ----
