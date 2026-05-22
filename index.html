@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>大圣AI 数据看板</title>
+<title>新媒体数据看板</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -309,7 +309,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 </div>
 
 <div class="header">
-  <div class="header-title"><span style="font-size:20px">🐒</span><span>大圣AI 数据看板</span></div>
+  <div class="header-title"><span style="font-size:20px">🐒</span><span>新媒体数据看板</span></div>
   <div class="header-meta">
     <span class="update-tag">📅 数据来源：大圣数据底稿</span>
     <span id="today-label">2026年5月19日 周二</span>
@@ -701,7 +701,7 @@ const GistStorage = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          description: '大圣AI 数据看板 - 云端数据存储',
+          description: '新媒体数据看板 - 云端数据存储',
           public: false,
           files: { [this.FILENAME]: { content: JSON.stringify({_created: new Date().toISOString()}, null, 2) } }
         })
