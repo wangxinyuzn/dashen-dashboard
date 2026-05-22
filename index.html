@@ -1549,14 +1549,13 @@ function analysisRender() {
   wrap.innerHTML = platforms.map(p => {
     const color = ANALYSIS_COLORS[p];
     const saved = data[p] || '';
-    return `<div class="analysis-pane" id="apane-${p}" style="display:${p===_curAnalysisPlatform?'block':'none'}">
-      <textarea class="analysis-editor" id="aeditor-${p}"
-        placeholder="${ANALYSIS_READONLY ? '（该平台暂无分析内容）' : ('在此记录'+ANALYSIS_LABELS[p]+'流量分析、归因总结、优化建议...')}"
-        ${ANALYSIS_READONLY ? 'readonly' : ('onblur="analysisSaveText(''+p+'', this.value)"')}
-        style="border-color:${color}22"
-      >${saved}</textarea>
-      <div class="analysis-meta" id="ameta-${p}">${ANALYSIS_READONLY ? (saved ? saved.length+' 字（只读）' : '暂无内容') : (saved ? `已保存 · ${saved.length} 字` : '内容自动保存')}</div>
-    </div>`;
+    const placeholder = ANALYSIS_READONLY ? '（该平台暂无分析内容）' : ('在此记录' + ANALYSIS_LABELS[p] + '流量分析、归因总结、优化建议...');
+    const onblurAttr = ANALYSIS_READONLY ? 'readonly' : ('onblur="analysisSaveText(\'' + p + '\', this.value)"');
+    const metaText = ANALYSIS_READONLY ? (saved ? saved.length + ' 字（只读）' : '暂无内容') : (saved ? '已保存 · ' + saved.length + ' 字' : '内容自动保存');
+    return '<div class="analysis-pane" id="apane-' + p + '" style="display:' + (p===_curAnalysisPlatform?'block':'none') + '">' +
+      '<textarea class="analysis-editor" id="aeditor-' + p + '" placeholder="' + placeholder + '" ' + onblurAttr + ' style="border-color:' + color + '22">' + saved + '</textarea>' +
+      '<div class="analysis-meta" id="ameta-' + p + '">' + metaText + '</div>' +
+      '</div>';
   }).join('');
 }
 
