@@ -173,6 +173,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .analysis-editor:focus{border-color:#b37feb;box-shadow:0 0 0 3px #f9f0ff}
 .analysis-editor::placeholder{color:#d3c4ef}
 .analysis-meta{font-size:11px;color:#bbb;margin-top:6px;text-align:right}
+.analysis-share-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#f9f0ff;color:#722ed1;border:1px solid #e0c4ff;border-radius:14px;font-size:12px;cursor:pointer;transition:background .15s,border-color .15s;user-select:none;margin-left:auto}
+.analysis-share-btn:hover{background:#edd8ff;border-color:#722ed1}
+.analysis-readonly-banner{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;font-size:13px;color:#ad6800;margin-bottom:10px}
+.analysis-readonly-banner a{color:#722ed1;text-decoration:none;margin-left:auto;font-size:12px}
+.analysis-readonly-banner a:hover{text-decoration:underline}
+.analysis-editor[readonly]{background:#faf8ff;cursor:default;resize:none}
 
 /* 热点新闻 */
 .hot-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
@@ -323,8 +329,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
         <div class="card-title" style="display:flex;align-items:center;gap:8px">
           <span class="bar-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb)"></span>
           <span>流量分析 — <span id="analysis-platform-title">全平台</span></span>
-          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px">（点击上方播放量卡片切换平台 · 内容可自由编辑）</span>
+          <span id="analysis-subtitle" style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px">（点击上方播放量卡片切换平台 · 内容可自由编辑）</span>
           <button class="collapse-btn" id="analysis-collapse-btn" onclick="toggleCollapse('analysis')" title="折叠/展开">▾</button>
+          <span class="analysis-share-btn" id="analysis-share-btn" onclick="analysisShare()" title="生成只读分享链接">🔗 分享</span>
         </div>
         <div class="collapsible-body" id="analysis-collapse-body">
           <div id="analysis-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
@@ -1460,40 +1467,106 @@ const ANALYSIS_COLORS = {
 };
 let _curAnalysisPlatform = 'all';
 
+// ── 只读模式检测 ──
+let ANALYSIS_READONLY = false;
+let ANALYSIS_SHARED_DATA = null;
+(function detectAnalysisShare() {
+  try {
+    const match = location.hash.match(/#?analysis_share=([^&]*)/);
+    if (match) {
+      const decoded = JSON.parse(decodeURIComponent(atob(match[1])));
+      if (decoded && typeof decoded === 'object') {
+        ANALYSIS_READONLY = true;
+        ANALYSIS_SHARED_DATA = decoded;
+      }
+    }
+  } catch(e) {}
+})();
+
 function analysisLoad() {
+  if (ANALYSIS_READONLY) return ANALYSIS_SHARED_DATA;
   try { return JSON.parse(localStorage.getItem(ANALYSIS_KEY) || '{}'); } catch(e) { return {}; }
 }
-function analysisSave(data) { localStorage.setItem(ANALYSIS_KEY, JSON.stringify(data)); }
+function analysisSave(data) {
+  if (ANALYSIS_READONLY) return;
+  localStorage.setItem(ANALYSIS_KEY, JSON.stringify(data));
+}
+
+function analysisShare() {
+  const data = analysisLoad();
+  const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+  const url = location.origin + location.pathname + '#analysis_share=' + encoded;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      analysisShowToast('✅ 分享链接已复制！对方打开可只读查看所有平台分析内容。');
+    }).catch(() => analysisPromptCopy(url));
+  } else {
+    analysisPromptCopy(url);
+  }
+}
+
+function analysisPromptCopy(url) {
+  const box = document.createElement('div');
+  box.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:24px 28px;z-index:9999;min-width:320px;max-width:90vw';
+  box.innerHTML=`<div style="font-weight:600;margin-bottom:10px;font-size:14px">🔗 复制流量分析分享链接</div>
+    <input id="analysis-share-url-input" style="width:100%;padding:8px 10px;border:1px solid #e0c4ff;border-radius:8px;font-size:12px;outline:none;box-sizing:border-box" value="${url}" readonly onclick="this.select()">
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+      <button onclick="this.closest('div[style]').remove()" style="padding:7px 18px;border-radius:8px;border:1px solid #e5e7eb;background:#f5f5f5;cursor:pointer;font-size:13px">关闭</button>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('analysis-share-url-input').value);this.textContent='✅ 已复制'" style="padding:7px 18px;border-radius:8px;border:none;background:#722ed1;color:#fff;cursor:pointer;font-size:13px">复制链接</button>
+    </div>`;
+  document.body.appendChild(box);
+}
+
+function analysisShowToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;z-index:9999;opacity:1;transition:opacity .5s';
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(), 600); }, 3000);
+}
 
 function analysisRender() {
   const wrap = document.getElementById('analysis-editor-wrap');
   if(!wrap) return;
   const data = analysisLoad();
   const platforms = ['all','dy','xhs','sph','ks'];
+
+  // 只读模式：隐藏分享按钮，显示 banner，隐藏副标题
+  if (ANALYSIS_READONLY) {
+    const shareBtn = document.getElementById('analysis-share-btn');
+    if (shareBtn) shareBtn.style.display = 'none';
+    const subtitle = document.getElementById('analysis-subtitle');
+    if (subtitle) subtitle.style.display = 'none';
+    if (!document.getElementById('analysis-readonly-banner')) {
+      const banner = document.createElement('div');
+      banner.id = 'analysis-readonly-banner';
+      banner.className = 'analysis-readonly-banner';
+      banner.innerHTML = '👁️ 只读预览 · 此为分享快照，不会影响原始看板数据 <a href="' + location.origin + location.pathname + '" target="_blank">查看完整看板 →</a>';
+      wrap.parentNode.insertBefore(banner, wrap);
+    }
+  }
+
   wrap.innerHTML = platforms.map(p => {
     const color = ANALYSIS_COLORS[p];
     const saved = data[p] || '';
     return `<div class="analysis-pane" id="apane-${p}" style="display:${p===_curAnalysisPlatform?'block':'none'}">
       <textarea class="analysis-editor" id="aeditor-${p}"
-        placeholder="在此记录${ANALYSIS_LABELS[p]}流量分析、归因总结、优化建议..."
-        onblur="analysisSaveText('${p}', this.value)"
+        placeholder="${ANALYSIS_READONLY ? '（该平台暂无分析内容）' : ('在此记录'+ANALYSIS_LABELS[p]+'流量分析、归因总结、优化建议...')}"
+        ${ANALYSIS_READONLY ? 'readonly' : ('onblur="analysisSaveText(''+p+'', this.value)"')}
         style="border-color:${color}22"
       >${saved}</textarea>
-      <div class="analysis-meta" id="ameta-${p}">${saved ? `已保存 · ${saved.length} 字` : '内容自动保存'}</div>
+      <div class="analysis-meta" id="ameta-${p}">${ANALYSIS_READONLY ? (saved ? saved.length+' 字（只读）' : '暂无内容') : (saved ? `已保存 · ${saved.length} 字` : '内容自动保存')}</div>
     </div>`;
   }).join('');
 }
 
 function switchAnalysis(platform) {
   _curAnalysisPlatform = platform;
-  // 更新按钮
   document.querySelectorAll('[data-aplatform]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.aplatform === platform);
   });
-  // 更新标题
   const titleEl = document.getElementById('analysis-platform-title');
   if(titleEl) titleEl.textContent = ANALYSIS_LABELS[platform] || platform;
-  // 切换面板
   ['all','dy','xhs','sph','ks'].forEach(p => {
     const pane = document.getElementById('apane-' + p);
     if(pane) pane.style.display = p === platform ? 'block' : 'none';
@@ -1501,6 +1574,7 @@ function switchAnalysis(platform) {
 }
 
 function analysisSaveText(platform, val) {
+  if (ANALYSIS_READONLY) return;
   const data = analysisLoad();
   data[platform] = val;
   analysisSave(data);
