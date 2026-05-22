@@ -2289,13 +2289,18 @@ window.addEventListener('load', () => {
   } else if (GistStorage.gistId()) {
     // 有 gistId 但没有 token：匿名拉取，仅用于只读展示
     GistStorage.pullReadonly().then(ok => {
-      if (ok) weeklyRender();
+      if (ok) {
+        boomRender();
+        calRender();
+        analysisRender();
+        weeklyRender();
+      }
     });
   }
   boomRender();
   calRender();
   analysisRender();
-  weeklyRender();
+  if (!GistStorage.gistId()) weeklyRender();
   // 默认显示Q2至今
   applyPreset(document.querySelector('.preset-btn.active[onclick*="q2"]') || document.querySelectorAll('.preset-btn')[2], 'q2');
   restoreCollapse();
