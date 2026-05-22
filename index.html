@@ -324,9 +324,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <span class="sep">至</span>
   <input type="date" id="date-end" value="2026-05-18">
   <div class="preset-btns">
-    <button class="preset-btn" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
+    <button class="preset-btn active" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
     <button class="preset-btn" onclick="applyPreset(this,'last-30')">最近30天</button>
-    <button class="preset-btn active" onclick="applyPreset(this,'q2')">Q2至今</button>
+    <button class="preset-btn" onclick="applyPreset(this,'q2')">Q2至今</button>
     <button class="preset-btn" onclick="applyPreset(this,'all')">全部</button>
   </div>
   <button class="apply-btn" onclick="applyDateRange()">🔄 刷新</button>
@@ -2302,7 +2302,7 @@ window.addEventListener('load', () => {
   analysisRender();
   if (!GistStorage.gistId()) weeklyRender();
   // 默认显示Q2至今
-  applyPreset(document.querySelector('.preset-btn.active[onclick*="q2"]') || document.querySelectorAll('.preset-btn')[2], 'q2');
+  applyPreset(document.querySelector('.preset-btn.active[onclick*="last-week"]') || document.querySelectorAll('.preset-btn')[0], 'last-week');
   restoreCollapse();
   document.querySelectorAll('.progress-bar').forEach(bar=>{
     const w=bar.style.width; bar.style.width='0';
