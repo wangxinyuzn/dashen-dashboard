@@ -180,6 +180,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .analysis-readonly-banner a:hover{text-decoration:underline}
 .analysis-editor[readonly]{background:#faf8ff;cursor:default;resize:none}
 
+/* 本周安排编辑器 */
+.weekly-editor{width:100%;min-height:200px;border:1.5px solid #e8f5e9;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfffe;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+.weekly-editor:focus{border-color:#52c41a;box-shadow:0 0 0 3px #f6ffed}
+.weekly-editor::placeholder{color:#b7eb8f}
+.weekly-editor[readonly]{background:#fafff8;cursor:default;resize:none}
+.weekly-meta{font-size:11px;color:#bbb;margin-top:6px;text-align:right}
+
 /* 热点新闻 */
 .hot-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
 .hot-item:last-child{border-bottom:none}
@@ -343,6 +350,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="sidebar-item" onclick="scrollToSection('sec-kpi',this)">📊 平台数据</div>
       <div class="sidebar-item" onclick="scrollToSection('overview-trend-card',this)">📈 流量趋势</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-analysis',this)">🔍 流量分析</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-weekly',this)">📋 本周安排</div>
       <div class="sidebar-item" onclick="scrollToSection('boom-card-title',this)">🔥 爆款内容</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
     </div>
@@ -397,6 +405,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
             <button class="trend-btn"        data-aplatform="ks"   onclick="switchAnalysis('ks')"   style="--c:#ff6200">⚡ 快手</button>
           </div>
           <div id="analysis-editor-wrap"></div>
+        </div>
+      </div>
+
+      <div class="card" id="sec-weekly">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
+          <span>本周安排</span>
+          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px" id="weekly-subtitle">（云端同步 · 所有人可见）</span>
+          <button class="collapse-btn" id="weekly-collapse-btn" onclick="toggleCollapse('weekly')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="weekly-collapse-body">
+          <div id="weekly-editor-wrap"></div>
         </div>
       </div>
 
@@ -576,7 +596,7 @@ const GistStorage = {
     const KEYS = [
       'dashen_boom_rows','dashen_boom_title',
       'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
-      'dashen_cal_colors','dashen_cal_rows','dashen_collapse',
+      'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
     ];
     for (let i = 0; i < 10; i++) {
       ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
@@ -605,6 +625,29 @@ const GistStorage = {
     } catch(e) {
       console.warn('[GistStorage] pull failed:', e);
       this._setStatus('error', '拉取失败');
+      return false;
+    }
+  },
+
+  // ---- 匿名拉取（只需 gistId，用于只读展示） ----
+  async pullReadonly() {
+    const gid = this.gistId();
+    if (!gid) return false;
+    try {
+      const resp = await fetch('https://api.github.com/gists/' + gid, {
+        headers: { 'Accept': 'application/vnd.github+json' }
+      });
+      if (!resp.ok) return false;
+      const json = await resp.json();
+      const file = json.files && json.files[this.FILENAME];
+      if (!file || !file.content) return true;
+      const data = JSON.parse(file.content);
+      Object.entries(data).forEach(function(entry) {
+        if (entry[1] !== null && entry[1] !== undefined) localStorage.setItem(entry[0], entry[1]);
+      });
+      return true;
+    } catch(e) {
+      console.warn('[GistStorage] pullReadonly failed:', e);
       return false;
     }
   },
@@ -2186,7 +2229,7 @@ function collectUserData() {
   const KEYS = [
 'dashen_boom_rows','dashen_boom_title','BOOM_TITLE_KEY',
     'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
-    'dashen_cal_colors','dashen_cal_rows','dashen_collapse',
+    'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
   ];
   for(let i = 0; i < 10; i++) {
     ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
@@ -2196,6 +2239,38 @@ function collectUserData() {
   return data;
 }
 
+// ====== 本周安排 ======
+const WEEKLY_KEY = 'dashen_weekly_plan';
+
+function weeklyRender() {
+  var wrap = document.getElementById('weekly-editor-wrap');
+  if (!wrap) return;
+  var isEditable = GistStorage.isConfigured();
+  var content = weeklyLoad();
+  var placeholder = isEditable ? '在此填写本周工作安排...' : '（暂无内容）';
+  var editAttr = isEditable ? 'oninput="weeklyInput(this.value)"' : 'readonly';
+  var metaText = isEditable ? (content ? '已同步 · ' + content.length + ' 字' : '编辑后自动同步') : (content ? content.length + ' 字（只读）' : '暂无内容');
+  wrap.innerHTML = '<textarea class="weekly-editor" id="weekly-editor" placeholder="' + placeholder + '" ' + editAttr + '>' + content + '</textarea>'
+    + '<div class="weekly-meta" id="weekly-meta">' + metaText + '</div>';
+}
+
+function weeklyLoad() {
+  return localStorage.getItem(WEEKLY_KEY) || '';
+}
+
+var _weeklyTimer = null;
+function weeklyInput(val) {
+  if (!GistStorage.isConfigured()) return;
+  localStorage.setItem(WEEKLY_KEY, val);
+  var meta = document.getElementById('weekly-meta');
+  if (meta) meta.textContent = val ? '正在输入... · ' + val.length + ' 字' : '编辑后自动同步';
+  if (_weeklyTimer) clearTimeout(_weeklyTimer);
+  _weeklyTimer = setTimeout(function() {
+    GistStorage.schedulePush();
+    var m = document.getElementById('weekly-meta');
+    if (m) m.textContent = val ? '同步中... · ' + val.length + ' 字' : '编辑后自动同步';
+  }, 2000);
+}
 
 // 初始化
 window.addEventListener('load', () => {
@@ -2207,12 +2282,19 @@ window.addEventListener('load', () => {
         boomRender();
         calRender();
         analysisRender();
+        weeklyRender();
       }
+    });
+  } else if (GistStorage.gistId()) {
+    // 有 gistId 但没有 token：匿名拉取，仅用于只读展示
+    GistStorage.pullReadonly().then(ok => {
+      if (ok) weeklyRender();
     });
   }
   boomRender();
   calRender();
   analysisRender();
+  weeklyRender();
   // 默认显示Q2至今
   applyPreset(document.querySelector('.preset-btn.active[onclick*="q2"]') || document.querySelectorAll('.preset-btn')[2], 'q2');
   restoreCollapse();
