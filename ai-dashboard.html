@@ -661,6 +661,7 @@ function _todayStr(){
 
 function renderMvpCards(){
   const grid = document.getElementById('mvp-grid');
+  if(!grid){ setTimeout(renderMvpCards, 100); return; }
   if(!_mvpCards.length){
     grid.innerHTML = '<span style="color:#aaa;font-size:13px;padding:8px">点击「添加」创建MVP卡牌</span>';
     return;
@@ -1098,10 +1099,14 @@ new Chart(ctx, {
 });
 
 // 所有函数定义完毕后，加载默认9人配置 + MVP持久数据
-if(typeof _rpLoadDefault === 'function') _rpLoadDefault();
-// 如果MVP榜没有历史数据，默认初始化一张卡片
-if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
-renderMvpCards();
+try {
+  if(typeof _rpLoadDefault === 'function') _rpLoadDefault();
+} catch(e){ console.warn('rpLoadDefault error', e); }
+
+try {
+  if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
+  renderMvpCards();
+} catch(e){ console.warn('mvp init error', e); }
 </script>
 </body>
 </html>
