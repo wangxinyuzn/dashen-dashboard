@@ -36,6 +36,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .card-title{font-size:15px;font-weight:700;color:#222;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .card-icon{width:18px;height:18px;border-radius:4px;flex-shrink:0}
 
+/* 7天日历 */
+.week-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:4px}
+.week-day{border-radius:10px;padding:10px 6px;text-align:center;border:1px solid #eef0f6;transition:background .15s}
+.week-day.today{background:linear-gradient(135deg,#4f6ef7,#6c8bff);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(79,110,247,.3)}
+.week-day:not(.today){background:#f8f9ff}
+.week-day .wd-week{font-size:11px;opacity:.7;margin-bottom:4px}
+.week-day .wd-date{font-size:22px;font-weight:700;line-height:1;margin-bottom:2px}
+.week-day .wd-month{font-size:11px;opacity:.7}
+.week-day.today .wd-week,.week-day.today .wd-month{opacity:.85}
+.week-day:not(.today) .wd-week{color:#888}
+.week-day:not(.today) .wd-date{color:#333}
+.week-day:not(.today) .wd-month{color:#aaa}
+
 /* Q2目标进度 */
 .goal-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .goal-row:last-child{margin-bottom:0}
@@ -107,6 +120,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
 
   <div class="main">
+
+    <!-- 7天日历 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c2)"></span>
+        本周日历
+      </div>
+      <div class="week-cal" id="week-cal"></div>
+    </div>
 
     <!-- Q2目标进度 -->
     <div class="card">
@@ -247,6 +269,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 </div>
 
 <script>
+// 7天日历
+(function(){
+  const cal = document.getElementById('week-cal');
+  const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  for(let i=0;i<7;i++){
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const isToday = i===0;
+    const div = document.createElement('div');
+    div.className = 'week-day' + (isToday?' today':'');
+    div.innerHTML =
+      `<div class="wd-week">${weekNames[d.getDay()]}</div>`+
+      `<div class="wd-date">${d.getDate()}</div>`+
+      `<div class="wd-month">${d.getMonth()+1}月</div>`;
+    cal.appendChild(div);
+  }
+})();
+
 // 日期
 const d = new Date();
 const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
