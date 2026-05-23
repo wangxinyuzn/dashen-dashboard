@@ -239,7 +239,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <div class="card" style="flex:1;margin-bottom:0;border-radius:0 0 12px 12px">
           <div style="display:flex;gap:12px">
             <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-              <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(30,64,175,.2);color:#1d4ed8">好人</div><div class="role-pick-box" id="rp-good"></div></div>
+              <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(30,64,175,.2);color:#1d4ed8">平民</div><div class="role-pick-box" id="rp-good"></div></div>
               <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(109,40,217,.2);color:#6d28d9">神职</div><div class="role-pick-box" id="rp-shen"></div></div>
             </div>
             <div style="flex:1;display:flex;flex-direction:column;gap:10px">
@@ -365,7 +365,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <div id="roleintro-grid" style="display:flex;flex-wrap:wrap;gap:16px 12px;padding:4px 4px 16px;min-height:80px"></div>
         <!-- 底部Tab -->
         <div id="roleintro-tabs" style="display:flex;border-top:1px solid rgba(201,168,76,.2);margin:0 -22px">
-          <div class="ri-tab active" onclick="switchRoleTab('good')" data-tab="good">👍 好人</div>
+          <div class="ri-tab active" onclick="switchRoleTab('good')" data-tab="good">👍 平民</div>
           <div class="ri-tab" onclick="switchRoleTab('shen')" data-tab="shen">✨ 神职</div>
           <div class="ri-tab" onclick="switchRoleTab('wolf')" data-tab="wolf">🐺 狼人</div>
           <div class="ri-tab" onclick="switchRoleTab('third')" data-tab="third">🎲 三方</div>
@@ -515,7 +515,7 @@ document.addEventListener('click', function unlock(){
   // 阵营配置（用于分组显示）
   var factionOrder = ['good','shen','wolf','third'];
   var factionMeta = {
-    good:  {label:'好人', bg:'rgba(219,234,254,.6)', border:'rgba(30,64,175,.2)',  nameColor:'#1d4ed8'},
+    good:  {label:'平民', bg:'rgba(219,234,254,.6)', border:'rgba(30,64,175,.2)',  nameColor:'#1d4ed8'},
     shen:  {label:'神职', bg:'rgba(237,233,254,.6)', border:'rgba(109,40,217,.2)', nameColor:'#6d28d9'},
     wolf:  {label:'狼人', bg:'rgba(254,226,226,.6)', border:'rgba(185,28,28,.2)',  nameColor:'#b91c1c'},
     third: {label:'三方', bg:'rgba(254,243,199,.6)', border:'rgba(161,98,7,.2)',   nameColor:'#b45309'},
@@ -798,7 +798,7 @@ var _roleSkills = {
 };
 
 var _factionLabel = {
-  good:  {label:'好人阵营', color:'#3b82f6', bg:'rgba(59,130,246,.2)'},
+  good:  {label:'平民阵营', color:'#3b82f6', bg:'rgba(59,130,246,.2)'},
   shen:  {label:'神职阵营', color:'#8b5cf6', bg:'rgba(139,92,246,.2)'},
   wolf:  {label:'狼人阵营', color:'#ef4444', bg:'rgba(239,68,68,.2)'},
   third: {label:'三方阵营', color:'#f59e0b', bg:'rgba(245,158,11,.2)'}
