@@ -319,36 +319,49 @@ const SFX = (function(){
   }
 
   return {
+    // 确保 AudioContext 已激活
+    resume: function(){ try{ getCtx().resume(); }catch(e){} },
     // 死亡音效：低沉冲击 + 沉降
     death: function(){
+      this.resume();
       noise(0.6, 0.3);
       tone(80, 'sine', 0.5, 0.01, 0.1, 0.6);
       tone(55, 'sine', 0.3, 0.02, 0.05, 0.9);
     },
     // 复活音效（取消死亡）：轻快回响
     revive: function(){
+      this.resume();
       tone(523, 'sine', 0.3, 0.01, 0.05, 0.2);
       tone(659, 'sine', 0.2, 0.06, 0.05, 0.25);
     },
     // 上警：清脆点击
     shangJing: function(){
+      this.resume();
       tone(880, 'triangle', 0.35, 0.005, 0.03, 0.15);
       tone(1100, 'sine', 0.2, 0.01, 0.02, 0.1);
     },
     // 退水：消散滑落
     tuiShui: function(){
+      this.resume();
       tone(440, 'sine', 0.3, 0.01, 0.02, 0.08);
       tone(330, 'sine', 0.25, 0.03, 0.02, 0.18);
       tone(220, 'sine', 0.15, 0.06, 0.02, 0.3);
     },
     // 刷新/复原：清脆双音
     reset: function(){
+      this.resume();
       tone(660, 'triangle', 0.25, 0.005, 0.02, 0.12);
       tone(880, 'triangle', 0.2, 0.08, 0.02, 0.15);
     }
   };
 })();
 // ===================== 音效引擎 END =====================
+// AudioContext unlock（首次点击页面任意位置即激活）
+document.addEventListener('click', function unlock(){
+  SFX.resume();
+  document.removeEventListener('click', unlock);
+}, {once: true});
+
 // 角色选取
 (function(){
   function enc(s){ return encodeURIComponent(s); }
