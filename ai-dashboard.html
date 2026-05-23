@@ -305,7 +305,13 @@ renderRoles('all');
 
 // 角色选取
 (function(){
-  const goodRoles  = ['平民','平民','平民','平民','平民'];
+  const goodRoles  = [
+    {name:'平民', img:'roles/平民.jpg'},
+    {name:'平民', img:'roles/平民.jpg'},
+    {name:'平民', img:'roles/平民.jpg'},
+    {name:'平民', img:'roles/平民.jpg'},
+    {name:'平民', img:'roles/平民.jpg'},
+  ];
   const shenRoles  = [
     {name:'预言家', img:'roles/预言家.jpg'},
     {name:'女巫',   img:'roles/女巫.jpg'},
@@ -381,7 +387,17 @@ renderRoles('all');
       </div>`).join('');
   }
 
-  renderTagBox('rp-good',  goodRoles,  'good');
+  // 好人用图片卡片
+  function renderGoodBox(){
+    const box = document.getElementById('rp-good');
+    box.innerHTML = goodRoles.map(r=>`
+      <div class="rp-img-card">
+        <img src="${r.img}" alt="${r.name}" style="border-color:rgba(30,64,175,.5)">
+        <span style="color:#93c5fd">${r.name}</span>
+      </div>`).join('');
+  }
+
+  renderGoodBox();
   renderShenBox();
   renderWolfBox();
   renderThirdBox();
