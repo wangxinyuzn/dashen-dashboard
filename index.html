@@ -2080,6 +2080,8 @@ function toggleCollapse(name) {
 }
 function restoreCollapse() {
   const state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}');
+  // 过往爆款默认折叠（除非用户曾主动展开）
+  if(!('boom-hist' in state)) state['boom-hist'] = true;
   Object.entries(state).forEach(([name, isCollapsed]) => {
     if(!isCollapsed) return;
     const body = document.getElementById(name + '-collapse-body');
