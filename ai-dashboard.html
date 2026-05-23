@@ -86,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .rp-img-card img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:2px solid rgba(109,40,217,.4)}
 .rp-img-card span{font-size:11px;color:#c4b5fd;text-align:center;line-height:1.2}
 /* 选中预览长条 */
-.rp-preview-bar{height:140px;border:1px solid #e8eaf0;border-radius:8px;background:rgba(240,242,247,0.7);padding:14px 16px;display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;overflow-y:auto}
+.rp-preview-bar{border:1px solid #e8eaf0;border-radius:8px;background:rgba(240,242,247,0.7);padding:14px 16px;display:flex;flex-wrap:wrap;gap:0;align-items:flex-start}
 .rp-preview-bar .rp-prev-empty{color:#aaa;font-size:13px;margin:auto}
 .rp-prev-group{display:flex;flex-wrap:wrap;gap:10px;padding:6px 10px;border-radius:8px;margin-right:10px;margin-bottom:4px}
 .rp-prev-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -589,6 +589,20 @@ document.addEventListener('click', function unlock(){
   document.getElementById('rp-shen').innerHTML  = makeCards(shenRoles,  'rgba(109,40,217,.5)', '#c4b5fd');
   document.getElementById('rp-wolf').innerHTML  = makeCards(wolfRoles,  'rgba(192,57,43,.5)',  '#f87171');
   document.getElementById('rp-third').innerHTML = makeCards(thirdRoles, 'rgba(180,83,9,.5)',   '#d97706');
+
+  // 默认9人配置：3平民 3狼人 1预言家 1女巫 1猎人
+  var defaultConfig = [
+    {name:'平民',   count:3, list:goodRoles},
+    {name:'狼人',   count:3, list:wolfRoles},
+    {name:'预言家', count:1, list:shenRoles},
+    {name:'女巫',   count:1, list:shenRoles},
+    {name:'猎人',   count:1, list:shenRoles}
+  ];
+  defaultConfig.forEach(function(cfg){
+    var role = cfg.list.find(function(r){ return r.name === cfg.name; });
+    if(role){ for(var i=0;i<cfg.count;i++) previewList.push({name:role.name, img:role.img}); }
+  });
+
   renderPreview();
   // 初始化角色介绍
   setTimeout(function(){ buildRoleIntroData(goodRoles, shenRoles, wolfRoles, thirdRoles); }, 0);
