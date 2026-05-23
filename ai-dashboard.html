@@ -137,7 +137,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .death-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
 .death-card{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;aspect-ratio:2/3;transition:transform .2s,box-shadow .2s;user-select:none}
 .death-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(107,33,168,.6)}
-.death-card-back{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0010;position:relative;overflow:hidden}
+.death-card-back{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background-image:url('card-wolf-bg.jpg');background-size:cover;background-position:center;position:relative;overflow:hidden}
 /* 死亡卡片狼人线条 */
 .wolf-line-svg{position:absolute;inset:0;width:100%;height:100%;opacity:1;pointer-events:none}
 /* 数字覆盖层 */
@@ -422,31 +422,7 @@ function buildDeathCards(count){
   for(let i=1;i<=n;i++){
     const card = document.createElement('div');
     card.className = 'death-card';
-    card.innerHTML = `<div class="death-card-back">
-      <svg class="wolf-line-svg" viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <!-- 耳朵左 -->
-        <path d="M22 18 L16 6 L28 14"/>
-        <!-- 耳朵右 -->
-        <path d="M58 18 L64 6 L52 14"/>
-        <!-- 头部轮廓 -->
-        <path d="M22 18 C18 22 16 30 18 38 C20 46 26 52 32 56 L40 60 L48 56 C54 52 60 46 62 38 C64 30 62 22 58 18 C52 12 28 12 22 18Z"/>
-        <!-- 眼睛 -->
-        <circle cx="32" cy="34" r="3.5"/>
-        <circle cx="48" cy="34" r="3.5"/>
-        <!-- 鼻子 -->
-        <path d="M37 44 L40 47 L43 44"/>
-        <path d="M36 43 C37 41 43 41 44 43"/>
-        <!-- 嘴巴 -->
-        <path d="M34 50 C36 53 44 53 46 50"/>
-        <!-- 颈部 -->
-        <path d="M32 56 L30 66 M48 56 L50 66"/>
-        <!-- 身体 -->
-        <path d="M30 66 C26 68 22 72 20 80 L24 90 L40 94 L56 90 L60 80 C58 72 54 68 50 66 Z"/>
-        <!-- 前爪 -->
-        <path d="M24 90 L20 98 M24 90 L24 98 M24 90 L28 97"/>
-        <path d="M56 90 L60 98 M56 90 L56 98 M56 90 L52 97"/>
-      </svg>
-      <div class="death-card-pattern"></div><div class="death-card-number">${i}</div><div class="death-card-wolf">🐺</div></div><div class="death-skull">💀</div>`;
+    card.innerHTML = `<div class="death-card-back"><div class="death-card-number">${i}</div></div><div class="death-skull">💀</div>`;
     card.onclick = function(){ card.classList.toggle('dead'); };
     grid.appendChild(card);
   }
