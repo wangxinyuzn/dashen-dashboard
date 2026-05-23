@@ -828,10 +828,10 @@ window.toggleJingXiaPai = function(id){
   const active = el.dataset.active === '1';
   if(active){
     el.dataset.active = '0';
-    el.style.border = '2px solid #aaa';
+    el.style.border = '2px solid #c9a84c';
     el.style.boxShadow = 'none';
     el.style.background = '#e8e8e8';
-    el.querySelector('span').style.color = '#444';
+    el.querySelector('span').style.color = '#c9a84c';
   } else {
     el.dataset.active = '1';
     el.style.border = '2px solid #6c8bff';
@@ -875,7 +875,7 @@ function renderJingzhang(){
     if(jingXiaNums.length){
       jingXiaNums.forEach(function(jn){
         const pid = 'jzx-' + sn + '-' + jn;
-        html += makeNumCircleHtml(jn, '#444', pid);
+        html += makeNumCircleHtml(jn, '#c9a84c', pid);
       });
     } else {
       html += '<span style="color:#aaa;font-size:12px">—</span>';
