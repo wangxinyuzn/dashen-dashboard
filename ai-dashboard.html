@@ -71,6 +71,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .num-btn{width:44px;height:44px;border-radius:50%;border:2px solid #e0e6ff;background:#f5f7ff;font-size:15px;font-weight:700;color:#4f6ef7;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
 .num-btn:hover{background:#4f6ef7;color:#fff;border-color:#4f6ef7;transform:scale(1.1)}
 .num-btn.selected{background:#4f6ef7;color:#fff;border-color:#4f6ef7}
+.num-btn.tuishui{background:#fa8c16;color:#fff;border-color:#fa8c16}
 .kpi-num{font-size:32px;font-weight:800;color:#4f6ef7;letter-spacing:-1px;line-height:1.4;word-break:break-all;text-align:center}
 .kpi-num-wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:6px}
 .kpi-num-wrap .num-circle{width:44px;height:44px;border-radius:50%;border:2px solid #4f6ef7;background:#f0f3ff;color:#4f6ef7;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -186,7 +187,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <div class="box-wrap">
           <span class="box-label" style="background:#fff7e6;color:#fa8c16">退水</span>
           <div class="kpi-card" id="kpi-box-2" style="border-top-left-radius:0;border-top-right-radius:0">
-            <div class="kpi-num" id="kpi-num-2" style="color:#fa8c16">—</div>
+            <div class="kpi-num-wrap" id="kpi-num-2"></div>
           </div>
         </div>
         <div class="box-wrap">
@@ -296,24 +297,37 @@ function resetDeathCards(){
   document.querySelectorAll('.death-card').forEach(c=>c.classList.remove('dead'));
 }
 
-// 数字选号
+// 数字选号（三态：警下→上警→退水→警下）
 (function(){
   const picker = document.getElementById('num-picker');
   const box1 = document.getElementById('kpi-num-1');
+  const box2 = document.getElementById('kpi-num-2');
   const box3 = document.getElementById('kpi-num-3');
-  const selected = new Set();
+  // state: 0=警下 1=上警 2=退水
+  const states = {}; // key: 1-15, value: 0/1/2
+  for(let i=1;i<=15;i++) states[i]=0;
 
   function renderCircles(el, nums, cls){
     el.className = 'kpi-num-wrap' + (cls?' '+cls:'');
     if(!nums.length){ el.innerHTML = '<span class="kpi-num-dash">—</span>'; return; }
     el.innerHTML = nums.map(n=>`<div class="num-circle">${n}</div>`).join('');
   }
+  function renderTuishui(el, nums){
+    el.className = 'kpi-num-wrap';
+    if(!nums.length){ el.innerHTML = '<span class="kpi-num-dash" style="color:#fa8c16">—</span>'; return; }
+    el.innerHTML = nums.map(n=>`<div class="num-circle" style="border-color:#fa8c16;background:#fff7e6;color:#fa8c16">${n}</div>`).join('');
+  }
 
   function refresh(){
-    const sel = [...selected].sort((a,b)=>a-b);
-    const unsel = Array.from({length:15},(_,i)=>i+1).filter(n=>!selected.has(n));
-    renderCircles(box1, sel, '');
-    renderCircles(box3, unsel, 'unsel');
+    const shangJing = [], tuiShui = [], jingXia = [];
+    for(let i=1;i<=15;i++){
+      if(states[i]===1) shangJing.push(i);
+      else if(states[i]===2) tuiShui.push(i);
+      else jingXia.push(i);
+    }
+    renderCircles(box1, shangJing, '');
+    renderTuishui(box2, tuiShui);
+    renderCircles(box3, jingXia, 'unsel');
   }
 
   for(let i=1;i<=15;i++){
@@ -321,8 +335,10 @@ function resetDeathCards(){
     btn.className = 'num-btn';
     btn.textContent = i;
     btn.onclick = function(){
-      if(selected.has(i)){ selected.delete(i); btn.classList.remove('selected'); }
-      else { selected.add(i); btn.classList.add('selected'); }
+      states[i] = (states[i] + 1) % 3;
+      btn.classList.remove('selected','tuishui');
+      if(states[i]===1) btn.classList.add('selected');
+      else if(states[i]===2) btn.classList.add('tuishui');
       refresh();
     };
     picker.appendChild(btn);
