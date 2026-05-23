@@ -559,20 +559,24 @@ function renderJingzhang(){
   el.innerHTML = '';
   _jingzhangSnaps.forEach(function(snap){
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.15)';
-    // 上警牌：过滤掉退水（states===2）的号码
+    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.15)';
+    // 上警牌：竖向排列，过滤掉退水（states===2）的号码
     const validShang = snap.shangNums.filter(function(n){
       return !_jingzhangStatesRef || _jingzhangStatesRef[n] !== 2;
     });
     let html = '';
     if(validShang.length){
-      html += validShang.map(n => makeNumCircleHtml(n, '#c9a84c')).join('');
+      html += '<div style="display:flex;flex-direction:column;gap:6px">' +
+        validShang.map(n => makeNumCircleHtml(n, '#c9a84c')).join('') +
+        '</div>';
     } else {
       html += '<span style="color:#aaa;font-size:12px">（已全部退水）</span>';
     }
-    html += '<span style="color:#c9a84c;font-size:16px;opacity:.6">→</span>';
+    html += '<span style="color:#c9a84c;font-size:16px;opacity:.6;align-self:center">→</span>';
     if(snap.jingXiaList.length){
-      html += snap.jingXiaList.map(n => makeNumCircleHtml(n, '#6c8bff')).join('');
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start">' +
+        snap.jingXiaList.map(n => makeNumCircleHtml(n, '#6c8bff')).join('') +
+        '</div>';
     } else {
       html += '<span style="color:#aaa;font-size:12px">（无警下）</span>';
     }
