@@ -868,10 +868,14 @@ function switchRoleTab(tab){
 
 
 // 警长竞选（实时模式）
-function makeNumCircleHtml(num, color, clickId){
+function makeNumCircleHtml(num, clickId){
   const clickAttr = clickId ? `onclick="toggleJingXiaPai('${clickId}')" style="cursor:pointer"` : '';
-  return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" style="width:38px;height:52px;font-size:17px;background:${clickId?'#e8e8e8':'#0a0010'};border:2px solid ${color};box-shadow:0 0 4px ${color}44;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:all .15s">` +
-    `<span style="color:${color}">${num}</span></div>`;
+  const isClickable = !!clickId;
+  const bg = isClickable ? '#d0d0d0' : '#0a0010';
+  const border = isClickable ? '#aaa' : '#c9a84c';
+  const textColor = isClickable ? '#555' : '#c9a84c';
+  return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" style="width:38px;height:52px;font-size:17px;background:${bg};border:2px solid ${border};box-shadow:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:background .15s,border-color .15s">` +
+    `<span style="color:${textColor}">${num}</span></div>`;
 }
 
 window.toggleJingXiaPai = function(id){
@@ -879,18 +883,20 @@ window.toggleJingXiaPai = function(id){
   if(!el) return;
   const active = el.dataset.active === '1';
   if(active){
+    // 还原灰色
     el.dataset.active = '0';
-    el.style.border = '2px solid #c9a84c';
+    el.style.background = '#d0d0d0';
+    el.style.borderColor = '#aaa';
     el.style.boxShadow = 'none';
-    el.style.background = '#e8e8e8';
-    el.querySelector('span').style.color = '#c9a84c';
+    el.querySelector('span').style.color = '#555';
   } else {
+    // 激活蓝色
     el.dataset.active = '1';
-    el.style.border = '2px solid #6c8bff';
-    el.style.boxShadow = '0 0 8px #6c8bff88';
+    el.style.background = '#1e3a8a';
+    el.style.borderColor = '#6c8bff';
+    el.style.boxShadow = 'none';
     el.querySelector('span').style.color = '#6c8bff';
   }
-  SFX.shangJing();
 };
 
 var _jingzhangStatesRef = null;
@@ -920,14 +926,14 @@ function renderJingzhang(){
   shangNums.forEach(function(sn){
     html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid rgba(201,168,76,.1)">';
     // 金色牌
-    html += makeNumCircleHtml(sn, '#c9a84c', null);
+    html += makeNumCircleHtml(sn, null);
     // 箭头
     html += '<span style="color:#c9a84c;font-size:14px;opacity:.5">→</span>';
     // 警下牌：默认灰色，点击激活蓝色，每行用独立id
     if(jingXiaNums.length){
       jingXiaNums.forEach(function(jn){
         const pid = 'jzx-' + sn + '-' + jn;
-        html += makeNumCircleHtml(jn, '#c9a84c', pid);
+        html += makeNumCircleHtml(jn, pid);
       });
     } else {
       html += '<span style="color:#aaa;font-size:12px">—</span>';
@@ -948,8 +954,9 @@ function renderJingzhang(){
   el.querySelectorAll('.jzx-pai[id]').forEach(function(p){
     if(p.id && prevActive[p.id] === '1'){
       p.dataset.active = '1';
-      p.style.border = '2px solid #6c8bff';
-      p.style.boxShadow = '0 0 8px #6c8bff88';
+      p.style.background = '#1e3a8a';
+      p.style.borderColor = '#6c8bff';
+      p.style.boxShadow = 'none';
       p.querySelector('span').style.color = '#6c8bff';
     }
   });
