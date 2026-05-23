@@ -182,45 +182,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="week-cal" id="week-cal"></div>
     </div>
 
-    <!-- 角色选取 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="card-icon" style="background:linear-gradient(135deg,#7c3aed,#c084fc)"></span>
-        角色选取
-      </div>
-      <div class="role-pick-grid">
-        <div class="role-pick-col">
-          <div class="role-pick-label" style="background:rgba(30,64,175,.2);color:#93c5fd">好人</div>
-          <div class="role-pick-box" id="rp-good"></div>
-        </div>
-        <div class="role-pick-col">
-          <div class="role-pick-label" style="background:rgba(109,40,217,.2);color:#c4b5fd">神职</div>
-          <div class="role-pick-box" id="rp-shen"></div>
-        </div>
-        <div class="role-pick-col">
-          <div class="role-pick-label" style="background:rgba(139,0,0,.25);color:#f87171">狼人</div>
-          <div class="role-pick-box" id="rp-wolf"></div>
-        </div>
-        <div class="role-pick-col">
-          <div class="role-pick-label" style="background:rgba(120,53,15,.2);color:#fcd34d">三方</div>
-          <div class="role-pick-box" id="rp-third"></div>
-        </div>
-      </div>
-    </div>
+    <!-- 角色选取 + 上警情况 左右布局 -->
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
 
-    <!-- 对战情况 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="card-icon" style="background:linear-gradient(135deg,#dc2626,#f87171)"></span>
-        对战情况
+      <!-- 角色选取（左） -->
+      <div class="card" style="flex:1.2;margin-bottom:0">
+        <div class="card-title">
+          <span class="card-icon" style="background:linear-gradient(135deg,#7c3aed,#c084fc)"></span>
+          角色选取
+        </div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+            <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(30,64,175,.2);color:#1d4ed8">好人</div><div class="role-pick-box" id="rp-good"></div></div>
+            <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(109,40,217,.2);color:#6d28d9">神职</div><div class="role-pick-box" id="rp-shen"></div></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+            <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(139,0,0,.25);color:#b91c1c">狼人</div><div class="role-pick-box" id="rp-wolf"></div></div>
+            <div class="role-pick-col"><div class="role-pick-label" style="background:rgba(120,53,15,.2);color:#b45309">三方</div><div class="role-pick-box" id="rp-third"></div></div>
+          </div>
+        </div>
       </div>
-      <div class="rp-preview-bar" id="rp-preview">
-        <span class="rp-prev-empty">点击上方卡片添加到此处</span>
-      </div>
-    </div>
 
     <!-- 上警情况 -->
-    <div class="card">
+    <div class="card" style="flex:1;margin-bottom:0">
       <div class="card-title">
         <span class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
         上警情况
@@ -247,6 +231,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
             <div class="kpi-num-wrap" id="kpi-num-3"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+
+    </div>
+
+    <!-- 对战情况 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#dc2626,#f87171)"></span>
+        对战情况
+      </div>
+      <div class="rp-preview-bar" id="rp-preview">
+        <span class="rp-prev-empty">点击上方卡片添加到此处</span>
       </div>
     </div>
 
