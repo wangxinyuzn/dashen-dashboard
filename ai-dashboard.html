@@ -904,21 +904,45 @@ window.toggleJingXiaPai = function(id){
   if(!el) return;
   const active = el.dataset.active === '1';
   if(active){
-    // 还原灰色
     el.dataset.active = '0';
     el.style.background = '#d0d0d0';
     el.style.borderColor = '#aaa';
     el.style.boxShadow = 'none';
     el.querySelector('span').style.color = '#555';
   } else {
-    // 激活蓝色
     el.dataset.active = '1';
     el.style.background = '#1e3a8a';
     el.style.borderColor = '#6c8bff';
     el.style.boxShadow = 'none';
     el.querySelector('span').style.color = '#6c8bff';
   }
+  // 重新计算哪个金色牌对应的蓝色牌最多，更新警长
+  _updateJingzhangWinner();
 };
+
+function _updateJingzhangWinner(){
+  // 统计每个 shangNum 的蓝色票数：id格式 jzx-{shangNum}-{jingXiaNum}
+  const votes = {};
+  document.querySelectorAll('.jzx-pai[id]').forEach(function(p){
+    if(!p.id) return;
+    const parts = p.id.split('-'); // ['jzx', shangNum, jingXiaNum]
+    if(parts.length < 3) return;
+    const sn = parts[1];
+    if(!votes[sn]) votes[sn] = 0;
+    if(p.dataset.active === '1') votes[sn]++;
+  });
+  // 找最多票的金色牌
+  let maxVotes = 0, winner = null;
+  Object.keys(votes).forEach(function(sn){
+    if(votes[sn] > maxVotes){ maxVotes = votes[sn]; winner = sn; }
+  });
+  // 有票才更新，全清零时重置
+  if(maxVotes > 0 && winner !== null){
+    setJingzhangNum(parseInt(winner));
+  } else {
+    setJingzhangNum(null);
+  }
+}
 
 var _jingzhangStatesRef = null;
 
