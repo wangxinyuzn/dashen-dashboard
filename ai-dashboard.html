@@ -93,6 +93,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .todo-item:last-child{border-bottom:none}
 .todo-check{width:18px;height:18px;border:2px solid #d9d9d9;border-radius:4px;flex-shrink:0;margin-top:1px}
 
+/* 卡牌展示 */
+.role-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.role-tab{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #d9d9d9;background:#f5f5f5;color:#666;transition:all .15s}
+.role-tab.active{background:#4f6ef7;color:#fff;border-color:#4f6ef7}
+.role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px}
+.role-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:10px;background:#f8f9ff;border:1px solid #eef0f6;cursor:pointer;transition:all .15s;text-align:center}
+.role-card:hover{border-color:#4f6ef7;background:#f0f3ff;transform:translateY(-2px)}
+.role-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2d0a5e,#4f6ef7);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #c4b5fd;overflow:hidden;flex-shrink:0}
+.role-avatar img{width:100%;height:100%;object-fit:cover}
+.role-name{font-size:11px;color:#444;font-weight:600;line-height:1.3}
+.role-camp{font-size:10px;padding:1px 6px;border-radius:8px;margin-top:2px}
+.camp-wolf{background:#fff1f0;color:#cf1322}
+.camp-good{background:#f0f3ff;color:#4f6ef7}
+.camp-third{background:#fffbe6;color:#d48806}
+
 /* 死亡情况 */
 .death-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .death-card{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:2/3;transition:transform .2s,box-shadow .2s;user-select:none;max-width:90px}
@@ -183,6 +198,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
     </div>
 
+    <!-- 卡牌展示 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#7c3aed,#c084fc)"></span>
+        卡牌展示
+      </div>
+      <div class="role-tabs">
+        <div class="role-tab active" onclick="filterRoles('all',this)">全部卡牌</div>
+        <div class="role-tab" onclick="filterRoles('wolf',this)">🐺 狼人阵营</div>
+        <div class="role-tab" onclick="filterRoles('good',this)">✨ 好人阵营</div>
+        <div class="role-tab" onclick="filterRoles('third',this)">🌙 第三方阵营</div>
+      </div>
+      <div class="role-grid" id="role-grid"></div>
+    </div>
+
     <!-- 死亡情况 -->
     <div class="card">
       <div class="card-title">
@@ -198,6 +228,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 </div>
 
 <script>
+// 卡牌展示
+const ROLES = [
+  // 狼人阵营
+  {name:'狼人',camp:'wolf',emoji:'🐺'},{name:'狼美人',camp:'wolf',emoji:'🐺'},{name:'隐狼',camp:'wolf',emoji:'🐺'},
+  {name:'狼王',camp:'wolf',emoji:'🐺'},{name:'白狼王',camp:'wolf',emoji:'🐺'},{name:'狼巫',camp:'wolf',emoji:'🐺'},
+  {name:'蚀时狼妃',camp:'wolf',emoji:'🐺'},{name:'觉醒狼王',camp:'wolf',emoji:'🐺'},{name:'觉醒隐狼',camp:'wolf',emoji:'🐺'},
+  {name:'狼鸦之爪',camp:'wolf',emoji:'🐺'},
+  // 好人阵营
+  {name:'预言家',camp:'good',emoji:'🔮'},{name:'女巫',camp:'good',emoji:'🧪'},{name:'猎人',camp:'good',emoji:'🏹'},
+  {name:'守卫',camp:'good',emoji:'🛡️'},{name:'骑士',camp:'good',emoji:'⚔️'},{name:'魔术师',camp:'good',emoji:'🎩'},
+  {name:'摄梦人',camp:'good',emoji:'💤'},{name:'白昼学者',camp:'good',emoji:'📚'},{name:'寂夜导师',camp:'good',emoji:'🌙'},
+  {name:'蚀日侍女',camp:'good',emoji:'☀️'},{name:'纯白之女',camp:'good',emoji:'🕊️'},{name:'炼金魔女',camp:'good',emoji:'⚗️'},
+  {name:'定序王子',camp:'good',emoji:'👑'},{name:'奇迹商人',camp:'good',emoji:'💰'},{name:'愚者',camp:'good',emoji:'🃏'},
+  {name:'平民',camp:'good',emoji:'👤'},{name:'警长',camp:'good',emoji:'⭐'},{name:'丘比特',camp:'good',emoji:'💘'},
+  {name:'守墓人',camp:'good',emoji:'⚰️'},{name:'恶夜骑士',camp:'good',emoji:'🌑'},{name:'猎魔人',camp:'good',emoji:'🗡️'},
+  // 第三方阵营
+  {name:'白猫',camp:'third',emoji:'🐱'},{name:'咒狐',camp:'third',emoji:'🦊'},{name:'子狐',camp:'third',emoji:'🦊'},
+  {name:'河豚',camp:'third',emoji:'🐡'},{name:'熊',camp:'third',emoji:'🐻'},{name:'羊驼',camp:'third',emoji:'🦙'},
+  {name:'乌鸦',camp:'third',emoji:'🐦'},{name:'石像鬼',camp:'third',emoji:'👻'},{name:'孤独少女',camp:'third',emoji:'👧'},
+  {name:'魔镜少女',camp:'third',emoji:'🪞'},{name:'噩梦之影',camp:'third',emoji:'😱'},{name:'流光伯爵',camp:'third',emoji:'🧛'},
+  {name:'千面人',camp:'third',emoji:'🎭'},{name:'赤月使徒',camp:'third',emoji:'🌕'},{name:'赤月使徒',camp:'third',emoji:'🌹'},
+];
+
+const CAMP_LABELS = {wolf:'狼人',good:'好人',third:'第三方'};
+let currentCamp = 'all';
+
+function renderRoles(camp){
+  const grid = document.getElementById('role-grid');
+  const list = camp==='all' ? ROLES : ROLES.filter(r=>r.camp===camp);
+  grid.innerHTML = list.map(r=>`
+    <div class="role-card">
+      <div class="role-avatar">${r.emoji}</div>
+      <div class="role-name">${r.name}</div>
+      <div class="role-camp camp-${r.camp}">${CAMP_LABELS[r.camp]}</div>
+    </div>`).join('');
+}
+
+function filterRoles(camp, el){
+  currentCamp = camp;
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderRoles(camp);
+}
+
+renderRoles('all');
+
 // 死亡情况卡片
 (function(){
   const grid = document.getElementById('death-grid');
