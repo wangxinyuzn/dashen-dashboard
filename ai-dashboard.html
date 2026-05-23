@@ -940,26 +940,25 @@ window.toggleJingXiaPai = function(id){
 };
 
 function _updateJingzhangWinner(){
-  // 统计每个 shangNum 的蓝色票数：id格式 jzx-{shangNum}-{jingXiaNum}
   const votes = {};
   document.querySelectorAll('.jzx-pai[id]').forEach(function(p){
     if(!p.id) return;
-    const parts = p.id.split('-'); // ['jzx', shangNum, jingXiaNum]
+    const parts = p.id.split('-');
     if(parts.length < 3) return;
     const sn = parts[1];
     if(!votes[sn]) votes[sn] = 0;
     if(p.dataset.active === '1') votes[sn]++;
   });
-  // 找最多票的金色牌
-  let maxVotes = 0, winner = null;
+  let maxVotes = 0, winner = null, tied = false;
   Object.keys(votes).forEach(function(sn){
-    if(votes[sn] > maxVotes){ maxVotes = votes[sn]; winner = sn; }
+    if(votes[sn] > maxVotes){ maxVotes = votes[sn]; winner = sn; tied = false; }
+    else if(votes[sn] === maxVotes && maxVotes > 0){ tied = true; }
   });
-  // 有票才更新，全清零时重置
-  if(maxVotes > 0 && winner !== null){
-    setJingzhangNum(parseInt(winner));
-  } else {
+  // 无票、全零、或并列最高 → 恢复「?」
+  if(maxVotes === 0 || tied || winner === null){
     setJingzhangNum(null);
+  } else {
+    setJingzhangNum(parseInt(winner));
   }
 }
 
