@@ -344,8 +344,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="sidebar-item" onclick="scrollToSection('sec-kpi',this)">📊 平台数据</div>
       <div class="sidebar-item" onclick="scrollToSection('overview-trend-card',this)">📈 流量趋势</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-analysis',this)">🔍 流量分析</div>
-      <div class="sidebar-item" onclick="scrollToSection('sec-weekly',this)">📋 本周安排</div>
       <div class="sidebar-item" onclick="scrollToSection('boom-card-title',this)">🔥 爆款内容</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-weekly',this)">📋 本周安排</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
     </div>
 
@@ -399,18 +399,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
             <button class="trend-btn"        data-aplatform="ks"   onclick="switchAnalysis('ks')"   style="--c:#ff6200">⚡ 快手</button>
           </div>
           <div id="analysis-editor-wrap"></div>
-        </div>
-      </div>
-
-      <div class="card" id="sec-weekly">
-        <div class="card-title" style="display:flex;align-items:center;gap:8px">
-          <span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
-          <span>本周安排</span>
-          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px" id="weekly-subtitle">（云端同步 · 所有人可见）</span>
-          <button class="collapse-btn" id="weekly-collapse-btn" onclick="toggleCollapse('weekly')" title="折叠/展开">▾</button>
-        </div>
-        <div class="collapsible-body" id="weekly-collapse-body">
-          <div id="weekly-editor-wrap"></div>
         </div>
       </div>
 
@@ -468,6 +456,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
             <div class="boom-add-btn" onclick="boomHistAdd()">＋ 添加过往爆款</div>
           </div>
           <input type="file" id="boom-img-input" accept="image/*" style="display:none">
+        </div>
+      </div>
+
+      <div class="card" id="sec-weekly">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
+          <span>本周安排</span>
+          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px" id="weekly-subtitle">（云端同步 · 所有人可见）</span>
+          <button class="collapse-btn" id="weekly-collapse-btn" onclick="toggleCollapse('weekly')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="weekly-collapse-body">
+          <div id="weekly-editor-wrap"></div>
         </div>
       </div>
 
