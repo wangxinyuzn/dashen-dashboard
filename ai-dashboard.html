@@ -362,35 +362,30 @@ renderRoles('all');
     {name:'炸弹人',img:imgPath('炸弹人','png')}
   ];
 
-  var previewMap = {};
+  // 预览列表：每次点击追加一项，支持同一角色多次独立显示
+  var previewList = [];
 
-  window.rpRemove = function(key){
-    if(!previewMap[key]) return;
-    previewMap[key].count--;
-    if(previewMap[key].count <= 0) delete previewMap[key];
+  window.rpRemove = function(idx){
+    previewList.splice(idx, 1);
     renderPreview();
   };
 
   function addToPreview(role){
-    if(previewMap[role.img]) previewMap[role.img].count++;
-    else previewMap[role.img] = {name:role.name, img:role.img, count:1};
+    previewList.push({name:role.name, img:role.img});
     renderPreview();
   }
 
   function renderPreview(){
     var bar = document.getElementById('rp-preview');
-    var items = Object.values(previewMap);
-    if(!items.length){
+    if(!previewList.length){
       bar.innerHTML = '<span class="rp-prev-empty">点击上方卡片添加到此处</span>';
       return;
     }
-    bar.innerHTML = items.map(function(r){
-      var key = r.img.replace(/'/g, "\\'");
+    bar.innerHTML = previewList.map(function(r, i){
       return '<div class="rp-prev-item">' +
         '<img src="' + r.img + '" alt="' + r.name + '">' +
         '<span>' + r.name + '</span>' +
-        (r.count > 1 ? '<div class="rp-prev-count">x' + r.count + '</div>' : '') +
-        '<div class="rp-prev-del" onclick="rpRemove(\'' + key + '\')" title="减少">-</div>' +
+        '<div class="rp-prev-del" onclick="rpRemove(' + i + ')" title="移除">-</div>' +
         '</div>';
     }).join('');
   }
