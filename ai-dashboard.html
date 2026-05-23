@@ -1205,6 +1205,17 @@ try {
   if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
   renderMvpCards();
 } catch(e){ console.warn('mvp init error', e); }
+
+// 双保险：延迟再渲染一次，确保DOM已就绪
+setTimeout(function(){
+  try {
+    if(typeof _rpLoadDefault === 'function' && !document.querySelector('#rp-preview .rp-prev-group')) _rpLoadDefault();
+    if(!document.querySelector('#mvp-grid .mvp-card')){
+      if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
+      renderMvpCards();
+    }
+  } catch(e){}
+}, 200);
 </script>
 <!-- 角色技能介绍浮层 -->
 <div id="role-skill-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center">
