@@ -76,6 +76,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .kpi-num-wrap .num-circle{width:44px;height:44px;border-radius:50%;border:2px solid #4f6ef7;background:#f0f3ff;color:#4f6ef7;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .kpi-num-wrap.unsel .num-circle{border-color:#52c41a;background:#f6ffed;color:#52c41a}
 .kpi-num-dash{font-size:28px;font-weight:700;color:#ccc}
+/* 方框标签 */
+.box-wrap{display:flex;flex-direction:column}
+.box-label{display:block;padding:5px 16px;border-radius:8px 8px 0 0;font-size:16px;font-weight:700;text-align:center}
 
 /* 分析卡片 */
 .analysis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -159,17 +162,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="num-picker" id="num-picker"></div>
       <!-- 三个方框 -->
       <div class="kpi-grid">
-        <div class="kpi-card" id="kpi-box-1" style="flex-direction:column;gap:8px">
-          <div style="font-size:13px;font-weight:600;color:#4f6ef7;align-self:flex-start">上警</div>
-          <div class="kpi-num-wrap" id="kpi-num-1"></div>
+        <div class="box-wrap">
+          <span class="box-label" style="background:#e8edff;color:#4f6ef7">上警</span>
+          <div class="kpi-card" id="kpi-box-1" style="border-top-left-radius:0;border-top-right-radius:0">
+            <div class="kpi-num-wrap" id="kpi-num-1"></div>
+          </div>
         </div>
-        <div class="kpi-card" id="kpi-box-2" style="flex-direction:column;gap:8px">
-          <div style="font-size:13px;font-weight:600;color:#fa8c16;align-self:flex-start">退水</div>
-          <div class="kpi-num" id="kpi-num-2" style="color:#fa8c16">—</div>
+        <div class="box-wrap">
+          <span class="box-label" style="background:#fff7e6;color:#fa8c16">退水</span>
+          <div class="kpi-card" id="kpi-box-2" style="border-top-left-radius:0;border-top-right-radius:0">
+            <div class="kpi-num" id="kpi-num-2" style="color:#fa8c16">—</div>
+          </div>
         </div>
-        <div class="kpi-card" id="kpi-box-3" style="flex-direction:column;gap:8px">
-          <div style="font-size:13px;font-weight:600;color:#52c41a;align-self:flex-start">警下</div>
-          <div class="kpi-num-wrap" id="kpi-num-3" style="font-size:20px"></div>
+        <div class="box-wrap">
+          <span class="box-label" style="background:#f6ffed;color:#52c41a">警下</span>
+          <div class="kpi-card" id="kpi-box-3" style="border-top-left-radius:0;border-top-right-radius:0">
+            <div class="kpi-num-wrap" id="kpi-num-3"></div>
+          </div>
         </div>
       </div>
     </div>
