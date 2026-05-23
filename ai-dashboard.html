@@ -563,10 +563,29 @@ function buildDeathCards(count){
 buildDeathCards(0);
 
 // 警长精选（实时模式）
-function makeNumCircleHtml(num, color){
-  return `<div class="num-circle" style="width:38px;height:52px;font-size:17px;background:#0a0010;border:2px solid ${color};box-shadow:0 0 6px ${color}44;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0">` +
+function makeNumCircleHtml(num, color, clickId){
+  const clickAttr = clickId ? `onclick="toggleJingXiaPai('${clickId}')" style="cursor:pointer"` : '';
+  return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" style="width:38px;height:52px;font-size:17px;background:#0a0010;border:2px solid ${color};box-shadow:0 0 4px ${color}44;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:all .15s">` +
     `<span style="color:${color}">${num}</span></div>`;
 }
+
+window.toggleJingXiaPai = function(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const active = el.dataset.active === '1';
+  if(active){
+    el.dataset.active = '0';
+    el.style.border = '2px solid #555';
+    el.style.boxShadow = 'none';
+    el.querySelector('span').style.color = '#555';
+  } else {
+    el.dataset.active = '1';
+    el.style.border = '2px solid #6c8bff';
+    el.style.boxShadow = '0 0 8px #6c8bff88';
+    el.querySelector('span').style.color = '#6c8bff';
+  }
+  SFX.shangJing();
+};
 
 var _jingzhangStatesRef = null;
 
@@ -583,20 +602,52 @@ function renderJingzhang(){
     el.innerHTML = '<span style="color:#aaa;font-size:13px">暂无数据</span>';
     return;
   }
-  let html = '<div style="display:flex;align-items:flex-start;gap:12px">';
-  // 金色上警牌：竖排
-  html += '<div style="display:flex;flex-direction:column;gap:6px">';
-  if(shangNums.length) html += shangNums.map(n=>makeNumCircleHtml(n,'#c9a84c')).join('');
-  else html += '<span style="color:#aaa;font-size:12px;padding:4px">—</span>';
-  html += '</div>';
-  // 箭头
-  html += '<span style="color:#c9a84c;font-size:18px;opacity:.6;padding-top:12px">→</span>';
-  // 蓝色警下牌：横排换行
-  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start">';
-  if(jingXiaNums.length) html += jingXiaNums.map(n=>makeNumCircleHtml(n,'#6c8bff')).join('');
-  else html += '<span style="color:#aaa;font-size:12px;padding:4px">—</span>';
-  html += '</div>';
-  html += '</div>';
+
+  // 保存当前各牌激活状态
+  const prevActive = {};
+  el.querySelectorAll('.jzx-pai[id]').forEach(function(p){
+    if(p.id) prevActive[p.id] = p.dataset.active;
+  });
+
+  let html = '';
+  // 每张金色上警牌单独一行，后面跟一套警下牌
+  shangNums.forEach(function(sn){
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid rgba(201,168,76,.1)">';
+    // 金色牌
+    html += makeNumCircleHtml(sn, '#c9a84c', null);
+    // 箭头
+    html += '<span style="color:#c9a84c;font-size:14px;opacity:.5">→</span>';
+    // 警下牌：默认灰色，点击激活蓝色，每行用独立id
+    if(jingXiaNums.length){
+      jingXiaNums.forEach(function(jn){
+        const pid = 'jzx-' + sn + '-' + jn;
+        html += makeNumCircleHtml(jn, '#555', pid);
+      });
+    } else {
+      html += '<span style="color:#aaa;font-size:12px">—</span>';
+    }
+    html += '</div>';
+  });
+
+  if(!shangNums.length){
+    // 无上警时只显示警下牌一行
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0">';
+    html += '<span style="color:#aaa;font-size:12px">（暂无上警）</span>';
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+
+  // 恢复激活状态
+  el.querySelectorAll('.jzx-pai[id]').forEach(function(p){
+    if(p.id && prevActive[p.id] === '1'){
+      p.dataset.active = '1';
+      p.style.border = '2px solid #6c8bff';
+      p.style.boxShadow = '0 0 8px #6c8bff88';
+      p.querySelector('span').style.color = '#6c8bff';
+    }
+  });
+}
   el.innerHTML = html;
 }
 
