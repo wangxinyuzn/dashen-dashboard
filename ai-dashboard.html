@@ -636,6 +636,29 @@ buildDeathCards(0); // 占位，会被角色选取syncCount覆盖
 // ===================== MVP榜 =====================
 var _mvpCards = [];
 var _mvpIdCounter = 0;
+var _MVP_KEY = 'dashen_mvp_cards';
+
+function mvpSave(){
+  try{
+    // img是base64，直接存
+    localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter}));
+  }catch(e){}
+}
+
+function mvpLoad(){
+  try{
+    var raw = localStorage.getItem(_MVP_KEY);
+    if(!raw) return;
+    var data = JSON.parse(raw);
+    _mvpCards = data.cards || [];
+    _mvpIdCounter = data.counter || 0;
+  }catch(e){}
+}
+
+function _todayStr(){
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 
 function renderMvpCards(){
   const grid = document.getElementById('mvp-grid');
@@ -650,7 +673,6 @@ function renderMvpCards(){
     el.id = 'mvp-' + card.id;
     el.innerHTML = `
       <div class="mvp-card-inner">
-        <!-- 顶部菱形徽章 -->
         <div class="mvp-badge">
           <svg viewBox="0 0 40 40" width="40" height="40">
             <polygon points="20,2 38,20 20,38 2,20" fill="none" stroke="#c9a84c" stroke-width="2"/>
@@ -658,7 +680,6 @@ function renderMvpCards(){
             <text x="20" y="25" text-anchor="middle" fill="#c9a84c" font-size="14" font-weight="900">★</text>
           </svg>
         </div>
-        <!-- 图片区域 -->
         <div class="mvp-img-area" onclick="mvpUploadImg(${card.id})" title="点击上传图片">
           ${card.img
             ? `<img src="${card.img}" style="width:100%;height:100%;object-fit:cover;object-position:top">`
@@ -668,11 +689,15 @@ function renderMvpCards(){
                </div>`
           }
         </div>
-        <!-- 底部名字横幅 -->
         <div class="mvp-name-bar">
           <span class="mvp-name" onclick="mvpEditName(${card.id})" title="点击编辑名称">${card.name || '点击输入称号'}</span>
         </div>
-        <!-- 删除按钮 -->
+        <!-- 日期选择器 -->
+        <div style="padding:6px 8px;background:rgba(0,0,0,.6);border-top:1px solid rgba(201,168,76,.2);border-radius:0 0 10px 10px">
+          <input type="date" value="${card.date || _todayStr()}"
+            onchange="mvpSetDate(${card.id}, this.value)"
+            style="width:100%;background:transparent;border:none;border-bottom:1px solid rgba(201,168,76,.4);color:#c9a84c;font-size:11px;text-align:center;outline:none;cursor:pointer;padding:2px 0;font-family:inherit">
+        </div>
         <div class="mvp-del" onclick="mvpDelete(${card.id})" title="删除">×</div>
       </div>
     `;
@@ -681,19 +706,23 @@ function renderMvpCards(){
 }
 
 function addMvpCard(){
-  _mvpCards.push({id: ++_mvpIdCounter, name:'', img:''});
+  _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()});
   renderMvpCards();
+  mvpSave();
   SFX.shangJing();
 }
 
 function mvpDelete(id){
   _mvpCards = _mvpCards.filter(function(c){ return c.id !== id; });
   renderMvpCards();
+  mvpSave();
 }
 
 function clearMvpCards(){
+  if(!confirm('确定清空所有MVP记录？')) return;
   _mvpCards = [];
   renderMvpCards();
+  mvpSave();
   SFX.reset();
 }
 
@@ -704,6 +733,14 @@ function mvpEditName(id){
   if(val === null) return;
   card.name = val;
   renderMvpCards();
+  mvpSave();
+}
+
+function mvpSetDate(id, val){
+  const card = _mvpCards.find(function(c){ return c.id===id; });
+  if(!card) return;
+  card.date = val;
+  mvpSave();
 }
 
 var _mvpUploadId = null;
@@ -717,12 +754,15 @@ function mvpUploadImg(id){
     const reader = new FileReader();
     reader.onload = function(e){
       const card = _mvpCards.find(function(c){ return c.id===_mvpUploadId; });
-      if(card){ card.img = e.target.result; renderMvpCards(); }
+      if(card){ card.img = e.target.result; renderMvpCards(); mvpSave(); }
     };
     reader.readAsDataURL(file);
   };
   inp.click();
 }
+
+// 启动时从localStorage加载数据（渲染在脚本末尾DOM ready后执行）
+mvpLoad();
 // ===================== MVP榜 END =====================
 
 // ===================== 角色介绍 =====================
@@ -1058,8 +1098,9 @@ new Chart(ctx, {
   }
 });
 
-// 所有函数定义完毕后，加载默认9人配置
+// 所有函数定义完毕后，加载默认9人配置 + MVP持久数据
 if(typeof _rpLoadDefault === 'function') _rpLoadDefault();
+renderMvpCards(); // 渲染从localStorage恢复的MVP数据
 </script>
 </body>
 </html>
