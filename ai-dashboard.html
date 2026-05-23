@@ -164,6 +164,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .num-btn.selected{background:#3730a3;border-color:#818cf8;color:#fff;box-shadow:0 0 10px rgba(129,140,248,.5)}
 .num-btn.tuishui{background:#7f1d1d;border-color:#f87171;color:#fca5a5;box-shadow:0 0 10px rgba(248,113,113,.3)}
 
+/* MVP榜卡片 */
+.mvp-card{width:140px;flex-shrink:0}
+.mvp-card-inner{position:relative;width:140px;border-radius:12px;overflow:visible;background:linear-gradient(160deg,#1a0a2e,#2d1060,#1a0a2e);border:2px solid #c9a84c;box-shadow:0 0 16px rgba(201,168,76,.25),inset 0 0 20px rgba(109,40,217,.15)}
+/* 四角装饰 */
+.mvp-card-inner::before{content:'';position:absolute;inset:4px;border:1px solid rgba(201,168,76,.3);border-radius:8px;pointer-events:none;z-index:2}
+.mvp-badge{position:absolute;top:-20px;left:50%;transform:translateX(-50%);z-index:5;filter:drop-shadow(0 0 6px rgba(201,168,76,.8))}
+.mvp-img-area{width:100%;height:160px;background:linear-gradient(180deg,#2a1060 0%,#1a0535 100%);cursor:pointer;border-radius:10px 10px 0 0;overflow:hidden;position:relative}
+.mvp-name-bar{background:rgba(0,0,0,.85);border-top:1px solid rgba(201,168,76,.4);padding:8px 10px;text-align:center;border-radius:0 0 10px 10px}
+.mvp-name{font-size:13px;font-weight:700;color:#e8c96a;letter-spacing:1px;cursor:pointer;text-shadow:0 0 8px rgba(201,168,76,.5)}
+.mvp-name:hover{color:#fff}
+.mvp-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#888;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;line-height:1}
+.mvp-del:hover{background:#c0392b;color:#fff}
+
 /* 趋势图 */
 .chart-wrap{position:relative;height:220px}
 
@@ -316,6 +329,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
       <div class="card" style="margin-bottom:0">
         <div class="death-grid" id="death-grid"></div>
+      </div>
+    </div>
+
+    <!-- MVP榜 -->
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-header-icon">🏆</span>
+        <span class="section-header-title">M V P 榜</span>
+        <div class="section-header-extra">
+          <button onclick="addMvpCard()">＋ 添加</button>
+          <button onclick="clearMvpCards()">🗑️ 清空</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="mvp-grid" style="display:flex;flex-wrap:wrap;gap:16px;padding:4px;min-height:60px"></div>
       </div>
     </div>
 
@@ -561,6 +589,99 @@ function buildDeathCards(count){
   }
 }
 buildDeathCards(0);
+
+// ===================== MVP榜 =====================
+var _mvpCards = [];
+var _mvpIdCounter = 0;
+
+function renderMvpCards(){
+  const grid = document.getElementById('mvp-grid');
+  if(!_mvpCards.length){
+    grid.innerHTML = '<span style="color:#aaa;font-size:13px;padding:8px">点击「添加」创建MVP卡牌</span>';
+    return;
+  }
+  grid.innerHTML = '';
+  _mvpCards.forEach(function(card){
+    const el = document.createElement('div');
+    el.className = 'mvp-card';
+    el.id = 'mvp-' + card.id;
+    el.innerHTML = `
+      <div class="mvp-card-inner">
+        <!-- 顶部菱形徽章 -->
+        <div class="mvp-badge">
+          <svg viewBox="0 0 40 40" width="40" height="40">
+            <polygon points="20,2 38,20 20,38 2,20" fill="none" stroke="#c9a84c" stroke-width="2"/>
+            <polygon points="20,8 32,20 20,32 8,20" fill="rgba(201,168,76,.15)" stroke="#c9a84c" stroke-width="1"/>
+            <text x="20" y="25" text-anchor="middle" fill="#c9a84c" font-size="14" font-weight="900">★</text>
+          </svg>
+        </div>
+        <!-- 图片区域 -->
+        <div class="mvp-img-area" onclick="mvpUploadImg(${card.id})" title="点击上传图片">
+          ${card.img
+            ? `<img src="${card.img}" style="width:100%;height:100%;object-fit:cover;object-position:top">`
+            : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px;color:#6b5aad">
+                <span style="font-size:28px">📷</span>
+                <span style="font-size:11px">点击上传</span>
+               </div>`
+          }
+        </div>
+        <!-- 底部名字横幅 -->
+        <div class="mvp-name-bar">
+          <span class="mvp-name" onclick="mvpEditName(${card.id})" title="点击编辑名称">${card.name || '点击输入称号'}</span>
+        </div>
+        <!-- 删除按钮 -->
+        <div class="mvp-del" onclick="mvpDelete(${card.id})" title="删除">×</div>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+function addMvpCard(){
+  _mvpCards.push({id: ++_mvpIdCounter, name:'', img:''});
+  renderMvpCards();
+  SFX.shangJing();
+}
+
+function mvpDelete(id){
+  _mvpCards = _mvpCards.filter(function(c){ return c.id !== id; });
+  renderMvpCards();
+}
+
+function clearMvpCards(){
+  _mvpCards = [];
+  renderMvpCards();
+  SFX.reset();
+}
+
+function mvpEditName(id){
+  const card = _mvpCards.find(function(c){ return c.id===id; });
+  if(!card) return;
+  const val = prompt('输入MVP称号：', card.name);
+  if(val === null) return;
+  card.name = val;
+  renderMvpCards();
+}
+
+var _mvpUploadId = null;
+function mvpUploadImg(id){
+  _mvpUploadId = id;
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function(){
+    const file = inp.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const card = _mvpCards.find(function(c){ return c.id===_mvpUploadId; });
+      if(card){ card.img = e.target.result; renderMvpCards(); }
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+// ===================== MVP榜 END =====================
+
 
 // 警长精选（实时模式）
 function makeNumCircleHtml(num, color, clickId){
