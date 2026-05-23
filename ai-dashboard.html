@@ -285,20 +285,14 @@ function resetDeathCards(){
   document.querySelectorAll('.death-card').forEach(c=>c.classList.remove('dead'));
 }
 
-// 数字选号（警下→上警→退水，单向不循环）
+// 数字选号（警下→上警→退水，点上警池圆圈才退水）
 (function(){
   const picker = document.getElementById('num-picker');
   const box1 = document.getElementById('kpi-num-1');
   const box2 = document.getElementById('kpi-num-2');
   const box3 = document.getElementById('kpi-num-3');
-  // state: 0=警下 1=上警 2=退水
   const states = {};
   for(let i=1;i<=15;i++) states[i]=0;
-
-  function renderCircles(el, nums, style){
-    if(!nums.length){ el.innerHTML='<span class="kpi-num-dash">—</span>'; return; }
-    el.innerHTML = nums.map(n=>`<div class="num-circle" style="${style}">${n}</div>`).join('');
-  }
 
   function refresh(){
     const shangJing=[], tuiShui=[], jingXia=[];
@@ -307,32 +301,41 @@ function resetDeathCards(){
       else if(states[i]===2) tuiShui.push(i);
       else jingXia.push(i);
     }
-    renderCircles(box1, shangJing, 'border-color:#fbbf24;background:rgba(251,191,36,.1);color:#fbbf24');
-    renderCircles(box2, tuiShui,  'border-color:#c0392b;background:rgba(192,57,43,.1);color:#c0392b');
-    renderCircles(box3, jingXia,  'border-color:#374151;background:#1a2820;color:#6b7280');
+    // 上警圆圈：点击可退水
+    box1.innerHTML = shangJing.length
+      ? shangJing.map(n=>`<div class="num-circle" style="border-color:#fbbf24;background:rgba(251,191,36,.1);color:#fbbf24;cursor:pointer" title="点击退水" onclick="moveToTuishui(${n})">${n}</div>`).join('')
+      : '<span class="kpi-num-dash">—</span>';
+    // 退水圆圈：不可点击
+    box2.innerHTML = tuiShui.length
+      ? tuiShui.map(n=>`<div class="num-circle" style="border-color:#c0392b;background:rgba(192,57,43,.1);color:#c0392b">${n}</div>`).join('')
+      : '<span class="kpi-num-dash">—</span>';
+    // 警下圆圈
+    box3.innerHTML = jingXia.length
+      ? jingXia.map(n=>`<div class="num-circle" style="border-color:#374151;background:#1a2820;color:#6b7280">${n}</div>`).join('')
+      : '<span class="kpi-num-dash">—</span>';
   }
 
-  const btns = {};
+  window.moveToTuishui = function(n){
+    if(states[n]===1){ states[n]=2; refresh();
+      // 同步按钮颜色
+      const btn = picker.querySelector(`.num-btn[data-n="${n}"]`);
+      if(btn){ btn.classList.remove('selected'); btn.classList.add('tuishui'); }
+    }
+  };
+
   for(let i=1;i<=15;i++){
     const btn = document.createElement('button');
     btn.className = 'num-btn';
     btn.textContent = i;
+    btn.dataset.n = i;
     btn.onclick = function(){
       if(states[i]===0){
-        // 警下 → 上警
         states[i]=1;
         btn.classList.add('selected');
-        btn.classList.remove('tuishui');
-      } else if(states[i]===1){
-        // 上警 → 退水
-        states[i]=2;
-        btn.classList.remove('selected');
-        btn.classList.add('tuishui');
+        refresh();
       }
-      // 退水后不再响应点击
-      refresh();
+      // 上警/退水状态不响应
     };
-    btns[i]=btn;
     picker.appendChild(btn);
   }
   refresh();
