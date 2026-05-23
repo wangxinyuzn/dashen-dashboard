@@ -1132,6 +1132,7 @@ function setActive(el) {
 }
 
 // 趋势图
+try {
 const ctx = document.getElementById('trend-chart').getContext('2d');
 new Chart(ctx, {
   type: 'line',
@@ -1178,6 +1179,7 @@ new Chart(ctx, {
     }
   }
 });
+} catch(e){ console.warn('Chart init error', e); }
 
 // 所有函数定义完毕后，加载默认9人配置 + MVP持久数据
 try {
