@@ -661,7 +661,7 @@ function mvpLoad(){
     // 本地备份
     try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
     // 渲染
-    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr()});
+    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
     renderMvpCards();
   }).catch(function(){
     // GitHub失败，降级读localStorage
@@ -673,7 +673,7 @@ function mvpLoad(){
         _mvpIdCounter = data.counter || 0;
       }
     }catch(e){}
-    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr()});
+    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
     renderMvpCards();
   });
 }
@@ -715,6 +715,9 @@ function renderMvpCards(){
         </div>
         <div class="mvp-name-bar">
           <span class="mvp-name" onclick="mvpEditName(${card.id})" title="点击编辑名称">${card.name || '点击输入称号'}</span>
+          <div style="border-top:1px solid rgba(201,168,76,.2);margin-top:4px;padding-top:4px">
+            <span class="mvp-name" style="font-size:11px;color:#a88c3a;font-weight:600" onclick="mvpEditRole(${card.id})" title="点击编辑角色">${card.role || '点击输入角色'}</span>
+          </div>
         </div>
         <!-- 日期选择器 -->
         <div style="padding:6px 8px;background:rgba(0,0,0,.6);border-top:1px solid rgba(201,168,76,.2);border-radius:0 0 10px 10px">
@@ -730,7 +733,7 @@ function renderMvpCards(){
 }
 
 function addMvpCard(){
-  _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()});
+  _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
   renderMvpCards();
   mvpSave();
   SFX.shangJing();
@@ -756,6 +759,16 @@ function mvpEditName(id){
   const val = prompt('输入MVP称号：', card.name);
   if(val === null) return;
   card.name = val;
+  renderMvpCards();
+  mvpSave();
+}
+
+function mvpEditRole(id){
+  const card = _mvpCards.find(function(c){ return c.id===id; });
+  if(!card) return;
+  const val = prompt('输入角色：', card.role || '');
+  if(val === null) return;
+  card.role = val;
   renderMvpCards();
   mvpSave();
 }
