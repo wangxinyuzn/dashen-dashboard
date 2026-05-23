@@ -547,28 +547,61 @@ function makeNumCircleHtml(num, color){
     `<span style="color:${color}">${num}</span></div>`;
 }
 
-function addJingzhangSnap(shangNum, jingXiaList){
+var _jingzhangSnaps = []; // [{shangNum, jingXiaList}]
+var _jingzhangStatesRef = null; // 引用states对象，用于实时过滤退水
+
+function renderJingzhang(){
   const el = document.getElementById('jingzhang-list');
-  // 首次添加时清掉提示文字
-  if(el.querySelector('span[style*="color:#aaa"]')) el.innerHTML = '';
-  const row = document.createElement('div');
-  row.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.15)';
-  // 上警牌（金色）
-  let html = makeNumCircleHtml(shangNum, '#c9a84c');
-  // 箭头
-  html += '<span style="color:#c9a84c;font-size:16px;opacity:.6">→</span>';
-  // 警下牌（蓝色）
-  if(jingXiaList.length){
-    html += jingXiaList.map(n => makeNumCircleHtml(n, '#6c8bff')).join('');
-  } else {
-    html += '<span style="color:#aaa;font-size:12px">（无警下）</span>';
+  if(!_jingzhangSnaps.length){
+    el.innerHTML = '<span style="color:#aaa;font-size:13px">上警后自动记录快照</span>';
+    return;
   }
-  row.innerHTML = html;
-  el.appendChild(row);
+  el.innerHTML = '';
+  _jingzhangSnaps.forEach(function(snap){
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.15)';
+    // 上警牌：过滤掉退水（states===2）的号码
+    const validShang = snap.shangNums.filter(function(n){
+      return !_jingzhangStatesRef || _jingzhangStatesRef[n] !== 2;
+    });
+    let html = '';
+    if(validShang.length){
+      html += validShang.map(n => makeNumCircleHtml(n, '#c9a84c')).join('');
+    } else {
+      html += '<span style="color:#aaa;font-size:12px">（已全部退水）</span>';
+    }
+    html += '<span style="color:#c9a84c;font-size:16px;opacity:.6">→</span>';
+    if(snap.jingXiaList.length){
+      html += snap.jingXiaList.map(n => makeNumCircleHtml(n, '#6c8bff')).join('');
+    } else {
+      html += '<span style="color:#aaa;font-size:12px">（无警下）</span>';
+    }
+    row.innerHTML = html;
+    el.appendChild(row);
+  });
+}
+
+function addJingzhangSnap(shangNum, jingXiaList, statesRef){
+  _jingzhangStatesRef = statesRef;
+  // 找到最后一行，如果还没有这个 shangNum 的记录则新建一行
+  // 每次上警追加到最新行的 shangNums
+  if(!_jingzhangSnaps.length){
+    _jingzhangSnaps.push({shangNums:[shangNum], jingXiaList:jingXiaList});
+  } else {
+    // 同一批上警（上一行）追加；若已有退水发生则新起一行
+    _jingzhangSnaps[_jingzhangSnaps.length-1].shangNums.push(shangNum);
+  }
+  renderJingzhang();
+}
+
+function notifyJingzhangTuishui(statesRef){
+  _jingzhangStatesRef = statesRef;
+  renderJingzhang();
 }
 
 function clearJingzhang(){
-  document.getElementById('jingzhang-list').innerHTML = '<span style="color:#aaa;font-size:13px">上警后自动记录快照</span>';
+  _jingzhangSnaps = [];
+  renderJingzhang();
   SFX.reset();
 }
 
@@ -626,6 +659,7 @@ function buildNumPicker(count){
 
   window.moveToTuishui = function(n){
     if(states[n]===1){ states[n]=2; SFX.tuiShui(); refresh();
+      notifyJingzhangTuishui(states);
       // 同步按钮颜色
       const btn = picker.querySelector(`.num-btn[data-n="${n}"]`);
       if(btn){ btn.classList.remove('selected'); btn.classList.add('tuishui'); }
@@ -646,7 +680,7 @@ function buildNumPicker(count){
         // 记录警长精选快照：上警号码 + 当时警下所有号码
         const jingXiaSnap = [];
         for(let k=1;k<=n;k++){ if(states[k]===0) jingXiaSnap.push(k); }
-        addJingzhangSnap(i, jingXiaSnap);
+        addJingzhangSnap(i, jingXiaSnap, states);
       }
       // 上警/退水状态不响应
     };
