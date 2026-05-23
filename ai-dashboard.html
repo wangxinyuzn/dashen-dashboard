@@ -86,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .rp-img-card img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:2px solid rgba(109,40,217,.4)}
 .rp-img-card span{font-size:11px;color:#c4b5fd;text-align:center;line-height:1.2}
 /* 选中预览长条 */
-.rp-preview-bar{height:140px;border:1px solid #e8eaf0;border-radius:8px;background:rgba(240,242,247,0.7);padding:14px 16px;display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;overflow:hidden}
+.rp-preview-bar{height:180px;border:1px solid #e8eaf0;border-radius:8px;background:rgba(240,242,247,0.7);padding:14px 16px;display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;overflow:hidden}
 .rp-preview-bar .rp-prev-empty{color:#aaa;font-size:13px;margin:auto}
 .rp-prev-group{display:flex;flex-wrap:wrap;gap:10px;padding:6px 10px;border-radius:8px;margin-right:10px;margin-bottom:4px}
 .rp-prev-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -366,8 +366,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <div id="roleintro-grid" style="display:flex;flex-wrap:wrap;gap:16px 12px;padding:4px 4px 16px;min-height:80px"></div>
         <!-- 底部Tab -->
         <div id="roleintro-tabs" style="display:flex;border-top:1px solid rgba(201,168,76,.2);margin:0 -22px">
-          <div class="ri-tab active" onclick="switchRoleTab('all')" data-tab="all">🃏 全部</div>
-          <div class="ri-tab" onclick="switchRoleTab('good')" data-tab="good">👍 好人</div>
+          <div class="ri-tab active" onclick="switchRoleTab('good')" data-tab="good">👍 好人</div>
           <div class="ri-tab" onclick="switchRoleTab('shen')" data-tab="shen">✨ 神职</div>
           <div class="ri-tab" onclick="switchRoleTab('wolf')" data-tab="wolf">🐺 狼人</div>
           <div class="ri-tab" onclick="switchRoleTab('third')" data-tab="third">🎲 三方</div>
@@ -596,11 +595,9 @@ document.addEventListener('click', function unlock(){
   // 暴露默认配置函数给外部（在所有函数定义完后调用）
   window._rpLoadDefault = function(){
     var defaultConfig = [
-      {name:'平民',   count:3, list:goodRoles},
-      {name:'狼人',   count:3, list:wolfRoles},
-      {name:'预言家', count:1, list:shenRoles},
-      {name:'女巫',   count:1, list:shenRoles},
-      {name:'猎人',   count:1, list:shenRoles}
+      {name:'平民',   count:1, list:goodRoles},
+      {name:'狼人',   count:1, list:wolfRoles},
+      {name:'预言家', count:1, list:shenRoles}
     ];
     defaultConfig.forEach(function(cfg){
       var role = cfg.list.find(function(r){ return r.name === cfg.name; });
@@ -766,8 +763,66 @@ mvpLoad();
 // ===================== MVP榜 END =====================
 
 // ===================== 角色介绍 =====================
-var _roleIntroTab = 'all';
+var _roleIntroTab = 'good';
 var _roleIntroData = []; // [{name, img, faction}]
+
+var _roleSkills = {
+  // 好人
+  '平民': '无特殊技能，依靠推理和投票找出狼人。白天发言、投票是唯一武器。',
+  '老流氓': '无特殊技能，但凭借丰富的社会经验，往往能察觉狼人的破绽。',
+  // 神职
+  '预言家': '每晚可查验一名玩家的阵营（好人/狼人）。是好人阵营最重要的情报来源。',
+  '女巫': '拥有一瓶解药（救人）和一瓶毒药（杀人），每局各用一次。第一晚可救自己。',
+  '猎人': '被狼人杀死或被投票出局时，可选择带走场上任意一名玩家。',
+  '守卫': '每晚可守护一名玩家免受狼人袭击，但不能连续两晚守护同一人，且不能守护自己。',
+  '骑士': '白天可发动决斗，拉出一名玩家比较手中号码牌，号码小者立即出局（不触发死亡技能）。',
+  '白痴': '被投票出局时，亮出白痴身份可免死一次，但永久失去投票权。',
+  '摄梦人': '每晚可查验一名玩家，若其为神职则得知具体身份。',
+  '守墓人': '每晚守护一名已死亡玩家的墓地，若该玩家被狼人骚扰，可获得线索。',
+  '猎魔人': '每晚可查验一名玩家，若其为狼人可选择将其击毙（每局限一次）。',
+  '乌鸦': '每晚可给一名玩家挂上乌鸦标记，若该玩家是好人则下一轮投票时额外增加一票。',
+  '魔术师': '拥有两张魔法牌，可在白天使用：互换两名玩家的身份牌（每局限两次）。',
+  '禁言长老': '每局可宣布禁言一名玩家，被禁言玩家在本轮白天发言阶段只能说"我没有发言"。',
+  // 狼人
+  '狼人': '每晚与其他狼人商议，选择击杀一名好人阵营玩家。目标是消灭所有好人或神职。',
+  '狼美人': '每晚除正常击杀外，可选择魅惑一名玩家；被魅惑者若发现狼美人死亡，会殉情出局。',
+  '隐狼': '查杀结果显示为"好人"，可以完美伪装。每晚与狼队友一起行动。',
+  '狼王': '死亡时可带走场上一名玩家（不受猎人、骑士等技能影响）。',
+  '白狼王': '可以主动自爆出局，并带走任意一名玩家；自爆视为好人击杀，不触发猎人等技能。',
+  '恶灵骑士': '可以在白天伪装成骑士发动决斗，但决斗规则对其有利（号码大者出局）。',
+  '恶灵之影': '每晚可复制一名死亡神职玩家的技能，并在之后使用一次。',
+  '暗恋者': '狼人阵营，暗恋场上某个好人玩家；若暗恋对象死亡，暗恋者立即殉情出局。',
+  '石像鬼': '每晚查杀结果显示"好人"；一旦被预言家查到，会被标记为"石像"（特殊好人标识）。',
+  '血月使徒': '每晚除正常击杀外，可让一名玩家进入"血月诅咒"状态，被诅咒者下轮若投票给狼人阵营则立即死亡。',
+  // 三方
+  '盗贼': '游戏开始时可偷取另一名玩家的身份牌，以偷取身份的胜利条件为准。',
+  '丘比特': '第一晚指定两名玩家成为恋人，恋人一方死亡则另一方殉情，恋人共同存活到最后则恋人获胜。',
+  '炸弹人': '被狼人击杀时引发爆炸，带走所有狼人阵营玩家；被投票出局不触发爆炸。',
+};
+
+var _factionLabel = {
+  good:  {label:'好人阵营', color:'#3b82f6', bg:'rgba(59,130,246,.2)'},
+  shen:  {label:'神职阵营', color:'#8b5cf6', bg:'rgba(139,92,246,.2)'},
+  wolf:  {label:'狼人阵营', color:'#ef4444', bg:'rgba(239,68,68,.2)'},
+  third: {label:'三方阵营', color:'#f59e0b', bg:'rgba(245,158,11,.2)'}
+};
+
+window.openRoleSkillModal = function(name, img, faction){
+  const m = document.getElementById('role-skill-modal');
+  document.getElementById('rsk-img').src = img;
+  document.getElementById('rsk-name').textContent = name;
+  const fl = _factionLabel[faction] || {label:'未知', color:'#aaa', bg:'rgba(170,170,170,.2)'};
+  const fb = document.getElementById('rsk-faction');
+  fb.textContent = fl.label;
+  fb.style.color = fl.color;
+  fb.style.background = fl.bg;
+  fb.style.border = '1px solid ' + fl.color + '44';
+  document.getElementById('rsk-skill').textContent = _roleSkills[name] || '无';
+  m.style.display = 'flex';
+};
+window.closeRoleSkillModal = function(){
+  document.getElementById('role-skill-modal').style.display = 'none';
+};
 
 function buildRoleIntroData(goodR, shenR, wolfR, thirdR){
   _roleIntroData = [];
@@ -788,9 +843,7 @@ function buildRoleIntroData(goodR, shenR, wolfR, thirdR){
 function renderRoleIntro(){
   const grid = document.getElementById('roleintro-grid');
   if(!grid) return;
-  const list = _roleIntroTab === 'all'
-    ? _roleIntroData
-    : _roleIntroData.filter(function(r){ return r.faction === _roleIntroTab; });
+  const list = _roleIntroData.filter(function(r){ return r.faction === _roleIntroTab; });
   if(!list.length){
     grid.innerHTML = '<span style="color:#aaa;font-size:13px">暂无角色</span>';
     return;
@@ -798,7 +851,7 @@ function renderRoleIntro(){
   const factionColor = {good:'#3b82f6', shen:'#8b5cf6', wolf:'#ef4444', third:'#f59e0b'};
   grid.innerHTML = list.map(function(r){
     const border = factionColor[r.faction] || '#c9a84c';
-    return `<div class="ri-role-item">
+    return `<div class="ri-role-item" onclick="openRoleSkillModal('${r.name}','${r.img}','${r.faction}')" style="cursor:pointer">
       <img class="ri-role-avatar" src="${r.img}" alt="${r.name}" style="border-color:${border}55;box-shadow:0 0 8px ${border}33">
       <span class="ri-role-name" style="color:${border}">${r.name}</span>
     </div>`;
@@ -1107,6 +1160,24 @@ try {
   if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
   renderMvpCards();
 } catch(e){ console.warn('mvp init error', e); }
+</script>
+<!-- 角色技能介绍浮层 -->
+<div id="role-skill-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div style="background:linear-gradient(135deg,#1a0a2e,#2d1060);border:2px solid #c9a84c;border-radius:16px;padding:28px;max-width:440px;width:90%;position:relative;box-shadow:0 0 40px rgba(201,168,76,.3)">
+    <button onclick="closeRoleSkillModal()" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#888;font-size:20px;cursor:pointer">×</button>
+    <div style="display:flex;align-items:flex-start;gap:20px">
+      <img id="rsk-img" style="width:80px;height:80px;border-radius:50%;object-fit:cover;object-position:top;border:3px solid #c9a84c;flex-shrink:0">
+      <div>
+        <div id="rsk-name" style="font-size:20px;font-weight:900;color:#e8c96a;margin-bottom:6px"></div>
+        <div id="rsk-faction" style="font-size:12px;border-radius:12px;padding:2px 10px;display:inline-block;margin-bottom:10px"></div>
+        <div id="rsk-skill" style="font-size:13px;color:#d4c5e8;line-height:1.8"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// 点击遮罩关闭
+document.getElementById('role-skill-modal').addEventListener('click', function(e){ if(e.target===this) closeRoleSkillModal(); });
 </script>
 </body>
 </html>
