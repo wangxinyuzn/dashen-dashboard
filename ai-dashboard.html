@@ -315,9 +315,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         </div>
         <div class="card" style="flex:1;margin-bottom:0;border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center">
           <div id="jingzhang-card" style="display:flex;flex-direction:column;align-items:center;gap:4px">
-            <span style="font-size:22px;filter:drop-shadow(0 0 6px rgba(201,168,76,.8))">👑</span>
-            <div id="jingzhang-num" style="width:54px;height:74px;border-radius:9px;background:#0a0010;border:2px solid #c9a84c;box-shadow:0 0 12px rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#c9a84c;cursor:pointer" onclick="pickJingzhang()" title="点击选择警长">
-              <span id="jingzhang-num-text" style="color:#555;font-size:14px">?</span>
+            <div id="jingzhang-num" style="width:80px;height:110px;border-radius:12px;background:#0a0010;border:2px solid #c9a84c;box-shadow:0 0 16px rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;cursor:pointer" onclick="pickJingzhang()" title="点击选择警长">
+              <span id="jingzhang-num-text" style="color:#555;font-size:18px">?</span>
             </div>
           </div>
         </div>
@@ -1077,9 +1076,9 @@ function clearJingzhang(){
 function setJingzhangNum(num){
   const el = document.getElementById('jingzhang-num-text');
   if(num === null || num === undefined){
-    el.style.color = '#555'; el.style.fontSize = '14px'; el.textContent = '?';
+    el.style.color = '#555'; el.style.fontSize = '18px'; el.textContent = '?';
   } else {
-    el.style.color = '#c9a84c'; el.style.fontSize = '28px'; el.textContent = num;
+    el.style.color = '#c9a84c'; el.style.fontSize = '42px'; el.textContent = num;
   }
 }
 
