@@ -348,7 +348,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <span class="section-header-title">M V P 榜</span>
         <div class="section-header-extra">
           <button onclick="addMvpCard()">＋ 添加</button>
-          <button onclick="clearMvpCards()">🗑️ 清空</button>
         </div>
       </div>
       <div class="card" style="margin-bottom:0">
@@ -1100,7 +1099,9 @@ new Chart(ctx, {
 
 // 所有函数定义完毕后，加载默认9人配置 + MVP持久数据
 if(typeof _rpLoadDefault === 'function') _rpLoadDefault();
-renderMvpCards(); // 渲染从localStorage恢复的MVP数据
+// 如果MVP榜没有历史数据，默认初始化一张卡片
+if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
+renderMvpCards();
 </script>
 </body>
 </html>
