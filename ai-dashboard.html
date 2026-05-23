@@ -285,50 +285,54 @@ function resetDeathCards(){
   document.querySelectorAll('.death-card').forEach(c=>c.classList.remove('dead'));
 }
 
-// 数字选号（三态：警下→上警→退水→警下）
+// 数字选号（警下→上警→退水，单向不循环）
 (function(){
   const picker = document.getElementById('num-picker');
   const box1 = document.getElementById('kpi-num-1');
   const box2 = document.getElementById('kpi-num-2');
   const box3 = document.getElementById('kpi-num-3');
   // state: 0=警下 1=上警 2=退水
-  const states = {}; // key: 1-15, value: 0/1/2
+  const states = {};
   for(let i=1;i<=15;i++) states[i]=0;
 
-  function renderCircles(el, nums, cls){
-    el.className = 'kpi-num-wrap' + (cls?' '+cls:'');
-    if(!nums.length){ el.innerHTML = '<span class="kpi-num-dash">—</span>'; return; }
-    el.innerHTML = nums.map(n=>`<div class="num-circle">${n}</div>`).join('');
-  }
-  function renderTuishui(el, nums){
-    el.className = 'kpi-num-wrap';
-    if(!nums.length){ el.innerHTML = '<span class="kpi-num-dash" style="color:#fa8c16">—</span>'; return; }
-    el.innerHTML = nums.map(n=>`<div class="num-circle" style="border-color:#fa8c16;background:#fff7e6;color:#fa8c16">${n}</div>`).join('');
+  function renderCircles(el, nums, style){
+    if(!nums.length){ el.innerHTML='<span class="kpi-num-dash">—</span>'; return; }
+    el.innerHTML = nums.map(n=>`<div class="num-circle" style="${style}">${n}</div>`).join('');
   }
 
   function refresh(){
-    const shangJing = [], tuiShui = [], jingXia = [];
+    const shangJing=[], tuiShui=[], jingXia=[];
     for(let i=1;i<=15;i++){
       if(states[i]===1) shangJing.push(i);
       else if(states[i]===2) tuiShui.push(i);
       else jingXia.push(i);
     }
-    renderCircles(box1, shangJing, '');
-    renderTuishui(box2, tuiShui);
-    renderCircles(box3, jingXia, 'unsel');
+    renderCircles(box1, shangJing, 'border-color:#fbbf24;background:rgba(251,191,36,.1);color:#fbbf24');
+    renderCircles(box2, tuiShui,  'border-color:#c0392b;background:rgba(192,57,43,.1);color:#c0392b');
+    renderCircles(box3, jingXia,  'border-color:#374151;background:#1a2820;color:#6b7280');
   }
 
+  const btns = {};
   for(let i=1;i<=15;i++){
     const btn = document.createElement('button');
     btn.className = 'num-btn';
     btn.textContent = i;
     btn.onclick = function(){
-      states[i] = (states[i] + 1) % 3;
-      btn.classList.remove('selected','tuishui');
-      if(states[i]===1) btn.classList.add('selected');
-      else if(states[i]===2) btn.classList.add('tuishui');
+      if(states[i]===0){
+        // 警下 → 上警
+        states[i]=1;
+        btn.classList.add('selected');
+        btn.classList.remove('tuishui');
+      } else if(states[i]===1){
+        // 上警 → 退水
+        states[i]=2;
+        btn.classList.remove('selected');
+        btn.classList.add('tuishui');
+      }
+      // 退水后不再响应点击
       refresh();
     };
+    btns[i]=btn;
     picker.appendChild(btn);
   }
   refresh();
