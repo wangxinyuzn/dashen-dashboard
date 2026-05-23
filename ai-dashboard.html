@@ -76,6 +76,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .rp-img-card:hover{transform:scale(1.06)}
 .rp-img-card img{width:56px;height:56px;border-radius:8px;object-fit:cover;border:2px solid rgba(109,40,217,.4)}
 .rp-img-card span{font-size:10px;color:#c4b5fd;text-align:center;line-height:1.2}
+/* 选中预览长条 */
+.rp-preview-bar{min-height:90px;border:1px solid rgba(139,0,0,.3);border-radius:8px;background:#0d1a12;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.rp-preview-bar .rp-prev-empty{color:#374151;font-size:13px;margin:auto}
+.rp-prev-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rp-prev-item img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:2px solid rgba(251,191,36,.5);box-shadow:0 0 10px rgba(251,191,36,.2)}
+.rp-prev-item span{font-size:11px;color:#f0e6d3;text-align:center}
+.rp-prev-item .rp-prev-count{position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.rp-prev-item .rp-prev-del{position:absolute;bottom:-6px;right:-6px;background:#374151;color:#9ca3af;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.rp-prev-item .rp-prev-del:hover{background:#c0392b;color:#fff}
+.rp-img-card.rp-selected img{border-color:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.5)}
+
 /* 角色选取 tag */
 .rp-tag{font-size:12px;padding:3px 10px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
 .rp-tag:hover{opacity:.8}
@@ -193,6 +204,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
           <div class="role-pick-label" style="background:rgba(120,53,15,.2);color:#fcd34d">三方</div>
           <div class="role-pick-box" id="rp-third"></div>
         </div>
+      </div>
+      <!-- 预览长条 -->
+      <div class="rp-preview-bar" id="rp-preview">
+        <span class="rp-prev-empty">点击上方卡片添加到此处</span>
       </div>
     </div>
 
@@ -344,63 +359,55 @@ renderRoles('all');
     {name:'炸弹人', img:'roles/炸弹人.png'},
   ];
 
-  const colorMap = {
-    good:  {bg:'rgba(30,64,175,.15)',  color:'#93c5fd',  border:'rgba(30,64,175,.3)'},
-    wolf:  {bg:'rgba(139,0,0,.2)',     color:'#f87171',  border:'rgba(192,57,43,.4)'},
-    third: {bg:'rgba(120,53,15,.15)',  color:'#fcd34d',  border:'rgba(180,83,9,.3)'},
+  // 预览状态：key=img路径，value={name,img,count}
+  const previewMap = {};
+
+  function addToPreview(role){
+    if(previewMap[role.img]) previewMap[role.img].count++;
+    else previewMap[role.img] = {name:role.name, img:role.img, count:1};
+    renderPreview();
+  }
+
+  window.rpRemove = function(imgKey){
+    if(!previewMap[imgKey]) return;
+    previewMap[imgKey].count--;
+    if(previewMap[imgKey].count<=0) delete previewMap[imgKey];
+    renderPreview();
   };
 
-  // 好人/狼人/三方用文字tag
-  function renderTagBox(id, roles, type){
-    const box = document.getElementById(id);
-    const c = colorMap[type];
-    box.innerHTML = roles.map(r=>`<span class="rp-tag" style="background:${c.bg};color:${c.color};border-color:${c.border}">${r}</span>`).join('');
+  function renderPreview(){
+    const bar = document.getElementById('rp-preview');
+    const items = Object.values(previewMap);
+    if(!items.length){
+      bar.innerHTML = '<span class="rp-prev-empty">点击上方卡片添加到此处</span>';
+      return;
+    }
+    bar.innerHTML = items.map(r=>
+      '<div class="rp-prev-item">' +
+        '<img src="'+r.img+'" alt="'+r.name+'">' +
+        '<span>'+r.name+'</span>' +
+        (r.count>1 ? '<div class="rp-prev-count">x'+r.count+'</div>' : '') +
+        '<div class="rp-prev-del" onclick="rpRemove(''+r.img+'')" title="减少一个">-</div>' +
+      '</div>'
+    ).join('');
   }
 
-  // 神职用图片卡片
-  function renderShenBox(){
-    const box = document.getElementById('rp-shen');
-    box.innerHTML = shenRoles.map(r=>`
-      <div class="rp-img-card">
-        <img src="${r.img}" alt="${r.name}">
-        <span>${r.name}</span>
-      </div>`).join('');
+  window.rpAdd = function(img, name){ addToPreview({img, name}); };
+
+  function makeCards(roles, borderColor, nameColor){
+    return roles.map(r=>
+      '<div class="rp-img-card" onclick="rpAdd(''+r.img+'',''+r.name+'')">' +
+        '<img src="'+r.img+'" alt="'+r.name+'" style="border-color:'+borderColor+'">' +
+        '<span style="color:'+nameColor+'">'+r.name+'</span>' +
+      '</div>'
+    ).join('');
   }
 
-  // 狼人用图片卡片
-  function renderWolfBox(){
-    const box = document.getElementById('rp-wolf');
-    box.innerHTML = wolfRoles.map(r=>`
-      <div class="rp-img-card">
-        <img src="${r.img}" alt="${r.name}" style="border-color:rgba(192,57,43,.5)">
-        <span style="color:#f87171">${r.name}</span>
-      </div>`).join('');
-  }
-
-  // 三方用图片卡片
-  function renderThirdBox(){
-    const box = document.getElementById('rp-third');
-    box.innerHTML = thirdRoles.map(r=>`
-      <div class="rp-img-card">
-        <img src="${r.img}" alt="${r.name}" style="border-color:rgba(180,83,9,.5)">
-        <span style="color:#fcd34d">${r.name}</span>
-      </div>`).join('');
-  }
-
-  // 好人用图片卡片
-  function renderGoodBox(){
-    const box = document.getElementById('rp-good');
-    box.innerHTML = goodRoles.map(r=>`
-      <div class="rp-img-card">
-        <img src="${r.img}" alt="${r.name}" style="border-color:rgba(30,64,175,.5)">
-        <span style="color:#93c5fd">${r.name}</span>
-      </div>`).join('');
-  }
-
-  renderGoodBox();
-  renderShenBox();
-  renderWolfBox();
-  renderThirdBox();
+  document.getElementById('rp-good').innerHTML  = makeCards(goodRoles,  'rgba(30,64,175,.5)',  '#93c5fd');
+  document.getElementById('rp-shen').innerHTML  = makeCards(shenRoles,  'rgba(109,40,217,.5)', '#c4b5fd');
+  document.getElementById('rp-wolf').innerHTML  = makeCards(wolfRoles,  'rgba(192,57,43,.5)',  '#f87171');
+  document.getElementById('rp-third').innerHTML = makeCards(thirdRoles, 'rgba(180,83,9,.5)',   '#fcd34d');
+  renderPreview();
 })();
 
 // 死亡情况卡片
