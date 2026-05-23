@@ -749,10 +749,16 @@ function mvpUploadImg(id){
   inp.click();
 }
 
-// 启动时从localStorage加载数据（渲染在脚本末尾DOM ready后执行）
+// 启动时从localStorage加载数据
 mvpLoad();
+// MVP初始化：独立于其他脚本，DOMContentLoaded后必然执行
+document.addEventListener('DOMContentLoaded', function(){
+  if(!_mvpCards.length){
+    _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()});
+  }
+  renderMvpCards();
+});
 // ===================== MVP榜 END =====================
-
 // ===================== 角色介绍 =====================
 var _roleIntroTab = 'good';
 var _roleIntroData = []; // [{name, img, faction}]
@@ -1201,19 +1207,10 @@ try {
   if(typeof _rpLoadDefault === 'function') _rpLoadDefault();
 } catch(e){ console.warn('rpLoadDefault error', e); }
 
-try {
-  if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
-  renderMvpCards();
-} catch(e){ console.warn('mvp init error', e); }
-
-// 双保险：延迟再渲染一次，确保DOM已就绪
+// 对战情况双保险
 setTimeout(function(){
   try {
-    if(typeof _rpLoadDefault === 'function' && !document.querySelector('#rp-preview .rp-prev-group')) _rpLoadDefault();
-    if(!document.querySelector('#mvp-grid .mvp-card')){
-      if(!_mvpCards.length){ _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()}); }
-      renderMvpCards();
-    }
+    if(typeof _rpLoadDefault === 'function' && !document.querySelector('#rp-preview .rp-prev-group') && !document.querySelector('#rp-preview .rp-prev-empty')) _rpLoadDefault();
   } catch(e){}
 }, 200);
 </script>
