@@ -95,9 +95,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* 数字选号按钮 */
 .num-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .kpi-num{font-size:32px;font-weight:800;color:#4f6ef7;letter-spacing:-1px;line-height:1.4;word-break:break-all;text-align:center}
-.kpi-num-wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:6px}
-.kpi-num-wrap .num-circle{width:44px;height:44px;border-radius:50%;border:2px solid #4f6ef7;background:#f0f3ff;color:#4f6ef7;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.kpi-num-wrap.unsel .num-circle{border-color:#52c41a;background:#f6ffed;color:#52c41a}
+.kpi-num-wrap{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start;align-items:center;padding:4px}
+/* 上警池卡片样式 */
+.num-circle{position:relative;width:36px;height:50px;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:default;font-size:15px;font-weight:900;text-shadow:0 0 6px rgba(0,0,0,1),0 1px 4px rgba(0,0,0,1)}
+.num-circle-bg{position:absolute;inset:0;background-image:url('card-back-sm.jpg');background-size:cover;background-position:center;border-radius:6px}
+.num-circle-label{position:relative;z-index:2}
 .kpi-num-dash{font-size:28px;font-weight:700;color:#ccc}
 /* 方框标签 */
 .box-wrap{display:flex;flex-direction:column}
@@ -210,6 +212,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="card-title">
         <span class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
         上警情况
+        <button onclick="resetNumPicker()" style="margin-left:auto;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:3px 12px;font-size:12px;color:#666;cursor:pointer" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#f5f5f5'">🔄 刷新</button>
       </div>
       <!-- 1-15 数字选号 -->
       <div class="num-picker" id="num-picker"></div>
@@ -426,6 +429,11 @@ function resetDeathCards(){
   document.querySelectorAll('.death-card').forEach(function(c){ c.classList.remove('dead'); });
 }
 
+function resetNumPicker(){
+  var n = document.querySelectorAll('.num-btn').length;
+  buildNumPicker(n);
+}
+
 // 数字选号（警下→上警→退水，点上警池圆圈才退水；数量由角色选取动态决定）
 function buildNumPicker(count){
   const picker = document.getElementById('num-picker');
@@ -449,16 +457,21 @@ function buildNumPicker(count){
       else jingXia.push(i);
     }
     // 上警圆圈：点击可退水
+    function makeCard(n, color, clickable){
+      var click = clickable ? `onclick="moveToTuishui(${n})" title="点击退水" style="cursor:pointer"` : '';
+      return `<div class="num-circle" ${click}>` +
+        '<div class="num-circle-bg"></div>' +
+        `<span class="num-circle-label" style="color:${color}">${n}</span>` +
+        '</div>';
+    }
     box1.innerHTML = shangJing.length
-      ? shangJing.map(n=>`<div class="num-circle" style="border-color:#fbbf24;background:rgba(251,191,36,.1);color:#fbbf24;cursor:pointer" title="点击退水" onclick="moveToTuishui(${n})">${n}</div>`).join('')
+      ? shangJing.map(n=>makeCard(n,'#fbbf24',true)).join('')
       : '<span class="kpi-num-dash">—</span>';
-    // 退水圆圈：不可点击
     box2.innerHTML = tuiShui.length
-      ? tuiShui.map(n=>`<div class="num-circle" style="border-color:#c0392b;background:rgba(192,57,43,.1);color:#c0392b">${n}</div>`).join('')
+      ? tuiShui.map(n=>makeCard(n,'#f87171',false)).join('')
       : '<span class="kpi-num-dash">—</span>';
-    // 警下圆圈
     box3.innerHTML = jingXia.length
-      ? jingXia.map(n=>`<div class="num-circle" style="border-color:#374151;background:#1a2820;color:#6b7280">${n}</div>`).join('')
+      ? jingXia.map(n=>makeCard(n,'#c9a84c',false)).join('')
       : '<span class="kpi-num-dash">—</span>';
   }
 
