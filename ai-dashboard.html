@@ -91,19 +91,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .todo-check{width:18px;height:18px;border:2px solid #d9d9d9;border-radius:4px;flex-shrink:0;margin-top:1px}
 
 /* 死亡情况 */
-.death-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.death-card{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;aspect-ratio:2/3;transition:transform .2s,box-shadow .2s;user-select:none}
-.death-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.death-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.death-card{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:2/3;transition:transform .2s,box-shadow .2s;user-select:none;max-width:90px}
+.death-card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .death-card-back{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#1a0533 0%,#2d0a5e 40%,#1a0533 100%);border:2px solid #6b21a8;position:relative;overflow:hidden}
-.death-card-back::before{content:'';position:absolute;inset:6px;border:1px solid rgba(167,139,250,.35);border-radius:6px;pointer-events:none}
-.death-card-back::after{content:'☽ 🐺 ☾';font-size:18px;display:block;line-height:1}
+.death-card-back::before{content:'';position:absolute;inset:4px;border:1px solid rgba(167,139,250,.35);border-radius:5px;pointer-events:none}
 .death-card-pattern{position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(109,40,217,.1) 8px,rgba(109,40,217,.1) 9px)}
-.death-card-num{position:absolute;top:6px;left:8px;font-size:11px;font-weight:700;color:rgba(196,181,253,.7)}
-.death-card-num2{position:absolute;bottom:6px;right:8px;font-size:11px;font-weight:700;color:rgba(196,181,253,.7);transform:rotate(180deg)}
+.death-card-number{font-size:32px;font-weight:800;color:rgba(221,214,254,.9);line-height:1;z-index:1;text-shadow:0 0 10px rgba(167,139,250,.6)}
+.death-card-wolf{font-size:14px;margin-top:4px;z-index:1;opacity:.7}
 .death-card.dead .death-card-back{background:linear-gradient(160deg,#1f0000 0%,#450a0a 40%,#1f0000 100%);border-color:#dc2626;filter:brightness(.65)}
-.death-card.dead::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:2;border-radius:10px}
+.death-card.dead::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:2;border-radius:8px}
 .death-card.dead .death-skull{display:flex!important}
-.death-skull{display:none;position:absolute;inset:0;z-index:3;align-items:center;justify-content:center;font-size:36px;filter:drop-shadow(0 0 6px rgba(255,0,0,.6))}
+.death-skull{display:none;position:absolute;inset:0;z-index:3;align-items:center;justify-content:center;font-size:28px;filter:drop-shadow(0 0 6px rgba(255,0,0,.6))}
 
 /* 趋势图 */
 .chart-wrap{position:relative;height:220px}
@@ -195,8 +194,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     card.innerHTML = `
       <div class="death-card-back">
         <div class="death-card-pattern"></div>
-        <div class="death-card-num">${i}</div>
-        <div class="death-card-num2">${i}</div>
+        <div class="death-card-number">${i}</div>
+        <div class="death-card-wolf">🐺</div>
       </div>
       <div class="death-skull">💀</div>`;
     card.onclick = () => card.classList.toggle('dead');
