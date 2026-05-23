@@ -279,6 +279,76 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 </div>
 
 <script>
+// ===================== 音效引擎 =====================
+const SFX = (function(){
+  let ctx = null;
+  function getCtx(){ if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)(); return ctx; }
+
+  // 基础播放：oscillator
+  function tone(freq, type, vol, attack, sustain, release){
+    const c = getCtx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.connect(gain); gain.connect(c.destination);
+    osc.type = type; osc.frequency.value = freq;
+    const t = c.currentTime;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + attack);
+    gain.gain.setValueAtTime(vol, t + attack + sustain);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + attack + sustain + release);
+    osc.start(t); osc.stop(t + attack + sustain + release + 0.05);
+  }
+
+  // 噪声burst（用于冲击感）
+  function noise(vol, duration){
+    const c = getCtx();
+    const bufSize = c.sampleRate * duration;
+    const buf = c.createBuffer(1, bufSize, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1);
+    const src = c.createBufferSource();
+    const gain = c.createGain();
+    const filter = c.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 400;
+    src.buffer = buf;
+    src.connect(filter); filter.connect(gain); gain.connect(c.destination);
+    const t = c.currentTime;
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    src.start(t); src.stop(t + duration + 0.05);
+  }
+
+  return {
+    // 死亡音效：低沉冲击 + 沉降
+    death: function(){
+      noise(0.6, 0.3);
+      tone(80, 'sine', 0.5, 0.01, 0.1, 0.6);
+      tone(55, 'sine', 0.3, 0.02, 0.05, 0.9);
+    },
+    // 复活音效（取消死亡）：轻快回响
+    revive: function(){
+      tone(523, 'sine', 0.3, 0.01, 0.05, 0.2);
+      tone(659, 'sine', 0.2, 0.06, 0.05, 0.25);
+    },
+    // 上警：清脆点击
+    shangJing: function(){
+      tone(880, 'triangle', 0.35, 0.005, 0.03, 0.15);
+      tone(1100, 'sine', 0.2, 0.01, 0.02, 0.1);
+    },
+    // 退水：消散滑落
+    tuiShui: function(){
+      tone(440, 'sine', 0.3, 0.01, 0.02, 0.08);
+      tone(330, 'sine', 0.25, 0.03, 0.02, 0.18);
+      tone(220, 'sine', 0.15, 0.06, 0.02, 0.3);
+    },
+    // 刷新/复原：清脆双音
+    reset: function(){
+      tone(660, 'triangle', 0.25, 0.005, 0.02, 0.12);
+      tone(880, 'triangle', 0.2, 0.08, 0.02, 0.15);
+    }
+  };
+})();
+// ===================== 音效引擎 END =====================
 // 角色选取
 (function(){
   function enc(s){ return encodeURIComponent(s); }
@@ -423,7 +493,10 @@ function buildDeathCards(count){
     const card = document.createElement('div');
     card.className = 'death-card';
     card.innerHTML = `<div class="death-card-back"><div class="death-card-number">${i}</div></div><div class="death-skull">💀</div>`;
-    card.onclick = function(){ card.classList.toggle('dead'); };
+    card.onclick = function(){
+      card.classList.toggle('dead');
+      if(card.classList.contains('dead')) SFX.death(); else SFX.revive();
+    };
     grid.appendChild(card);
   }
 }
@@ -431,11 +504,13 @@ buildDeathCards(0);
 
 function resetDeathCards(){
   document.querySelectorAll('.death-card').forEach(function(c){ c.classList.remove('dead'); });
+  SFX.reset();
 }
 
 function resetNumPicker(){
   var n = document.querySelectorAll('.num-btn').length;
   buildNumPicker(n);
+  SFX.reset();
 }
 
 // 数字选号（警下→上警→退水，点上警池圆圈才退水；数量由角色选取动态决定）
@@ -480,7 +555,7 @@ function buildNumPicker(count){
   }
 
   window.moveToTuishui = function(n){
-    if(states[n]===1){ states[n]=2; refresh();
+    if(states[n]===1){ states[n]=2; SFX.tuiShui(); refresh();
       // 同步按钮颜色
       const btn = picker.querySelector(`.num-btn[data-n="${n}"]`);
       if(btn){ btn.classList.remove('selected'); btn.classList.add('tuishui'); }
@@ -496,6 +571,7 @@ function buildNumPicker(count){
       if(states[i]===0){
         states[i]=1;
         btn.classList.add('selected');
+        SFX.shangJing();
         refresh();
       }
       // 上警/退水状态不响应
