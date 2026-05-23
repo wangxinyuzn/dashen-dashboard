@@ -342,65 +342,12 @@ const SFX = (function(){
   return {
     // 确保 AudioContext 已激活
     resume: function(){ try{ getCtx().resume(); }catch(e){} },
-    // 死亡音效：刀子捅入（利器穿刺 + 闷响）
+    // 死亡音效：翻牌音效（mp3）
     death: function(){
       this.resume();
-      const c = getCtx();
-      const t0 = c.currentTime;
-
-      // 1. 利器入肉的高频摩擦噪声（短促锋利）
-      const bufSize = Math.floor(c.sampleRate * 0.04);
-      const buf = c.createBuffer(1, bufSize, c.sampleRate);
-      const data = buf.getChannelData(0);
-      for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * (1 - i/bufSize);
-      const src = c.createBufferSource();
-      const hpf = c.createBiquadFilter();
-      hpf.type = 'highpass'; hpf.frequency.value = 4000;
-      const sliceGain = c.createGain();
-      src.buffer = buf;
-      src.connect(hpf); hpf.connect(sliceGain); sliceGain.connect(c.destination);
-      sliceGain.gain.setValueAtTime(0.9, t0);
-      sliceGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.04);
-      src.start(t0); src.stop(t0 + 0.05);
-
-      // 2. 金属划过声（中频扫频，刀刃感）
-      const metalOsc = c.createOscillator();
-      const metalGain = c.createGain();
-      metalOsc.connect(metalGain); metalGain.connect(c.destination);
-      metalOsc.type = 'sawtooth';
-      metalOsc.frequency.setValueAtTime(1800, t0);
-      metalOsc.frequency.exponentialRampToValueAtTime(600, t0 + 0.06);
-      metalGain.gain.setValueAtTime(0.25, t0);
-      metalGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06);
-      metalOsc.start(t0); metalOsc.stop(t0 + 0.07);
-
-      // 3. 捅入后的闷响（低频，肉体冲击感）
-      const thudOsc = c.createOscillator();
-      const thudGain = c.createGain();
-      thudOsc.connect(thudGain); thudGain.connect(c.destination);
-      thudOsc.type = 'sine';
-      thudOsc.frequency.setValueAtTime(120, t0 + 0.03);
-      thudOsc.frequency.exponentialRampToValueAtTime(40, t0 + 0.25);
-      thudGain.gain.setValueAtTime(0, t0 + 0.03);
-      thudGain.gain.linearRampToValueAtTime(0.6, t0 + 0.06);
-      thudGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
-      thudOsc.start(t0 + 0.03); thudOsc.stop(t0 + 0.45);
-
-      // 4. 低频噪声（空气和血肉的闷声）
-      const bufSize2 = Math.floor(c.sampleRate * 0.3);
-      const buf2 = c.createBuffer(1, bufSize2, c.sampleRate);
-      const data2 = buf2.getChannelData(0);
-      for(let i=0;i<bufSize2;i++) data2[i] = (Math.random()*2-1);
-      const src2 = c.createBufferSource();
-      const lpf = c.createBiquadFilter();
-      lpf.type = 'lowpass'; lpf.frequency.value = 200;
-      const bodyGain = c.createGain();
-      src2.buffer = buf2;
-      src2.connect(lpf); lpf.connect(bodyGain); bodyGain.connect(c.destination);
-      bodyGain.gain.setValueAtTime(0, t0 + 0.04);
-      bodyGain.gain.linearRampToValueAtTime(0.4, t0 + 0.08);
-      bodyGain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
-      src2.start(t0 + 0.04); src2.stop(t0 + 0.45);
+      const a = new Audio('sfx-death.mp3');
+      a.volume = 0.9;
+      a.play().catch(function(){});
     },
     // 复活音效（取消死亡）：轻快回响
     revive: function(){
