@@ -421,21 +421,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
           <button class="collapse-btn" id="boom-collapse-btn" onclick="toggleCollapse('boom')" title="折叠/展开">▾</button>
         </div>
         <div class="collapsible-body" id="boom-collapse-body">
-          <div style="overflow-x:auto">
-            <table class="boom-table">
-              <thead><tr>
-                <th class="boom-seq">#</th>
-                <th style="min-width:140px">内容标题</th>
-                <th style="min-width:130px">平台</th>
-                <th style="width:90px">截图</th>
-                <th style="min-width:80px">播放量</th>
-                <th style="min-width:180px">浅析</th>
-                <th style="width:30px"></th>
-              </tr></thead>
-              <tbody id="boom-tbody"></tbody>
-            </table>
+          <!-- 新增爆款 -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <span style="font-size:14px;font-weight:600;color:#555">🆕 新增爆款</span>
+            <button class="collapse-btn" id="boom-new-collapse-btn" onclick="toggleCollapse('boom-new')" title="折叠/展开" style="font-size:11px">▾</button>
           </div>
-          <div class="boom-add-btn" onclick="boomAdd()">＋ 添加爆款</div>
+          <div class="collapsible-body" id="boom-new-collapse-body">
+            <div style="overflow-x:auto">
+              <table class="boom-table">
+                <thead><tr>
+                  <th class="boom-seq">#</th>
+                  <th style="min-width:140px">内容标题</th>
+                  <th style="min-width:130px">平台</th>
+                  <th style="width:90px">截图</th>
+                  <th style="min-width:80px">播放量</th>
+                  <th style="min-width:180px">浅析</th>
+                  <th style="width:30px"></th>
+                </tr></thead>
+                <tbody id="boom-new-tbody"></tbody>
+              </table>
+            </div>
+            <div class="boom-add-btn" onclick="boomNewAdd()">＋ 添加新增爆款</div>
+          </div>
+          <!-- 分隔线 -->
+          <div style="border-top:1px solid #f0f0f0;margin:16px 0"></div>
+          <!-- 过往爆款 -->
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <span style="font-size:14px;font-weight:600;color:#555">📚 过往爆款</span>
+            <button class="collapse-btn" id="boom-hist-collapse-btn" onclick="toggleCollapse('boom-hist')" title="折叠/展开" style="font-size:11px">▾</button>
+          </div>
+          <div class="collapsible-body" id="boom-hist-collapse-body">
+            <div style="overflow-x:auto">
+              <table class="boom-table">
+                <thead><tr>
+                  <th class="boom-seq">#</th>
+                  <th style="min-width:140px">内容标题</th>
+                  <th style="min-width:130px">平台</th>
+                  <th style="width:90px">截图</th>
+                  <th style="min-width:80px">播放量</th>
+                  <th style="min-width:180px">浅析</th>
+                  <th style="width:30px"></th>
+                </tr></thead>
+                <tbody id="boom-hist-tbody"></tbody>
+              </table>
+            </div>
+            <div class="boom-add-btn" onclick="boomHistAdd()">＋ 添加过往爆款</div>
+          </div>
           <input type="file" id="boom-img-input" accept="image/*" style="display:none">
         </div>
       </div>
@@ -589,7 +620,7 @@ const GistStorage = {
   // ---- 收集所有需同步的 localStorage 数据 ----
   _collectData() {
     const KEYS = [
-      'dashen_boom_rows','dashen_boom_title',
+      'dashen_boom_rows','dashen_boom_title','dashen_boom_history','dashen_boom_new',
       'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
       'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
     ];
@@ -1123,7 +1154,9 @@ function applyDateRange() {
 
 
 // ====== 爆款内容表格 ======
-const BOOM_KEY    = 'dashen_boom_rows';
+const BOOM_KEY      = 'dashen_boom_rows';      // 兼容旧数据
+const BOOM_HIST_KEY = 'dashen_boom_history';
+const BOOM_NEW_KEY  = 'dashen_boom_new';
 const BOOM_TITLE_KEY = 'dashen_boom_title';
 const BOOM_PLATFORMS = [
   {key:'dy',  label:'抖音',  cls:'dy'},
@@ -1132,11 +1165,17 @@ const BOOM_PLATFORMS = [
   {key:'ks',  label:'快手',  cls:'ks'},
 ];
 
-function boomLoad() {
-  try { return JSON.parse(localStorage.getItem(BOOM_KEY)) || boomDefaults(); }
-  catch(e) { return boomDefaults(); }
+function boomHistLoad() {
+  try {
+    const hist = localStorage.getItem(BOOM_HIST_KEY);
+    if(hist) return JSON.parse(hist);
+    // 兼容旧数据迁移
+    const old = localStorage.getItem(BOOM_KEY);
+    if(old) return JSON.parse(old);
+    return boomHistDefaults();
+  } catch(e) { return boomHistDefaults(); }
 }
-function boomDefaults() {
+function boomHistDefaults() {
   return [
     {id:1, title:'鼻炎怎么来的',     platforms:['dy'], img:'', views:'132W', analysis:'短平快科普，引发共鸣，完播率高'},
     {id:2, title:'水泡是在保护你',    platforms:['dy','xhs'], img:'', views:'44.2W', analysis:'反认知标题，互动率强'},
@@ -1147,79 +1186,108 @@ function boomDefaults() {
     {id:7, title:'黄鼻涕是怎么来的',  platforms:['dy'], img:'', views:'1W', analysis:''},
   ];
 }
-function boomSave(rows) { localStorage.setItem(BOOM_KEY, JSON.stringify(rows)); GistStorage.schedulePush(); }
+function boomHistSave(rows) { localStorage.setItem(BOOM_HIST_KEY, JSON.stringify(rows)); GistStorage.schedulePush(); }
 
-let _boomImgTarget = null; // 当前待上传图片的行id
+function boomNewLoad() {
+  try { return JSON.parse(localStorage.getItem(BOOM_NEW_KEY)) || []; }
+  catch(e) { return []; }
+}
+function boomNewSave(rows) { localStorage.setItem(BOOM_NEW_KEY, JSON.stringify(rows)); GistStorage.schedulePush(); }
+
+let _boomImgTarget  = null;
+let _boomImgSection = 'hist'; // 'new' | 'hist'
+
+function _boomRowHtml(r, i, section) {
+  const platforms = BOOM_PLATFORMS.map(p => {
+    const active = r.platforms.includes(p.key);
+    return `<span class="boom-tag ${p.cls}${active?'':' inactive'}" onclick="boomTogglePlatform(${r.id},'${p.key}','${section}')">${p.label}</span>`;
+  }).join('');
+  const imgHtml = r.img
+    ? `<img src="${r.img}" alt="截图">`
+    : `<div class="upload-hint">📷<br>点击上传</div>`;
+  return `<tr>
+    <td class="boom-seq">${i+1}</td>
+    <td><input class="boom-input" value="${r.title.replace(/"/g,'&quot;')}"
+         onblur="boomEdit(${r.id},'title',this.value,'${section}')"
+         onkeydown="if(event.key==='Enter')this.blur()"
+         title="点击编辑标题"></td>
+    <td><div class="boom-platform-tags">${platforms}</div></td>
+    <td class="boom-img-cell">
+      <div class="boom-img-wrap" onclick="boomUploadImg(${r.id},'${section}')" title="点击上传截图">${imgHtml}</div>
+    </td>
+    <td><input class="boom-input views" value="${r.views.replace(/"/g,'&quot;')}"
+         onblur="boomEdit(${r.id},'views',this.value,'${section}')"
+         onkeydown="if(event.key==='Enter')this.blur()"
+         title="点击编辑播放量"></td>
+    <td><input class="boom-input analysis" value="${r.analysis.replace(/"/g,'&quot;')}"
+         onblur="boomEdit(${r.id},'analysis',this.value,'${section}')"
+         onkeydown="if(event.key==='Enter')this.blur()"
+         placeholder="输入浅析..."
+         title="点击编辑浅析"></td>
+    <td><button class="boom-del-btn" onclick="boomDel(${r.id},'${section}')" title="删除">×</button></td>
+  </tr>`;
+}
 
 function boomRender() {
-  const rows  = boomLoad();
-  const tbody = document.getElementById('boom-tbody');
   const titleEl = document.getElementById('boom-title-text');
   if(titleEl) titleEl.textContent = localStorage.getItem(BOOM_TITLE_KEY) || '爆款内容';
-  if(!tbody) return;
 
-  tbody.innerHTML = rows.map((r, i) => {
-    const platforms = BOOM_PLATFORMS.map(p => {
-      const active = r.platforms.includes(p.key);
-      return `<span class="boom-tag ${p.cls}${active?'':' inactive'}" onclick="boomTogglePlatform(${r.id},'${p.key}')">${p.label}</span>`;
-    }).join('');
+  const newTbody  = document.getElementById('boom-new-tbody');
+  const histTbody = document.getElementById('boom-hist-tbody');
 
-    const imgHtml = r.img
-      ? `<img src="${r.img}" alt="截图">`
-      : `<div class="upload-hint">📷<br>点击上传</div>`;
-
-    return `<tr>
-      <td class="boom-seq">${i+1}</td>
-      <td><input class="boom-input" value="${r.title.replace(/"/g,'&quot;')}"
-           onblur="boomEdit(${r.id},'title',this.value)"
-           onkeydown="if(event.key==='Enter')this.blur()"
-           title="点击编辑标题"></td>
-      <td><div class="boom-platform-tags">${platforms}</div></td>
-      <td class="boom-img-cell">
-        <div class="boom-img-wrap" onclick="boomUploadImg(${r.id})" title="点击上传截图">${imgHtml}</div>
-      </td>
-      <td><input class="boom-input views" value="${r.views.replace(/"/g,'&quot;')}"
-           onblur="boomEdit(${r.id},'views',this.value)"
-           onkeydown="if(event.key==='Enter')this.blur()"
-           title="点击编辑播放量"></td>
-      <td><input class="boom-input analysis" value="${r.analysis.replace(/"/g,'&quot;')}"
-           onblur="boomEdit(${r.id},'analysis',this.value)"
-           onkeydown="if(event.key==='Enter')this.blur()"
-           placeholder="输入浅析..."
-           title="点击编辑浅析"></td>
-      <td><button class="boom-del-btn" onclick="boomDel(${r.id})" title="删除">×</button></td>
-    </tr>`;
-  }).join('');
+  if(newTbody)  newTbody.innerHTML  = boomNewLoad().map((r,i) => _boomRowHtml(r,i,'new')).join('');
+  if(histTbody) histTbody.innerHTML = boomHistLoad().map((r,i) => _boomRowHtml(r,i,'hist')).join('');
 }
 
-function boomEdit(id, field, val) {
-  const rows = boomLoad();
-  const r = rows.find(x=>x.id===id);
-  if(r) { r[field] = val.trim(); boomSave(rows); }
+function boomEdit(id, field, val, section) {
+  if(section==='new') {
+    const rows = boomNewLoad(); const r = rows.find(x=>x.id===id);
+    if(r) { r[field] = val.trim(); boomNewSave(rows); }
+  } else {
+    const rows = boomHistLoad(); const r = rows.find(x=>x.id===id);
+    if(r) { r[field] = val.trim(); boomHistSave(rows); }
+  }
 }
-function boomTogglePlatform(id, pkey) {
-  const rows = boomLoad();
-  const r = rows.find(x=>x.id===id);
+function boomTogglePlatform(id, pkey, section) {
+  const load = section==='new' ? boomNewLoad : boomHistLoad;
+  const save = section==='new' ? boomNewSave : boomHistSave;
+  const rows = load(); const r = rows.find(x=>x.id===id);
   if(!r) return;
   const idx = r.platforms.indexOf(pkey);
-  if(idx >= 0) r.platforms.splice(idx,1);
-  else r.platforms.push(pkey);
-  boomSave(rows); boomRender();
+  if(idx >= 0) r.platforms.splice(idx,1); else r.platforms.push(pkey);
+  save(rows); boomRender();
 }
-function boomDel(id) {
-  boomSave(boomLoad().filter(x=>x.id!==id)); boomRender();
+function boomDel(id, section) {
+  if(section==='new') boomNewSave(boomNewLoad().filter(x=>x.id!==id));
+  else boomHistSave(boomHistLoad().filter(x=>x.id!==id));
+  boomRender();
 }
-function boomAdd() {
-  const rows = boomLoad();
+function boomNewAdd() {
+  const rows = boomNewLoad();
   rows.push({id:Date.now(), title:'新内容', platforms:['dy'], img:'', views:'', analysis:''});
-  boomSave(rows); boomRender();
+  boomNewSave(rows); boomRender();
   setTimeout(()=>{
-    const inputs = document.querySelectorAll('#boom-tbody .boom-input');
+    const inputs = document.querySelectorAll('#boom-new-tbody .boom-input');
     if(inputs.length) inputs[inputs.length-5]?.focus();
   },50);
 }
-function boomUploadImg(id) {
-  _boomImgTarget = id;
+function boomHistAdd() {
+  const rows = boomHistLoad();
+  rows.push({id:Date.now(), title:'新内容', platforms:['dy'], img:'', views:'', analysis:''});
+  boomHistSave(rows); boomRender();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#boom-hist-tbody .boom-input');
+    if(inputs.length) inputs[inputs.length-5]?.focus();
+  },50);
+}
+// 兼容旧调用
+function boomLoad() { return boomHistLoad(); }
+function boomSave(rows) { boomHistSave(rows); }
+function boomAdd() { boomHistAdd(); }
+
+function boomUploadImg(id, section) {
+  _boomImgTarget  = id;
+  _boomImgSection = section || 'hist';
   document.getElementById('boom-img-input').click();
 }
 
@@ -2040,9 +2108,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if(!file || !_boomImgTarget) return;
       const reader = new FileReader();
       reader.onload = e => {
-        const rows = boomLoad();
-        const r = rows.find(x=>x.id===_boomImgTarget);
-        if(r) { r.img = e.target.result; boomSave(rows); boomRender(); }
+        if(_boomImgSection === 'new') {
+          const rows = boomNewLoad();
+          const r = rows.find(x=>x.id===_boomImgTarget);
+          if(r) { r.img = e.target.result; boomNewSave(rows); boomRender(); }
+        } else {
+          const rows = boomHistLoad();
+          const r = rows.find(x=>x.id===_boomImgTarget);
+          if(r) { r.img = e.target.result; boomHistSave(rows); boomRender(); }
+        }
         _boomImgTarget = null;
         this.value = '';
       };
@@ -2222,7 +2296,7 @@ function switchTab(idx) {
 // ============================================================
 function collectUserData() {
   const KEYS = [
-'dashen_boom_rows','dashen_boom_title','BOOM_TITLE_KEY',
+'dashen_boom_rows','dashen_boom_title','dashen_boom_history','dashen_boom_new',
     'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
     'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
   ];
