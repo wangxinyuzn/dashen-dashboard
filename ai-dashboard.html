@@ -320,7 +320,18 @@ renderRoles('all');
     {name:'白痴',   img:'roles/白痴.jpg'},
     {name:'禁言长老',img:'roles/禁言长老.jpg'},
   ];
-  const wolfRoles  = ['狼人','狼人','狼人','狼美人','隐狼','狼王','白狼王','狼巫','蚀时狼妃','觉醒狼王','觉醒隐狼','狼鸦之爪'];
+  const wolfRoles  = [
+    {name:'狼人',   img:'roles/狼人.jpg'},
+    {name:'狼美人', img:'roles/狼美人.png'},
+    {name:'隐狼',   img:'roles/隐狼.jpg'},
+    {name:'狼王',   img:'roles/狼王.png'},
+    {name:'白狼王', img:'roles/白狼王.png'},
+    {name:'恶灵骑士',img:'roles/恶灵骑士.jpg'},
+    {name:'恶灵之影',img:'roles/恶灵之影.jpg'},
+    {name:'暗恋者', img:'roles/暗恋者.png'},
+    {name:'石像鬼', img:'roles/石像鬼.jpg'},
+    {name:'血月使徒',img:'roles/血月使徒.jpg'},
+  ];
   const thirdRoles = ['白猫','咒狐','子狐','河豚','熊','羊驼','乌鸦','石像鬼','孤独少女','魔镜少女','噩梦之影','流光伯爵','千面人','赤月使徒'];
 
   const colorMap = {
@@ -346,9 +357,19 @@ renderRoles('all');
       </div>`).join('');
   }
 
+  // 狼人用图片卡片
+  function renderWolfBox(){
+    const box = document.getElementById('rp-wolf');
+    box.innerHTML = wolfRoles.map(r=>`
+      <div class="rp-img-card">
+        <img src="${r.img}" alt="${r.name}" style="border-color:rgba(192,57,43,.5)">
+        <span style="color:#f87171">${r.name}</span>
+      </div>`).join('');
+  }
+
   renderTagBox('rp-good',  goodRoles,  'good');
   renderShenBox();
-  renderTagBox('rp-wolf',  wolfRoles,  'wolf');
+  renderWolfBox();
   renderTagBox('rp-third', thirdRoles, 'third');
 })();
 
