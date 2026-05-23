@@ -649,33 +649,32 @@ function mvpSave(){
 }
 
 function mvpLoad(){
-  // 优先从GitHub读（共享数据），失败则读localStorage
+  // 第一步：立即从localStorage读取并渲染（同步，确保页面加载即显示）
+  try{
+    var raw = localStorage.getItem(_MVP_KEY);
+    if(raw){
+      var data = JSON.parse(raw);
+      _mvpCards = data.cards || [];
+      _mvpIdCounter = data.counter || 0;
+    }
+  }catch(e){}
+  if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
+  renderMvpCards();
+
+  // 第二步：异步从GitHub同步最新数据（后台更新）
   fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     _mvpGhSha = d.sha;
-    var raw = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
-    var data = JSON.parse(raw);
-    _mvpCards = data.cards || [];
-    _mvpIdCounter = data.counter || 0;
-    // 本地备份
+    var raw2 = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
+    var data2 = JSON.parse(raw2);
+    // 用GitHub数据覆盖（以GitHub为主）
+    _mvpCards = data2.cards || [];
+    _mvpIdCounter = data2.counter || 0;
     try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
-    // 渲染
     if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
     renderMvpCards();
-  }).catch(function(){
-    // GitHub失败，降级读localStorage
-    try{
-      var raw = localStorage.getItem(_MVP_KEY);
-      if(raw){
-        var data = JSON.parse(raw);
-        _mvpCards = data.cards || [];
-        _mvpIdCounter = data.counter || 0;
-      }
-    }catch(e){}
-    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
-    renderMvpCards();
-  });
+  }).catch(function(){}); // GitHub失败就保持localStorage的数据
 }
 
 function _todayStr(){
