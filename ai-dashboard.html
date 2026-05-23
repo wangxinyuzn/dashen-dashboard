@@ -541,71 +541,52 @@ function buildDeathCards(count){
 }
 buildDeathCards(0);
 
-// 警长精选
+// 警长精选（实时模式）
 function makeNumCircleHtml(num, color){
   return `<div class="num-circle" style="width:38px;height:52px;font-size:17px;background:#0a0010;border:2px solid ${color};box-shadow:0 0 6px ${color}44;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0">` +
     `<span style="color:${color}">${num}</span></div>`;
 }
 
-var _jingzhangSnaps = []; // [{shangNum, jingXiaList}]
-var _jingzhangStatesRef = null; // 引用states对象，用于实时过滤退水
+var _jingzhangStatesRef = null;
 
 function renderJingzhang(){
   const el = document.getElementById('jingzhang-list');
-  if(!_jingzhangSnaps.length){
-    el.innerHTML = '<span style="color:#aaa;font-size:13px">上警后自动记录快照</span>';
+  if(!_jingzhangStatesRef){ el.innerHTML = '<span style="color:#aaa;font-size:13px">请先选择角色</span>'; return; }
+  const shangNums = [], jingXiaNums = [];
+  const keys = Object.keys(_jingzhangStatesRef).map(Number).sort((a,b)=>a-b);
+  keys.forEach(function(k){
+    if(_jingzhangStatesRef[k]===1) shangNums.push(k);
+    else if(_jingzhangStatesRef[k]===0) jingXiaNums.push(k);
+  });
+  if(!shangNums.length && !jingXiaNums.length){
+    el.innerHTML = '<span style="color:#aaa;font-size:13px">暂无数据</span>';
     return;
   }
-  el.innerHTML = '';
-  _jingzhangSnaps.forEach(function(snap){
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.15)';
-    // 上警牌：竖向排列，过滤掉退水（states===2）的号码
-    const validShang = snap.shangNums.filter(function(n){
-      return !_jingzhangStatesRef || _jingzhangStatesRef[n] !== 2;
-    });
-    let html = '';
-    if(validShang.length){
-      html += '<div style="display:flex;flex-direction:column;gap:6px">' +
-        validShang.map(n => makeNumCircleHtml(n, '#c9a84c')).join('') +
-        '</div>';
-    } else {
-      html += '<span style="color:#aaa;font-size:12px">（已全部退水）</span>';
-    }
-    html += '<span style="color:#c9a84c;font-size:16px;opacity:.6;align-self:center">→</span>';
-    if(snap.jingXiaList.length){
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start">' +
-        snap.jingXiaList.map(n => makeNumCircleHtml(n, '#6c8bff')).join('') +
-        '</div>';
-    } else {
-      html += '<span style="color:#aaa;font-size:12px">（无警下）</span>';
-    }
-    row.innerHTML = html;
-    el.appendChild(row);
-  });
+  let html = '<div style="display:flex;align-items:flex-start;gap:12px">';
+  // 金色上警牌：竖排
+  html += '<div style="display:flex;flex-direction:column;gap:6px">';
+  if(shangNums.length) html += shangNums.map(n=>makeNumCircleHtml(n,'#c9a84c')).join('');
+  else html += '<span style="color:#aaa;font-size:12px;padding:4px">—</span>';
+  html += '</div>';
+  // 箭头
+  html += '<span style="color:#c9a84c;font-size:18px;opacity:.6;padding-top:12px">→</span>';
+  // 蓝色警下牌：横排换行
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start">';
+  if(jingXiaNums.length) html += jingXiaNums.map(n=>makeNumCircleHtml(n,'#6c8bff')).join('');
+  else html += '<span style="color:#aaa;font-size:12px;padding:4px">—</span>';
+  html += '</div>';
+  html += '</div>';
+  el.innerHTML = html;
 }
 
-function addJingzhangSnap(shangNum, jingXiaList, statesRef){
-  _jingzhangStatesRef = statesRef;
-  // 找到最后一行，如果还没有这个 shangNum 的记录则新建一行
-  // 每次上警追加到最新行的 shangNums
-  if(!_jingzhangSnaps.length){
-    _jingzhangSnaps.push({shangNums:[shangNum], jingXiaList:jingXiaList});
-  } else {
-    // 同一批上警（上一行）追加；若已有退水发生则新起一行
-    _jingzhangSnaps[_jingzhangSnaps.length-1].shangNums.push(shangNum);
-  }
-  renderJingzhang();
-}
-
-function notifyJingzhangTuishui(statesRef){
+function initJingzhang(statesRef){
   _jingzhangStatesRef = statesRef;
   renderJingzhang();
 }
 
 function clearJingzhang(){
-  _jingzhangSnaps = [];
-  renderJingzhang();
+  _jingzhangStatesRef = null;
+  document.getElementById('jingzhang-list').innerHTML = '<span style="color:#aaa;font-size:13px">请先选择角色</span>';
   SFX.reset();
 }
 
@@ -659,11 +640,12 @@ function buildNumPicker(count){
     box3.innerHTML = jingXia.length
       ? jingXia.map(n=>makeCard(n,'#c9a84c',false)).join('')
       : '<span class="kpi-num-dash">—</span>';
+    renderJingzhang();
   }
 
   window.moveToTuishui = function(n){
     if(states[n]===1){ states[n]=2; SFX.tuiShui(); refresh();
-      notifyJingzhangTuishui(states);
+      renderJingzhang();
       // 同步按钮颜色
       const btn = picker.querySelector(`.num-btn[data-n="${n}"]`);
       if(btn){ btn.classList.remove('selected'); btn.classList.add('tuishui'); }
@@ -681,15 +663,15 @@ function buildNumPicker(count){
         btn.classList.add('selected');
         SFX.shangJing();
         refresh();
-        // 记录警长精选快照：上警号码 + 当时警下所有号码
-        const jingXiaSnap = [];
-        for(let k=1;k<=n;k++){ if(states[k]===0) jingXiaSnap.push(k); }
-        addJingzhangSnap(i, jingXiaSnap, states);
+        // 初始化/更新警长精选实时引用
+        initJingzhang(states);
+        renderJingzhang();
       }
       // 上警/退水状态不响应
     };
     picker.appendChild(btn);
   }
+  initJingzhang(states);
   refresh();
 }
 buildNumPicker(0);
