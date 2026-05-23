@@ -71,7 +71,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .role-pick-col{display:flex;flex-direction:column}
 .role-pick-label{font-size:14px;font-weight:700;text-align:center;padding:5px 0;margin-bottom:8px;border-radius:6px}
 .role-pick-box{border:1px solid rgba(139,0,0,.2);border-radius:0 0 8px 8px;min-height:80px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;background:#0d1a12}
-
+/* 角色图片卡片 */
+.rp-img-card{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .15s}
+.rp-img-card:hover{transform:scale(1.06)}
+.rp-img-card img{width:56px;height:56px;border-radius:8px;object-fit:cover;border:2px solid rgba(109,40,217,.4)}
+.rp-img-card span{font-size:10px;color:#c4b5fd;text-align:center;line-height:1.2}
 /* 角色选取 tag */
 .rp-tag{font-size:12px;padding:3px 10px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
 .rp-tag:hover{opacity:.8}
@@ -302,29 +306,50 @@ renderRoles('all');
 // 角色选取
 (function(){
   const goodRoles  = ['平民','平民','平民','平民','平民'];
-  const shenRoles  = ['预言家','女巫','猎人','守卫','骑士','魔术师','摄梦人','白昼学者','寂夜导师','蚀日侍女','纯白之女','炼金魔女','定序王子','奇迹商人','愚者','警长','丘比特','守墓人','恶夜骑士','猎魔人'];
+  const shenRoles  = [
+    {name:'预言家', img:'roles/预言家.jpg'},
+    {name:'女巫',   img:'roles/女巫.jpg'},
+    {name:'猎人',   img:'roles/猎人.png'},
+    {name:'守卫',   img:'roles/守卫.jpg'},
+    {name:'骑士',   img:'roles/骑士.jpg'},
+    {name:'魔术师', img:'roles/魔术师.jpg'},
+    {name:'摄梦人', img:'roles/摄梦人.jpg'},
+    {name:'守墓人', img:'roles/守墓人.jpg'},
+    {name:'猎魔人', img:'roles/猎魔人.jpg'},
+    {name:'乌鸦',   img:'roles/乌鸦.jpg'},
+    {name:'白痴',   img:'roles/白痴.jpg'},
+    {name:'禁言长老',img:'roles/禁言长老.jpg'},
+  ];
   const wolfRoles  = ['狼人','狼人','狼人','狼美人','隐狼','狼王','白狼王','狼巫','蚀时狼妃','觉醒狼王','觉醒隐狼','狼鸦之爪'];
   const thirdRoles = ['白猫','咒狐','子狐','河豚','熊','羊驼','乌鸦','石像鬼','孤独少女','魔镜少女','噩梦之影','流光伯爵','千面人','赤月使徒'];
 
   const colorMap = {
     good:  {bg:'rgba(30,64,175,.15)',  color:'#93c5fd',  border:'rgba(30,64,175,.3)'},
-    shen:  {bg:'rgba(109,40,217,.15)', color:'#c4b5fd',  border:'rgba(109,40,217,.3)'},
     wolf:  {bg:'rgba(139,0,0,.2)',     color:'#f87171',  border:'rgba(192,57,43,.4)'},
     third: {bg:'rgba(120,53,15,.15)',  color:'#fcd34d',  border:'rgba(180,83,9,.3)'},
   };
 
-  function renderBox(id, roles, type){
+  // 好人/狼人/三方用文字tag
+  function renderTagBox(id, roles, type){
     const box = document.getElementById(id);
     const c = colorMap[type];
-    box.innerHTML = roles.map(r=>`
-      <span class="rp-tag" style="background:${c.bg};color:${c.color};border-color:${c.border}">${r}</span>
-    `).join('');
+    box.innerHTML = roles.map(r=>`<span class="rp-tag" style="background:${c.bg};color:${c.color};border-color:${c.border}">${r}</span>`).join('');
   }
 
-  renderBox('rp-good',  goodRoles,  'good');
-  renderBox('rp-shen',  shenRoles,  'shen');
-  renderBox('rp-wolf',  wolfRoles,  'wolf');
-  renderBox('rp-third', thirdRoles, 'third');
+  // 神职用图片卡片
+  function renderShenBox(){
+    const box = document.getElementById('rp-shen');
+    box.innerHTML = shenRoles.map(r=>`
+      <div class="rp-img-card">
+        <img src="${r.img}" alt="${r.name}">
+        <span>${r.name}</span>
+      </div>`).join('');
+  }
+
+  renderTagBox('rp-good',  goodRoles,  'good');
+  renderShenBox();
+  renderTagBox('rp-wolf',  wolfRoles,  'wolf');
+  renderTagBox('rp-third', thirdRoles, 'third');
 })();
 
 // 死亡情况卡片
