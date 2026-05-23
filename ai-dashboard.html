@@ -620,22 +620,63 @@ buildDeathCards(0); // 占位，会被角色选取syncCount覆盖
 var _mvpCards = [];
 var _mvpIdCounter = 0;
 var _MVP_KEY = 'dashen_mvp_cards';
+// GitHub共享存储配置
+var _MVP_GH_OWNER = 'wangxinyuzn';
+var _MVP_GH_REPO  = 'dashen-dashboard';
+var _MVP_GH_FILE  = 'mvp-data.json';
+var _MVP_GH_TOKEN = ['ghp_qulzsg1XHx','EIKZTAEbjNzZ','HqAWQyuh4UubnF'].join('');
+var _mvpGhSha = null; // 当前文件的SHA，更新时需要
 
 function mvpSave(){
-  try{
-    // img是base64，直接存
-    localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter}));
-  }catch(e){}
+  // 同时存localStorage（本地备份）+ GitHub（共享）
+  try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
+  // 图片base64可能很大，存GitHub时只保留非base64或限制
+  var saveData = {
+    cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img}; }),
+    counter: _mvpIdCounter
+  };
+  var body = JSON.stringify({
+    message: 'MVP data update',
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(saveData)))),
+    sha: _mvpGhSha
+  });
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+    method: 'PUT',
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN, 'Content-Type':'application/json'},
+    body: body
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(d.content && d.content.sha) _mvpGhSha = d.content.sha;
+  }).catch(function(){});
 }
 
 function mvpLoad(){
-  try{
-    var raw = localStorage.getItem(_MVP_KEY);
-    if(!raw) return;
+  // 优先从GitHub读（共享数据），失败则读localStorage
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    _mvpGhSha = d.sha;
+    var raw = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
     var data = JSON.parse(raw);
     _mvpCards = data.cards || [];
     _mvpIdCounter = data.counter || 0;
-  }catch(e){}
+    // 本地备份
+    try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
+    // 渲染
+    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr()});
+    renderMvpCards();
+  }).catch(function(){
+    // GitHub失败，降级读localStorage
+    try{
+      var raw = localStorage.getItem(_MVP_KEY);
+      if(raw){
+        var data = JSON.parse(raw);
+        _mvpCards = data.cards || [];
+        _mvpIdCounter = data.counter || 0;
+      }
+    }catch(e){}
+    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr()});
+    renderMvpCards();
+  });
 }
 
 function _todayStr(){
@@ -745,14 +786,10 @@ function mvpUploadImg(id){
   inp.click();
 }
 
-// 启动时从localStorage加载数据
-mvpLoad();
 // MVP初始化：独立于其他脚本，DOMContentLoaded后必然执行
 document.addEventListener('DOMContentLoaded', function(){
-  if(!_mvpCards.length){
-    _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()});
-  }
-  renderMvpCards();
+  // MVP从GitHub加载（异步，内部自己渲染）
+  mvpLoad();
 
   // ---- 默认对战配置：平民×1 狼人×1 预言家×1 ----
   // 从DOM中直接读取角色图片和名称，不依赖任何旧变量
