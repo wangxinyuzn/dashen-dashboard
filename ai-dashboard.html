@@ -267,6 +267,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     </div>
 
+    <!-- 警长精选 -->
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-header-icon">👑</span>
+        <span class="section-header-title">警 长 精 选</span>
+        <div class="section-header-extra">
+          <button onclick="clearJingzhang()">🗑️ 清空</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="jingzhang-list" style="display:flex;flex-direction:column;gap:10px;min-height:60px">
+          <span style="color:#aaa;font-size:13px">上警后自动记录快照</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 死亡情况 -->
     <div class="section-wrap">
       <div class="section-header">
@@ -525,6 +541,37 @@ function buildDeathCards(count){
 }
 buildDeathCards(0);
 
+// 警长精选
+function makeNumCircleHtml(num, color){
+  return `<div class="num-circle" style="width:38px;height:52px;font-size:17px;background:#0a0010;border:2px solid ${color};box-shadow:0 0 6px ${color}44;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0">` +
+    `<span style="color:${color}">${num}</span></div>`;
+}
+
+function addJingzhangSnap(shangNum, jingXiaList){
+  const el = document.getElementById('jingzhang-list');
+  // 首次添加时清掉提示文字
+  if(el.querySelector('span[style*="color:#aaa"]')) el.innerHTML = '';
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.15)';
+  // 上警牌（金色）
+  let html = makeNumCircleHtml(shangNum, '#c9a84c');
+  // 箭头
+  html += '<span style="color:#c9a84c;font-size:16px;opacity:.6">→</span>';
+  // 警下牌（蓝色）
+  if(jingXiaList.length){
+    html += jingXiaList.map(n => makeNumCircleHtml(n, '#6c8bff')).join('');
+  } else {
+    html += '<span style="color:#aaa;font-size:12px">（无警下）</span>';
+  }
+  row.innerHTML = html;
+  el.appendChild(row);
+}
+
+function clearJingzhang(){
+  document.getElementById('jingzhang-list').innerHTML = '<span style="color:#aaa;font-size:13px">上警后自动记录快照</span>';
+  SFX.reset();
+}
+
 function resetDeathCards(){
   document.querySelectorAll('.death-card').forEach(function(c){ c.classList.remove('dead'); });
   SFX.reset();
@@ -596,6 +643,10 @@ function buildNumPicker(count){
         btn.classList.add('selected');
         SFX.shangJing();
         refresh();
+        // 记录警长精选快照：上警号码 + 当时警下所有号码
+        const jingXiaSnap = [];
+        for(let k=1;k<=n;k++){ if(states[k]===0) jingXiaSnap.push(k); }
+        addJingzhangSnap(i, jingXiaSnap);
       }
       // 上警/退水状态不响应
     };
