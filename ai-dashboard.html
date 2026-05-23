@@ -243,6 +243,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
     </div>
 
+    <!-- 死亡情况 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#1a0533,#6b21a8)"></span>
+        死亡情况
+        <span style="font-size:12px;color:#aaa;font-weight:400;margin-left:4px">（点击卡片标记死亡）</span>
+        <button onclick="resetDeathCards()" style="margin-left:auto;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:3px 12px;font-size:12px;color:#666;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#f5f5f5'">🔄 复原</button>
+      </div>
+      <div class="death-grid" id="death-grid"></div>
+    </div>
+
+
     <!-- 卡牌展示 -->
     <div class="card">
       <div class="card-title">
@@ -258,17 +270,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="role-grid" id="role-grid"></div>
     </div>
 
-    <!-- 死亡情况 -->
-    <div class="card">
-      <div class="card-title">
-        <span class="card-icon" style="background:linear-gradient(135deg,#1a0533,#6b21a8)"></span>
-        死亡情况
-        <span style="font-size:12px;color:#aaa;font-weight:400;margin-left:4px">（点击卡片标记死亡）</span>
-        <button onclick="resetDeathCards()" style="margin-left:auto;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:3px 12px;font-size:12px;color:#666;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#f5f5f5'">🔄 复原</button>
-      </div>
-      <div class="death-grid" id="death-grid"></div>
-    </div>
-
+    
   </div>
 </div>
 
@@ -433,6 +435,19 @@ renderRoles('all');
 
   window.rpAdd = function(img, name){ addToPreview({img:img, name:name}); };
 
+  // 角色数量变化时同步死亡卡片和数字选号
+  function syncCount(){
+    var n = previewList.length;
+    buildDeathCards(n);
+    buildNumPicker(n);
+  }
+
+  var _origRenderPreview = renderPreview;
+  renderPreview = function(){
+    _origRenderPreview();
+    syncCount();
+  };
+
   document.getElementById('rp-good').innerHTML  = makeCards(goodRoles,  'rgba(30,64,175,.5)',  '#93c5fd');
   document.getElementById('rp-shen').innerHTML  = makeCards(shenRoles,  'rgba(109,40,217,.5)', '#c4b5fd');
   document.getElementById('rp-wolf').innerHTML  = makeCards(wolfRoles,  'rgba(192,57,43,.5)',  '#f87171');
@@ -440,36 +455,43 @@ renderRoles('all');
   renderPreview();
 })();
 
-// 死亡情况卡片
-(function(){
+// 死亡情况卡片（数量由角色选取动态决定）
+function buildDeathCards(count){
   const grid = document.getElementById('death-grid');
-  for(let i=1;i<=15;i++){
+  grid.innerHTML = '';
+  const n = count || 0;
+  if(!n){
+    grid.innerHTML = '<div style="color:#aaa;font-size:13px;padding:8px">请先在角色选取中选择角色</div>';
+    return;
+  }
+  for(let i=1;i<=n;i++){
     const card = document.createElement('div');
     card.className = 'death-card';
-    card.innerHTML = `
-      <div class="death-card-back">
-        <div class="death-card-pattern"></div>
-        <div class="death-card-number">${i}</div>
-        <div class="death-card-wolf">🐺</div>
-      </div>
-      <div class="death-skull">💀</div>`;
-    card.onclick = () => card.classList.toggle('dead');
+    card.innerHTML = '<div class="death-card-back"><div class="death-card-pattern"></div><div class="death-card-number">'+i+'</div><div class="death-card-wolf">🐺</div></div><div class="death-skull">💀</div>';
+    card.onclick = function(){ card.classList.toggle('dead'); };
     grid.appendChild(card);
   }
-})();
+}
+buildDeathCards(0);
 
 function resetDeathCards(){
-  document.querySelectorAll('.death-card').forEach(c=>c.classList.remove('dead'));
+  document.querySelectorAll('.death-card').forEach(function(c){ c.classList.remove('dead'); });
 }
 
-// 数字选号（警下→上警→退水，点上警池圆圈才退水）
-(function(){
+// 数字选号（警下→上警→退水，点上警池圆圈才退水；数量由角色选取动态决定）
+function buildNumPicker(count){
   const picker = document.getElementById('num-picker');
   const box1 = document.getElementById('kpi-num-1');
   const box2 = document.getElementById('kpi-num-2');
   const box3 = document.getElementById('kpi-num-3');
+  picker.innerHTML = '';
+  box1.innerHTML = '<span class="kpi-num-dash">—</span>';
+  box2.innerHTML = '<span class="kpi-num-dash">—</span>';
+  box3.innerHTML = '<span class="kpi-num-dash">—</span>';
+  if(!count){ picker.innerHTML='<span style="color:#aaa;font-size:13px">请先在角色选取中选择角色</span>'; return; }
+  const n = count;
   const states = {};
-  for(let i=1;i<=15;i++) states[i]=0;
+  for(let i=1;i<=n;i++) states[i]=0;
 
   function refresh(){
     const shangJing=[], tuiShui=[], jingXia=[];
@@ -500,7 +522,7 @@ function resetDeathCards(){
     }
   };
 
-  for(let i=1;i<=15;i++){
+  for(let i=1;i<=n;i++){
     const btn = document.createElement('button');
     btn.className = 'num-btn';
     btn.textContent = i;
@@ -516,7 +538,8 @@ function resetDeathCards(){
     picker.appendChild(btn);
   }
   refresh();
-})();
+}
+buildNumPicker(0);
 
 // 7天日历
 (function(){
