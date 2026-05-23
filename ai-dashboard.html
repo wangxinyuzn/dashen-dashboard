@@ -321,12 +321,43 @@ const SFX = (function(){
   return {
     // 确保 AudioContext 已激活
     resume: function(){ try{ getCtx().resume(); }catch(e){} },
-    // 死亡音效：低沉冲击 + 沉降
+    // 死亡音效：狼爪抓伤（三连划 + 低频冲击）
     death: function(){
       this.resume();
-      noise(0.6, 0.3);
-      tone(80, 'sine', 0.5, 0.01, 0.1, 0.6);
-      tone(55, 'sine', 0.3, 0.02, 0.05, 0.9);
+      const c = getCtx();
+      // 三道爪划声（快速连续噪声burst，音调下滑）
+      [0, 0.06, 0.12].forEach(function(delay, idx){
+        const bufSize = Math.floor(c.sampleRate * 0.08);
+        const buf = c.createBuffer(1, bufSize, c.sampleRate);
+        const data = buf.getChannelData(0);
+        for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * (1 - i/bufSize);
+        const src = c.createBufferSource();
+        const filter = c.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 3000 - idx * 600;
+        filter.Q.value = 0.8;
+        const gain = c.createGain();
+        src.buffer = buf;
+        src.connect(filter); filter.connect(gain); gain.connect(c.destination);
+        const t = c.currentTime + delay;
+        gain.gain.setValueAtTime(0.7 - idx*0.1, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        src.start(t); src.stop(t + 0.1);
+      });
+      // 低频冲击（被击中的沉重感）
+      tone(60, 'sine', 0.6, 0.005, 0.04, 0.5);
+      tone(40, 'sine', 0.4, 0.01, 0.02, 0.7);
+      // 高频尖锐划过
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.connect(g); g.connect(c.destination);
+      osc.type = 'sawtooth';
+      const t0 = c.currentTime;
+      osc.frequency.setValueAtTime(2400, t0);
+      osc.frequency.exponentialRampToValueAtTime(400, t0 + 0.18);
+      g.gain.setValueAtTime(0.18, t0);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+      osc.start(t0); osc.stop(t0 + 0.2);
     },
     // 复活音效（取消死亡）：轻快回响
     revive: function(){
