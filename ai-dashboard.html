@@ -592,18 +592,6 @@ document.addEventListener('click', function unlock(){
   setTimeout(function(){ buildRoleIntroData(goodRoles, shenRoles, wolfRoles, thirdRoles); }, 0);
 
   // 暴露默认配置函数给外部（在所有函数定义完后调用）
-  window._rpLoadDefault = function(){
-    var defaultConfig = [
-      {name:'平民',   count:1, list:goodRoles},
-      {name:'狼人',   count:1, list:wolfRoles},
-      {name:'预言家', count:1, list:shenRoles}
-    ];
-    defaultConfig.forEach(function(cfg){
-      var role = cfg.list.find(function(r){ return r.name === cfg.name; });
-      if(role){ for(var i=0;i<cfg.count;i++) previewList.push({name:role.name, img:role.img}); }
-    });
-    renderPreview();
-  };
 })();
 
 // 死亡情况卡片（数量由角色选取动态决定）
@@ -765,6 +753,30 @@ document.addEventListener('DOMContentLoaded', function(){
     _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr()});
   }
   renderMvpCards();
+
+  // ---- 默认对战配置：平民×1 狼人×1 预言家×1 ----
+  // 从DOM中直接读取角色图片和名称，不依赖任何旧变量
+  var defaultRoles = [
+    {name:'平民',   selector:'#rp-good'},
+    {name:'狼人',   selector:'#rp-wolf'},
+    {name:'预言家', selector:'#rp-shen'}
+  ];
+  var preview = document.getElementById('rp-preview');
+  if(preview && !preview.querySelector('.rp-prev-group')){
+    defaultRoles.forEach(function(cfg){
+      var box = document.querySelector(cfg.selector);
+      if(!box) return;
+      var cards = box.querySelectorAll('.rp-img-card');
+      for(var i=0;i<cards.length;i++){
+        var img = cards[i].querySelector('img');
+        var span = cards[i].querySelector('span');
+        if(span && img && span.textContent.trim() === cfg.name){
+          cards[i].click();
+          break;
+        }
+      }
+    });
+  }
 });
 // ===================== MVP榜 END =====================
 // ===================== 角色介绍 =====================
@@ -1221,8 +1233,7 @@ setTimeout(function(){
   try {
     if(typeof _rpLoadDefault === 'function' && !document.querySelector('#rp-preview .rp-prev-group') && !document.querySelector('#rp-preview .rp-prev-empty')) _rpLoadDefault();
   } catch(e){}
-}, 200);
-</script>
+}, 200);</script>
 <!-- 角色技能介绍浮层 -->
 <div id="role-skill-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center">
   <div style="background:linear-gradient(135deg,#1a0a2e,#2d1060);border:2px solid #c9a84c;border-radius:16px;padding:28px;max-width:440px;width:90%;position:relative;box-shadow:0 0 40px rgba(201,168,76,.3)">
