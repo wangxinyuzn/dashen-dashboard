@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大圣AI数据周报</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f0f2f7;min-height:100vh}
+
+/* Header */
+.header{background:linear-gradient(135deg,#4f6ef7,#6c8bff);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(79,110,247,.3)}
+.header-left{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.5px}
+.header-left span{font-size:22px}
+.header-right{display:flex;align-items:center;gap:14px;font-size:13px;opacity:.9}
+.header-tag{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:2px 10px;font-size:12px}
+.admin-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer}
+
+/* Layout */
+.layout{display:flex;min-height:calc(100vh - 52px)}
+
+/* Sidebar */
+.sidebar{width:180px;background:#fff;padding:20px 0;flex-shrink:0;border-right:1px solid #eef0f6;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
+.sidebar-section{padding:8px 16px 4px;font-size:11px;color:#bbb;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.sidebar-item{padding:9px 20px;font-size:13px;color:#555;cursor:pointer;border-left:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px}
+.sidebar-item:hover{background:#f5f7ff;color:#4f6ef7}
+.sidebar-item.active{background:#f0f3ff;color:#4f6ef7;border-left-color:#4f6ef7;font-weight:600}
+.sidebar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Main */
+.main{flex:1;padding:20px 24px;overflow-y:auto;max-width:1100px}
+
+/* Card */
+.card{background:#fff;border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-title{font-size:15px;font-weight:700;color:#222;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-icon{width:18px;height:18px;border-radius:4px;flex-shrink:0}
+
+/* Q2目标进度 */
+.goal-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.goal-row:last-child{margin-bottom:0}
+.goal-name{font-size:13px;color:#555;width:190px;flex-shrink:0}
+.goal-bar-wrap{flex:1;background:#f0f0f0;border-radius:6px;height:10px;overflow:hidden}
+.goal-bar{height:100%;border-radius:6px;transition:width .6s ease}
+.bar-blue{background:linear-gradient(90deg,#4f6ef7,#6c8bff)}
+.bar-orange{background:linear-gradient(90deg,#fa8c16,#ffc53d)}
+.bar-red{background:linear-gradient(90deg,#ff4d4f,#ff7875)}
+.bar-green{background:linear-gradient(90deg,#52c41a,#95de64)}
+.goal-value{font-size:12px;color:#888;width:110px;text-align:right;flex-shrink:0;white-space:nowrap}
+.goal-pct{font-size:12px;font-weight:600;width:44px;text-align:right;flex-shrink:0}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:4px}
+.kpi-card{border:1px solid #eef0f6;border-radius:10px;padding:18px 20px}
+.kpi-num{font-size:30px;font-weight:700;color:#4f6ef7;letter-spacing:-1px;line-height:1.1;margin-bottom:4px}
+.kpi-label{font-size:12px;color:#888;margin-bottom:6px}
+.kpi-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px}
+.badge-up{background:#fff2e8;color:#d46b08}
+.badge-down{background:#fff1f0;color:#cf1322}
+.badge-ok{background:#f6ffed;color:#389e0d}
+
+/* 分析卡片 */
+.analysis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.analysis-item{background:#f8f9ff;border-radius:8px;padding:14px 16px}
+.analysis-tag{font-size:11px;font-weight:700;color:#4f6ef7;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.analysis-title{font-size:13px;font-weight:600;color:#333;margin-bottom:6px}
+.analysis-text{font-size:12px;color:#666;line-height:1.7}
+
+/* TODO */
+.todo-list{list-style:none}
+.todo-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;font-size:13px;color:#444}
+.todo-item:last-child{border-bottom:none}
+.todo-check{width:18px;height:18px;border:2px solid #d9d9d9;border-radius:4px;flex-shrink:0;margin-top:1px}
+
+/* 趋势图 */
+.chart-wrap{position:relative;height:220px}
+
+/* 分隔线 */
+.divider{border:none;border-top:1px solid #f0f2f7;margin:16px 0}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span>🐒</span> 大圣AI数据周报
+  </div>
+  <div class="header-right">
+    <span class="header-tag">📅 每周自动更新</span>
+    <span id="today-label"></span>
+    <button class="admin-btn">🔒 管理员</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">板块</div>
+    <div class="sidebar-item active" onclick="setActive(this)">
+      <span class="sidebar-dot" style="background:#4f6ef7"></span> 短视频官号
+    </div>
+    <div class="sidebar-item" onclick="setActive(this)">
+      <span class="sidebar-dot" style="background:#52c41a"></span> 长视频官号
+    </div>
+    <div class="sidebar-item" onclick="setActive(this)">
+      <span class="sidebar-dot" style="background:#eb2f96"></span> 公众号
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Q2目标进度 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#4f6ef7,#6c8bff)"></span>
+        Q2目标进度
+      </div>
+
+      <div class="goal-row">
+        <div class="goal-name">抖音+快手+视频号播放量</div>
+        <div class="goal-bar-wrap"><div class="goal-bar bar-blue" style="width:74.39%"></div></div>
+        <div class="goal-value">371.9W / 500W</div>
+        <div class="goal-pct" style="color:#4f6ef7">74.4%</div>
+      </div>
+
+      <div class="goal-row">
+        <div class="goal-name">小红书播放量</div>
+        <div class="goal-bar-wrap"><div class="goal-bar bar-orange" style="width:67.6%"></div></div>
+        <div class="goal-value">33.8W / 50W</div>
+        <div class="goal-pct" style="color:#fa8c16">67.6%</div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="goal-row">
+        <div class="goal-name">抖音50W+爆款</div>
+        <div class="goal-bar-wrap"><div class="goal-bar bar-red" style="width:0%"></div></div>
+        <div class="goal-value">0 / 2 条</div>
+        <div class="goal-pct" style="color:#ff4d4f">0%</div>
+      </div>
+
+      <div class="goal-row">
+        <div class="goal-name">抖音30W+爆款</div>
+        <div class="goal-bar-wrap"><div class="goal-bar bar-red" style="width:33.3%"></div></div>
+        <div class="goal-value">2 / 6 条</div>
+        <div class="goal-pct" style="color:#ff4d4f">33.3%</div>
+      </div>
+
+      <div class="goal-row">
+        <div class="goal-name">小红书1W+爆款</div>
+        <div class="goal-bar-wrap"><div class="goal-bar bar-orange" style="width:25%"></div></div>
+        <div class="goal-value">2 / 8 条</div>
+        <div class="goal-pct" style="color:#fa8c16">25%</div>
+      </div>
+
+      <div class="goal-row">
+        <div class="goal-name">小红书3W+爆款</div>
+        <div class="goal-bar-wrap"><div class="goal-bar bar-green" style="width:50%"></div></div>
+        <div class="goal-value">1 / 2 条</div>
+        <div class="goal-pct" style="color:#52c41a">50%</div>
+      </div>
+    </div>
+
+    <!-- 本周核心数据 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
+        本周核心数据
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-num">32.1W</div>
+          <div class="kpi-label">抖音播放量（本周）</div>
+          <span class="kpi-badge badge-up">↑ 45.05% 环比</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num" style="color:#fa8c16">16.01</div>
+          <div class="kpi-label">投放 CPM（元）</div>
+          <span class="kpi-badge badge-ok">✓ 达标 &lt;18</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-num" style="color:#52c41a">33.8W</div>
+          <div class="kpi-label">小红书播放量（Q2累计）</div>
+          <span class="kpi-badge badge-ok">✓ 完成率 67.6%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 近8周趋势 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#4f6ef7,#a78bfa)"></span>
+        近8周抖音播放趋势（万）
+      </div>
+      <div class="chart-wrap">
+        <canvas id="trend-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- 一周内容分析 -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span>
+        一周内容分析
+      </div>
+      <div class="analysis-grid">
+        <div class="analysis-item">
+          <div class="analysis-tag">📈 流量变化</div>
+          <div class="analysis-title">本周流量有所提升</div>
+          <div class="analysis-text">上周流量较低，本周回归正常趋势；《揭秘疾病》【为什么会涨痱子】和《三国演义》宣传片获得不错流量加持。</div>
+        </div>
+        <div class="analysis-item">
+          <div class="analysis-tag">💰 投放变化</div>
+          <div class="analysis-title">三国宣传片投放测试优秀</div>
+          <div class="analysis-text">围绕《三国演义》宣传片进行投放测试，CPM 10.86 &lt; 18，较为优秀。后续将调整投放策略，加大主题上新宣传力度。</div>
+        </div>
+        <div class="analysis-item">
+          <div class="analysis-tag">🔥 爆款变化</div>
+          <div class="analysis-title">小红书爆款持续增长</div>
+          <div class="analysis-text">本周无新增爆款内容，但小红书【为什么会得痱子】流量持续增长，后续重点关注。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TO DO -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c2)"></span>
+        本周 TO DO
+      </div>
+      <ul class="todo-list">
+        <li class="todo-item">
+          <div class="todo-check"></div>
+          <div>《三国演义》主题传播 — 主题曲 + 先导片制作</div>
+        </li>
+        <li class="todo-item">
+          <div class="todo-check"></div>
+          <div>四周年斑马拍用户互动模板视频制作</div>
+        </li>
+        <li class="todo-item">
+          <div class="todo-check"></div>
+          <div>公众号侵权内容处理 &amp; 内部沟通协作</div>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// 日期
+const d = new Date();
+const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+document.getElementById('today-label').textContent =
+  d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+weekdays[d.getDay()];
+
+// 侧边栏
+function setActive(el) {
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// 趋势图
+const ctx = document.getElementById('trend-chart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['W13','W14','W15','W16','W17','W18','W19','W20'],
+    datasets: [{
+      label: '抖音播放量（万）',
+      data: [45, 52, 38, 61, 35, 28, 63, 32.1],
+      borderColor: '#4f6ef7',
+      backgroundColor: 'rgba(79,110,247,.08)',
+      borderWidth: 2.5,
+      pointRadius: 4,
+      pointBackgroundColor: '#fff',
+      pointBorderColor: '#4f6ef7',
+      pointBorderWidth: 2,
+      tension: 0.4,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.parsed.y + 'W'
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#f0f2f7' },
+        ticks: { font: { size: 12 }, color: '#999' }
+      },
+      y: {
+        grid: { color: '#f0f2f7' },
+        ticks: {
+          font: { size: 12 }, color: '#999',
+          callback: v => v + '万'
+        },
+        beginAtZero: false
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
