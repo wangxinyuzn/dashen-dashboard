@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>新媒体数据看板</title>
+<title>大圣AI 数据看板</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -180,13 +180,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .analysis-readonly-banner a:hover{text-decoration:underline}
 .analysis-editor[readonly]{background:#faf8ff;cursor:default;resize:none}
 
-/* 本周安排编辑器 */
-.weekly-editor{width:100%;min-height:200px;border:1.5px solid #e8f5e9;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfffe;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
-.weekly-editor:focus{border-color:#52c41a;box-shadow:0 0 0 3px #f6ffed}
-.weekly-editor::placeholder{color:#b7eb8f}
-.weekly-editor[readonly]{background:#fafff8;cursor:default;resize:none}
-.weekly-meta{font-size:11px;color:#bbb;margin-top:6px;text-align:right}
-
 /* 热点新闻 */
 .hot-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
 .hot-item:last-child{border-bottom:none}
@@ -251,7 +244,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 #page-4 .compare-table th{border-bottom-color:#ff620033}
 
 /* ---- 云同步 UI ---- */
-#gist-sync-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;padding:3px 11px;border-radius:16px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .2s;flex-shrink:0}
+#gist-sync-btn{position:fixed;top:10px;right:16px;z-index:9999;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;padding:3px 11px;border-radius:16px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px);display:flex;align-items:center;gap:5px;transition:background .2s}
 #gist-sync-btn:hover{background:rgba(255,255,255,.32)}
 #gist-sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0}
 #gist-sync-dot.ok{background:#52c41a}
@@ -280,6 +273,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 </head>
 <body>
 
+<!-- ☁️ 云同步按钮 -->
+<button id="gist-sync-btn" onclick="gistOpenModal()">
+  <span id="gist-sync-dot"></span>
+  <span id="gist-sync-label">云同步</span>
+</button>
+
 <!-- ☁️ 云同步配置弹窗 -->
 <div id="gist-modal-overlay">
   <div id="gist-modal">
@@ -303,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 </div>
 
 <div class="header">
-  <div class="header-title"><span style="font-size:20px">🐒</span><span>新媒体数据看板</span><button id="gist-sync-btn" onclick="gistOpenModal()"><span id="gist-sync-dot"></span><span id="gist-sync-label">云同步</span></button></div>
+  <div class="header-title"><span style="font-size:20px">🐒</span><span>大圣AI 数据看板</span></div>
   <div class="header-meta">
     <span class="update-tag">📅 数据来源：大圣数据底稿</span>
     <span id="today-label">2026年5月19日 周二</span>
@@ -318,9 +317,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <span class="sep">至</span>
   <input type="date" id="date-end" value="2026-05-18">
   <div class="preset-btns">
-    <button class="preset-btn active" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
+    <button class="preset-btn" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
     <button class="preset-btn" onclick="applyPreset(this,'last-30')">最近30天</button>
-    <button class="preset-btn" onclick="applyPreset(this,'q2')">Q2至今</button>
+    <button class="preset-btn active" onclick="applyPreset(this,'q2')">Q2至今</button>
     <button class="preset-btn" onclick="applyPreset(this,'all')">全部</button>
   </div>
   <button class="apply-btn" onclick="applyDateRange()">🔄 刷新</button>
@@ -344,7 +343,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <div class="sidebar-item" onclick="scrollToSection('sec-kpi',this)">📊 平台数据</div>
       <div class="sidebar-item" onclick="scrollToSection('overview-trend-card',this)">📈 流量趋势</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-analysis',this)">🔍 流量分析</div>
-      <div class="sidebar-item" onclick="scrollToSection('sec-weekly',this)">📋 本周安排</div>
       <div class="sidebar-item" onclick="scrollToSection('boom-card-title',this)">🔥 爆款内容</div>
       <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
     </div>
@@ -399,18 +397,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
             <button class="trend-btn"        data-aplatform="ks"   onclick="switchAnalysis('ks')"   style="--c:#ff6200">⚡ 快手</button>
           </div>
           <div id="analysis-editor-wrap"></div>
-        </div>
-      </div>
-
-      <div class="card" id="sec-weekly">
-        <div class="card-title" style="display:flex;align-items:center;gap:8px">
-          <span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span>
-          <span>本周安排</span>
-          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px" id="weekly-subtitle">（云端同步 · 所有人可见）</span>
-          <button class="collapse-btn" id="weekly-collapse-btn" onclick="toggleCollapse('weekly')" title="折叠/展开">▾</button>
-        </div>
-        <div class="collapsible-body" id="weekly-collapse-body">
-          <div id="weekly-editor-wrap"></div>
         </div>
       </div>
 
@@ -569,8 +555,7 @@ const GistStorage = {
 
   // ---- 配置读取 ----
   token()  { return localStorage.getItem(this.TOKEN_KEY)   || ''; },
-  DEFAULT_GIST_ID: '705d29e14b8e6840628336b5d1bc7b7c',
-  gistId() { return localStorage.getItem(this.GIST_ID_KEY) || this.DEFAULT_GIST_ID; },
+  gistId() { return localStorage.getItem(this.GIST_ID_KEY) || ''; },
   isConfigured() { return !!(this.token() && this.gistId()); },
 
   // ---- 状态指示器 ----
@@ -591,7 +576,7 @@ const GistStorage = {
     const KEYS = [
       'dashen_boom_rows','dashen_boom_title',
       'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
-      'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
+      'dashen_cal_colors','dashen_cal_rows','dashen_collapse',
     ];
     for (let i = 0; i < 10; i++) {
       ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
@@ -620,29 +605,6 @@ const GistStorage = {
     } catch(e) {
       console.warn('[GistStorage] pull failed:', e);
       this._setStatus('error', '拉取失败');
-      return false;
-    }
-  },
-
-  // ---- 匿名拉取（只需 gistId，用于只读展示） ----
-  async pullReadonly() {
-    const gid = this.gistId();
-    if (!gid) return false;
-    try {
-      const resp = await fetch('https://api.github.com/gists/' + gid, {
-        headers: { 'Accept': 'application/vnd.github+json' }
-      });
-      if (!resp.ok) return false;
-      const json = await resp.json();
-      const file = json.files && json.files[this.FILENAME];
-      if (!file || !file.content) return true;
-      const data = JSON.parse(file.content);
-      Object.entries(data).forEach(function(entry) {
-        if (entry[1] !== null && entry[1] !== undefined) localStorage.setItem(entry[0], entry[1]);
-      });
-      return true;
-    } catch(e) {
-      console.warn('[GistStorage] pullReadonly failed:', e);
       return false;
     }
   },
@@ -695,7 +657,7 @@ const GistStorage = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          description: '新媒体数据看板 - 云端数据存储',
+          description: '大圣AI 数据看板 - 云端数据存储',
           public: false,
           files: { [this.FILENAME]: { content: JSON.stringify({_created: new Date().toISOString()}, null, 2) } }
         })
@@ -2224,7 +2186,7 @@ function collectUserData() {
   const KEYS = [
 'dashen_boom_rows','dashen_boom_title','BOOM_TITLE_KEY',
     'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
-    'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
+    'dashen_cal_colors','dashen_cal_rows','dashen_collapse',
   ];
   for(let i = 0; i < 10; i++) {
     ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
@@ -2234,38 +2196,6 @@ function collectUserData() {
   return data;
 }
 
-// ====== 本周安排 ======
-const WEEKLY_KEY = 'dashen_weekly_plan';
-
-function weeklyRender() {
-  var wrap = document.getElementById('weekly-editor-wrap');
-  if (!wrap) return;
-  var isEditable = GistStorage.isConfigured();
-  var content = weeklyLoad();
-  var placeholder = isEditable ? '在此填写本周工作安排...' : '（暂无内容）';
-  var editAttr = isEditable ? 'oninput="weeklyInput(this.value)"' : 'readonly';
-  var metaText = isEditable ? (content ? '已同步 · ' + content.length + ' 字' : '编辑后自动同步') : (content ? content.length + ' 字（只读）' : '暂无内容');
-  wrap.innerHTML = '<textarea class="weekly-editor" id="weekly-editor" placeholder="' + placeholder + '" ' + editAttr + '>' + content + '</textarea>'
-    + '<div class="weekly-meta" id="weekly-meta">' + metaText + '</div>';
-}
-
-function weeklyLoad() {
-  return localStorage.getItem(WEEKLY_KEY) || '';
-}
-
-var _weeklyTimer = null;
-function weeklyInput(val) {
-  if (!GistStorage.isConfigured()) return;
-  localStorage.setItem(WEEKLY_KEY, val);
-  var meta = document.getElementById('weekly-meta');
-  if (meta) meta.textContent = val ? '正在输入... · ' + val.length + ' 字' : '编辑后自动同步';
-  if (_weeklyTimer) clearTimeout(_weeklyTimer);
-  _weeklyTimer = setTimeout(function() {
-    GistStorage.schedulePush();
-    var m = document.getElementById('weekly-meta');
-    if (m) m.textContent = val ? '同步中... · ' + val.length + ' 字' : '编辑后自动同步';
-  }, 2000);
-}
 
 // 初始化
 window.addEventListener('load', () => {
@@ -2277,26 +2207,14 @@ window.addEventListener('load', () => {
         boomRender();
         calRender();
         analysisRender();
-        weeklyRender();
-      }
-    });
-  } else if (GistStorage.gistId()) {
-    // 有 gistId 但没有 token：匿名拉取，仅用于只读展示
-    GistStorage.pullReadonly().then(ok => {
-      if (ok) {
-        boomRender();
-        calRender();
-        analysisRender();
-        weeklyRender();
       }
     });
   }
   boomRender();
   calRender();
   analysisRender();
-  if (!GistStorage.gistId()) weeklyRender();
   // 默认显示Q2至今
-  applyPreset(document.querySelector('.preset-btn.active[onclick*="last-week"]') || document.querySelectorAll('.preset-btn')[0], 'last-week');
+  applyPreset(document.querySelector('.preset-btn.active[onclick*="q2"]') || document.querySelectorAll('.preset-btn')[2], 'q2');
   restoreCollapse();
   document.querySelectorAll('.progress-bar').forEach(bar=>{
     const w=bar.style.width; bar.style.width='0';
