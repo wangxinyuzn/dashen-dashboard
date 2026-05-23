@@ -164,6 +164,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .num-btn.selected{background:#3730a3;border-color:#818cf8;color:#fff;box-shadow:0 0 10px rgba(129,140,248,.5)}
 .num-btn.tuishui{background:#7f1d1d;border-color:#f87171;color:#fca5a5;box-shadow:0 0 10px rgba(248,113,113,.3)}
 
+/* 角色介绍 */
+.ri-tab{flex:1;padding:10px 4px;text-align:center;font-size:12px;font-weight:600;color:#888;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent}
+.ri-tab:hover{color:#c9a84c;background:rgba(201,168,76,.05)}
+.ri-tab.active{color:#c9a84c;border-bottom-color:#c9a84c;background:rgba(201,168,76,.08)}
+.ri-role-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;transition:transform .15s}
+.ri-role-item:hover{transform:scale(1.08)}
+.ri-role-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid rgba(201,168,76,.5);box-shadow:0 0 8px rgba(201,168,76,.2)}
+.ri-role-name{font-size:11px;color:#555;text-align:center;font-weight:600}
+
 /* MVP榜卡片 */
 .mvp-card{width:140px;flex-shrink:0}
 .mvp-card-inner{position:relative;width:140px;border-radius:12px;overflow:visible;background:linear-gradient(160deg,#1a0a2e,#2d1060,#1a0a2e);border:2px solid #c9a84c;box-shadow:0 0 16px rgba(201,168,76,.25),inset 0 0 20px rgba(109,40,217,.15)}
@@ -347,11 +356,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
     </div>
 
-    
+    <!-- 角色介绍 -->
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-header-icon">📖</span>
+        <span class="section-header-title">角 色 介 绍</span>
+      </div>
+      <div class="card" style="margin-bottom:0;padding-bottom:0">
+        <!-- 角色头像网格 -->
+        <div id="roleintro-grid" style="display:flex;flex-wrap:wrap;gap:16px 12px;padding:4px 4px 16px;min-height:80px"></div>
+        <!-- 底部Tab -->
+        <div id="roleintro-tabs" style="display:flex;border-top:1px solid rgba(201,168,76,.2);margin:0 -22px">
+          <div class="ri-tab active" onclick="switchRoleTab('all')" data-tab="all">🃏 全部</div>
+          <div class="ri-tab" onclick="switchRoleTab('good')" data-tab="good">👍 好人</div>
+          <div class="ri-tab" onclick="switchRoleTab('shen')" data-tab="shen">✨ 神职</div>
+          <div class="ri-tab" onclick="switchRoleTab('wolf')" data-tab="wolf">🐺 狼人</div>
+          <div class="ri-tab" onclick="switchRoleTab('third')" data-tab="third">🎲 三方</div>
+        </div>
+      </div>
+    </div>
 
-    
-  </div>
-</div>
 
 <script>
 // ===================== 音效引擎 =====================
@@ -566,6 +590,8 @@ document.addEventListener('click', function unlock(){
   document.getElementById('rp-wolf').innerHTML  = makeCards(wolfRoles,  'rgba(192,57,43,.5)',  '#f87171');
   document.getElementById('rp-third').innerHTML = makeCards(thirdRoles, 'rgba(180,83,9,.5)',   '#d97706');
   renderPreview();
+  // 初始化角色介绍
+  setTimeout(function(){ buildRoleIntroData(goodRoles, shenRoles, wolfRoles, thirdRoles); }, 0);
 })();
 
 // 死亡情况卡片（数量由角色选取动态决定）
@@ -681,6 +707,55 @@ function mvpUploadImg(id){
   inp.click();
 }
 // ===================== MVP榜 END =====================
+
+// ===================== 角色介绍 =====================
+var _roleIntroTab = 'all';
+var _roleIntroData = []; // [{name, img, faction}]
+
+function buildRoleIntroData(goodR, shenR, wolfR, thirdR){
+  _roleIntroData = [];
+  goodR.forEach(function(r){ _roleIntroData.push({name:r.name, img:r.img, faction:'good'}); });
+  shenR.forEach(function(r){ _roleIntroData.push({name:r.name, img:r.img, faction:'shen'}); });
+  wolfR.forEach(function(r){ _roleIntroData.push({name:r.name, img:r.img, faction:'wolf'}); });
+  thirdR.forEach(function(r){ _roleIntroData.push({name:r.name, img:r.img, faction:'third'}); });
+  // 去重（同名同图）
+  const seen = new Set();
+  _roleIntroData = _roleIntroData.filter(function(r){
+    const key = r.name + '|' + r.img;
+    if(seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+  renderRoleIntro();
+}
+
+function renderRoleIntro(){
+  const grid = document.getElementById('roleintro-grid');
+  if(!grid) return;
+  const list = _roleIntroTab === 'all'
+    ? _roleIntroData
+    : _roleIntroData.filter(function(r){ return r.faction === _roleIntroTab; });
+  if(!list.length){
+    grid.innerHTML = '<span style="color:#aaa;font-size:13px">暂无角色</span>';
+    return;
+  }
+  const factionColor = {good:'#3b82f6', shen:'#8b5cf6', wolf:'#ef4444', third:'#f59e0b'};
+  grid.innerHTML = list.map(function(r){
+    const border = factionColor[r.faction] || '#c9a84c';
+    return `<div class="ri-role-item">
+      <img class="ri-role-avatar" src="${r.img}" alt="${r.name}" style="border-color:${border}55;box-shadow:0 0 8px ${border}33">
+      <span class="ri-role-name" style="color:${border}">${r.name}</span>
+    </div>`;
+  }).join('');
+}
+
+function switchRoleTab(tab){
+  _roleIntroTab = tab;
+  document.querySelectorAll('.ri-tab').forEach(function(el){
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  renderRoleIntro();
+}
+// ===================== 角色介绍 END =====================
 
 
 // 警长精选（实时模式）
