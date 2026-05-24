@@ -957,30 +957,25 @@ function switchRoleTab(tab){
 function makeNumCircleHtml(num, clickId){
   const isClickable = !!clickId;
   const bg = isClickable ? '#d0d0d0' : '#0a0010';
-  const border = isClickable ? '#aaa' : '#c9a84c';
-  const textColor = isClickable ? '#555' : '#c9a84c';
+  const border = isClickable ? '#999' : '#c9a84c';
+  const textColor = isClickable ? '#444' : '#c9a84c';
   const clickAttr = isClickable ? `onclick="toggleJingXiaPai('${clickId}')" style="cursor:pointer"` : '';
-  return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" style="width:38px;height:52px;font-size:17px;background:${bg};border:2px solid ${border};box-shadow:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:background .15s,border-color .15s">` +
+  return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" data-locked="0" style="width:38px;height:52px;font-size:17px;background:${bg} !important;border:2px solid ${border};box-shadow:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:background .15s,border-color .15s">` +
     `<span style="color:${textColor}">${num}</span></div>`;
 }
 
 window.toggleJingXiaPai = function(id){
   const el = document.getElementById(id);
   if(!el) return;
-  const active = el.dataset.active === '1';
-  if(active){
-    el.dataset.active = '0';
-    el.style.background = '#d0d0d0';
-    el.style.borderColor = '#aaa';
-    el.style.boxShadow = 'none';
-    el.querySelector('span').style.color = '#555';
-  } else {
-    el.dataset.active = '1';
-    el.style.background = '#1e3a8a';
-    el.style.borderColor = '#6c8bff';
-    el.style.boxShadow = 'none';
-    el.querySelector('span').style.color = '#6c8bff';
-  }
+  // 已点击锁定，不可再次点击
+  if(el.dataset.locked === '1') return;
+  el.dataset.active = '1';
+  el.dataset.locked = '1';
+  el.style.background = '#1e3a8a';
+  el.style.borderColor = '#6c8bff';
+  el.style.boxShadow = 'none';
+  el.style.cursor = 'default';
+  el.querySelector('span').style.color = '#6c8bff';
   // 重新计算哪个金色牌对应的蓝色牌最多，更新警长
   _updateJingzhangWinner();
 };
@@ -1063,9 +1058,11 @@ function renderJingzhang(){
   el.querySelectorAll('.jzx-pai[id]').forEach(function(p){
     if(p.id && prevActive[p.id] === '1'){
       p.dataset.active = '1';
+      p.dataset.locked = '1';
       p.style.background = '#1e3a8a';
       p.style.borderColor = '#6c8bff';
       p.style.boxShadow = 'none';
+      p.style.cursor = 'default';
       p.querySelector('span').style.color = '#6c8bff';
     }
   });
@@ -1077,15 +1074,15 @@ function initJingzhang(statesRef){
 }
 
 function clearJingzhang(){
-  // 只复原所有蓝色激活状态，不清空卡片展示
+  // 复原所有蓝色激活状态及锁定，不清空卡片展示
   document.querySelectorAll('.jzx-pai[id]').forEach(function(el){
-    if(el.dataset.active === '1'){
-      el.dataset.active = '0';
-      el.style.background = '#d0d0d0';
-      el.style.borderColor = '#aaa';
-      el.style.boxShadow = 'none';
-      el.querySelector('span').style.color = '#555';
-    }
+    el.dataset.active = '0';
+    el.dataset.locked = '0';
+    el.style.background = '#d0d0d0';
+    el.style.borderColor = '#999';
+    el.style.boxShadow = 'none';
+    el.style.cursor = 'pointer';
+    el.querySelector('span').style.color = '#444';
   });
   setJingzhangNum(null);
   SFX.reset();
