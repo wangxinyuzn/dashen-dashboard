@@ -362,13 +362,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="card" style="margin-bottom:0;padding-bottom:0">
         <!-- 角色头像网格 -->
         <div id="roleintro-grid" style="display:flex;flex-wrap:wrap;gap:16px 12px;padding:4px 4px 16px;min-height:80px"></div>
-        <!-- 底部Tab -->
-        <div id="roleintro-tabs" style="display:flex;border-top:1px solid rgba(201,168,76,.2);margin:0 -22px">
-          <div class="ri-tab active" onclick="switchRoleTab('good')" data-tab="good">👍 平民</div>
-          <div class="ri-tab" onclick="switchRoleTab('shen')" data-tab="shen">✨ 神职</div>
-          <div class="ri-tab" onclick="switchRoleTab('wolf')" data-tab="wolf">🐺 狼人</div>
-          <div class="ri-tab" onclick="switchRoleTab('third')" data-tab="third">🎲 三方</div>
-        </div>
+
       </div>
     </div>
 
@@ -891,9 +885,7 @@ function _fillRoleSkillModal(r){
 
 window.openRoleSkillModal = function(name, img, faction){
   // 构建当前可见列表（当前 Tab 下的角色）
-  _rskList = _roleIntroTab === 'all'
-    ? _roleIntroData.slice()
-    : _roleIntroData.filter(function(r){ return r.faction === _roleIntroTab; });
+  _rskList = _roleIntroData.slice();
   _rskIndex = _rskList.findIndex(function(r){ return r.name === name; });
   if(_rskIndex < 0) _rskIndex = 0;
   _fillRoleSkillModal(_rskList[_rskIndex]);
@@ -925,30 +917,36 @@ function buildRoleIntroData(goodR, shenR, wolfR, thirdR){
   renderRoleIntro();
 }
 
+var _factionGroups = [
+  {key:'good',  label:'👍 平民阵营', color:'#3b82f6'},
+  {key:'shen',  label:'✨ 神职阵营', color:'#8b5cf6'},
+  {key:'wolf',  label:'🐺 狼人阵营', color:'#ef4444'},
+  {key:'third', label:'🎲 三方阵营', color:'#f59e0b'},
+];
+
 function renderRoleIntro(){
   const grid = document.getElementById('roleintro-grid');
   if(!grid) return;
-  const list = _roleIntroData.filter(function(r){ return r.faction === _roleIntroTab; });
-  if(!list.length){
+  if(!_roleIntroData.length){
     grid.innerHTML = '<span style="color:#aaa;font-size:13px">暂无角色</span>';
     return;
   }
-  const factionColor = {good:'#3b82f6', shen:'#8b5cf6', wolf:'#ef4444', third:'#f59e0b'};
-  grid.innerHTML = list.map(function(r){
-    const border = factionColor[r.faction] || '#c9a84c';
-    return `<div class="ri-role-item" onclick="openRoleSkillModal('${r.name}','${r.img}','${r.faction}')" style="cursor:pointer">
-      <img class="ri-role-avatar" src="${r.img}" alt="${r.name}" style="border-color:${border}55;box-shadow:0 0 8px ${border}33">
-      <span class="ri-role-name" style="color:${border}">${r.name}</span>
+  let html = '';
+  _factionGroups.forEach(function(fg){
+    const list = _roleIntroData.filter(function(r){ return r.faction === fg.key; });
+    if(!list.length) return;
+    html += `<div style="width:100%">`;
+    html += `<div style="font-size:13px;font-weight:700;color:${fg.color};padding:6px 0 8px;border-bottom:1px solid ${fg.color}33;margin-bottom:10px;letter-spacing:1px">${fg.label}</div>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:14px 10px;padding-bottom:12px">`;
+    list.forEach(function(r){
+      html += `<div class="ri-role-item" onclick="openRoleSkillModal('${r.name}','${r.img}','${r.faction}')" style="cursor:pointer">
+      <img class="ri-role-avatar" src="${r.img}" alt="${r.name}" style="border-color:${fg.color}55;box-shadow:0 0 8px ${fg.color}33">
+      <span class="ri-role-name" style="color:${fg.color}">${r.name}</span>
     </div>`;
-  }).join('');
-}
-
-function switchRoleTab(tab){
-  _roleIntroTab = tab;
-  document.querySelectorAll('.ri-tab').forEach(function(el){
-    el.classList.toggle('active', el.dataset.tab === tab);
+    });
+    html += '</div></div>';
   });
-  renderRoleIntro();
+  grid.innerHTML = html;
 }
 // ===================== 角色介绍 END =====================
 
