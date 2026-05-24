@@ -960,7 +960,8 @@ function makeNumCircleHtml(num, clickId){
   const border = isClickable ? '#999' : '#c9a84c';
   const textColor = isClickable ? '#444' : '#c9a84c';
   const clickAttr = isClickable ? `onclick="toggleJingXiaPai('${clickId}')" style="cursor:pointer"` : '';
-  return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" data-locked="0" style="width:38px;height:52px;font-size:17px;background:${bg} !important;border:2px solid ${border};box-shadow:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:background .15s,border-color .15s">` +
+  const idAttr = clickId ? `id="${clickId}"` : '';
+  return `<div class="num-circle jzx-pai" ${idAttr} ${clickAttr} data-active="0" data-locked="0" style="width:38px;height:52px;font-size:17px;background:${bg} !important;border:2px solid ${border};box-shadow:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:background .15s,border-color .15s">` +
     `<span style="color:${textColor}">${num}</span></div>`;
 }
 
