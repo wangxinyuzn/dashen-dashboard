@@ -956,9 +956,9 @@ function switchRoleTab(tab){
 // 警长竞选（实时模式）
 function makeNumCircleHtml(num, clickId){
   const isClickable = !!clickId;
-  const bg = isClickable ? '#d0d0d0' : '#0a0010';
+  const bg = isClickable ? '#d0d0d0' : '#e8e4d0';
   const border = isClickable ? '#aaa' : '#c9a84c';
-  const textColor = isClickable ? '#555' : '#c9a84c';
+  const textColor = isClickable ? '#555' : '#a07a1a';
   const clickAttr = isClickable ? `onclick="toggleJingXiaPai('${clickId}')" style="cursor:pointer"` : '';
   return `<div class="num-circle jzx-pai" id="${clickId||''}" ${clickAttr} data-active="0" style="width:38px;height:52px;font-size:17px;background:${bg};border:2px solid ${border};box-shadow:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;transition:background .15s,border-color .15s">` +
     `<span style="color:${textColor}">${num}</span></div>`;
