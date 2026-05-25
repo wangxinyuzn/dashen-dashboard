@@ -115,7 +115,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .boom-input{border:none;background:transparent;font-size:13px;color:#333;outline:none;width:100%;padding:2px 4px;border-radius:4px;cursor:pointer;font-family:inherit}
 .boom-input:focus{background:#fff;box-shadow:0 0 0 2px #4f6ef766;cursor:text}
 .boom-input.views{color:#4f6ef7;font-weight:600}
-.boom-input.analysis{color:#666;font-size:12px}
+.boom-input.analysis{color:#666;font-size:12px;resize:none;overflow:hidden;line-height:1.5;min-height:22px;vertical-align:top;white-space:pre-wrap;word-break:break-all}
 .boom-del-btn{opacity:0;cursor:pointer;color:#bbb;font-size:18px;transition:opacity .15s,color .15s;padding:0 4px;line-height:1;background:none;border:none}
 .boom-table tr:hover .boom-del-btn{opacity:1}
 .boom-del-btn:hover{color:#ff4d4f}
@@ -1219,11 +1219,11 @@ function _boomRowHtml(r, i, section) {
          onblur="boomEdit(${r.id},'views',this.value,'${section}')"
          onkeydown="if(event.key==='Enter')this.blur()"
          title="点击编辑播放量"></td>
-    <td><input class="boom-input analysis" value="${r.analysis.replace(/"/g,'&quot;')}"
+    <td><textarea class="boom-input analysis"
          onblur="boomEdit(${r.id},'analysis',this.value,'${section}')"
-         onkeydown="if(event.key==='Enter')this.blur()"
+         oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
          placeholder="输入浅析..."
-         title="点击编辑浅析"></td>
+         title="点击编辑浅析">${r.analysis.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></td>
     <td><button class="boom-del-btn" onclick="boomDel(${r.id},'${section}')" title="删除">×</button></td>
   </tr>`;
 }
@@ -1237,6 +1237,12 @@ function boomRender() {
 
   if(newTbody)  newTbody.innerHTML  = boomNewLoad().map((r,i) => _boomRowHtml(r,i,'new')).join('');
   if(histTbody) histTbody.innerHTML = boomHistLoad().map((r,i) => _boomRowHtml(r,i,'hist')).join('');
+
+  // 让浅析 textarea 自动撑高至内容高度
+  document.querySelectorAll('.boom-input.analysis').forEach(el => {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  });
 }
 
 function boomEdit(id, field, val, section) {
