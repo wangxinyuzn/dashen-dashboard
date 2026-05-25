@@ -2373,10 +2373,13 @@ window.addEventListener('load', () => {
       }
     });
   }
-  boomRender();
-  calRender();
-  analysisRender();
-  if (!GistStorage.gistId()) weeklyRender();
+  // 只有既没有 token 也没有 gistId 时才立即渲染（避免覆盖异步 pull 的结果）
+  if (!GistStorage.gistId()) {
+    boomRender();
+    calRender();
+    analysisRender();
+    weeklyRender();
+  }
   // 默认显示Q2至今
   applyPreset(document.querySelector('.preset-btn.active[onclick*="last-week"]') || document.querySelectorAll('.preset-btn')[0], 'last-week');
   restoreCollapse();
