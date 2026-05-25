@@ -624,9 +624,14 @@ const GistStorage = {
       'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
       'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
     ];
-    for (let i = 0; i < 10; i++) {
-      ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
-    }
+    // 播放量目标
+    ['goal_total','goal_xhs'].forEach(k => {
+      ['_name','_goal'].forEach(s => KEYS.push(k + s));
+    });
+    // 爆款目标
+    ['goal_boom1','goal_boom2','goal_boom3','goal_boom4'].forEach(k => {
+      ['_name','_goal','_cur'].forEach(s => KEYS.push(k + s));
+    });
     const data = {};
     KEYS.forEach(k => { const v = localStorage.getItem(k); if (v !== null) data[k] = v; });
     return data;
@@ -2305,9 +2310,12 @@ function collectUserData() {
     'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
     'dashen_cal_colors','dashen_cal_rows','dashen_collapse','dashen_weekly_plan',
   ];
-  for(let i = 0; i < 10; i++) {
-    ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
-  }
+  ['goal_total','goal_xhs'].forEach(k => {
+    ['_name','_goal'].forEach(s => KEYS.push(k + s));
+  });
+  ['goal_boom1','goal_boom2','goal_boom3','goal_boom4'].forEach(k => {
+    ['_name','_goal','_cur'].forEach(s => KEYS.push(k + s));
+  });
   const data = {};
   KEYS.forEach(k => { const v = localStorage.getItem(k); if(v !== null) data[k] = v; });
   return data;
