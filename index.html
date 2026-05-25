@@ -655,19 +655,16 @@ const GistStorage = {
     }
   },
 
-  // ---- 匿名拉取（只需 gistId，用于只读展示） ----
+  // ---- 匿名拉取（只需 gistId，用于只读展示）---- 走 raw CDN，无 API 限额
   async pullReadonly() {
     const gid = this.gistId();
     if (!gid) return false;
     try {
-      const resp = await fetch('https://api.github.com/gists/' + gid, {
-        headers: { 'Accept': 'application/vnd.github+json' }
-      });
+      // 直接用 raw URL，绕过 GitHub API 60次/h 匿名限额
+      const rawUrl = 'https://gist.githubusercontent.com/wangxinyuzn/' + gid + '/raw/' + this.FILENAME;
+      const resp = await fetch(rawUrl + '?_=' + Date.now()); // 加时间戳防缓存
       if (!resp.ok) return false;
-      const json = await resp.json();
-      const file = json.files && json.files[this.FILENAME];
-      if (!file || !file.content) return true;
-      const data = JSON.parse(file.content);
+      const data = await resp.json();
       Object.entries(data).forEach(function(entry) {
         if (entry[1] !== null && entry[1] !== undefined) localStorage.setItem(entry[0], entry[1]);
       });
