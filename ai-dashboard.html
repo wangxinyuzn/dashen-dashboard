@@ -193,7 +193,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .replay-round-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
 .replay-round-label{font-size:12px;color:#c9a84c;font-weight:700;width:44px;flex-shrink:0;padding-top:8px}
 .replay-round-inputs{flex:1;display:flex;flex-direction:column;gap:4px}
-.replay-round-input{width:100%;background:rgba(255,255,255,0.82);border:1px solid #d1d5db;border-radius:6px;color:#1a1a1a;font-size:12px;padding:6px 8px;resize:none;font-family:inherit;box-sizing:border-box}
+.replay-round-input{width:100%;background:rgba(255,255,255,0.82);border:1px solid #d1d5db;border-radius:6px;color:#1a1a1a;font-size:12px;padding:6px 8px;resize:none;font-family:inherit;box-sizing:border-box;overflow:hidden;min-height:30px}
 .replay-round-input:focus{outline:none;border-color:#c9a84c;background:#fff}
 .replay-winner-btn{padding:7px 20px;border-radius:20px;border:1.5px solid #444;background:#111;color:#888;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
 .replay-winner-btn.active-good{border-color:#4ade80;background:rgba(74,222,128,.15);color:#4ade80}
@@ -1499,6 +1499,10 @@ function battleLoad(){
 battleLoad();
 
 // ===================== 复盘记录 =====================
+function autoResize(el){
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
 var _replayData = []; // [{seats:[], rounds:[], winner:'', dm:''}]
 var _replayCurTab = 0;
 var _replayGhSha = null;
@@ -1585,7 +1589,7 @@ function replayRender(){
     '<div class="replay-round-inputs">' +
     '<div style="display:flex;align-items:center;gap:6px">' +
     '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">🗳️</span>' +
-    '<textarea class="replay-round-input" rows="1" placeholder="竞选情况、谁当选了、关键发言..." oninput="replayUpdateSheriff(' + _replayCurTab + ',this.value)">' + sheriffVal + '</textarea>' +
+    '<textarea class="replay-round-input" rows="1" placeholder="竞选情况、谁当选了、关键发言..." oninput="autoResize(this);replayUpdateSheriff(' + _replayCurTab + ',this.value)">' + sheriffVal + '</textarea>' +
     '</div></div></div>';
   tab.rounds.forEach(function(r, i){
     roundsHtml += '<div class="replay-round-row">' +
@@ -1593,11 +1597,11 @@ function replayRender(){
       '<div class="replay-round-inputs">' +
       '<div style="display:flex;align-items:center;gap:6px">' +
       '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">🌙</span>' +
-      '<textarea class="replay-round-input" rows="1" placeholder="夜晚记录..." oninput="replayUpdateRound(' + _replayCurTab + ',' + i + ',\'night\',this.value)">' + r.night + '</textarea>' +
+      '<textarea class="replay-round-input" rows="1" placeholder="夜晚记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'night\',this.value)">' + r.night + '</textarea>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:6px">' +
       '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">☀️</span>' +
-      '<textarea class="replay-round-input" rows="1" placeholder="白天记录..." oninput="replayUpdateRound(' + _replayCurTab + ',' + i + ',\'day\',this.value)">' + r.day + '</textarea>' +
+      '<textarea class="replay-round-input" rows="1" placeholder="白天记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'day\',this.value)">' + r.day + '</textarea>' +
       '</div>' +
       '</div></div>';
   });
@@ -1615,7 +1619,7 @@ function replayRender(){
   // DM 评语
   var dmHtml = '<div>' +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">💬 大圣评语</div>' +
-    '<textarea class="replay-round-input" rows="3" placeholder="这局的点评、亮点、复盘总结..." style="border-radius:8px" oninput="replayUpdateDm(' + _replayCurTab + ',this.value)">' + tab.dm + '</textarea>' +
+    '<textarea class="replay-round-input" rows="3" placeholder="这局的点评、亮点、复盘总结..." style="border-radius:8px" oninput="autoResize(this);replayUpdateDm(' + _replayCurTab + ',this.value)">' + tab.dm + '</textarea>' +
     '</div>';
 
   contentEl.innerHTML = '<div class="card" style="margin-bottom:0">' +
@@ -1626,6 +1630,8 @@ function replayRender(){
     winnerHtml +
     dmHtml +
     '</div>';
+  // 初始化已有内容的 textarea 高度
+  contentEl.querySelectorAll('.replay-round-input').forEach(function(el){ autoResize(el); });
 }
 
 function replayRosterAdd(faction){
