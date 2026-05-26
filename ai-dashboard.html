@@ -626,6 +626,8 @@ document.addEventListener('click', function unlock(){
     var n = previewList.length;
     buildDeathCards(n);
     buildNumPicker(n);
+    // 同步复盘座位行
+    if(typeof replaySyncSeats === 'function') replaySyncSeats(n, previewList);
   }
 
   var _origRenderPreview = renderPreview;
@@ -1486,6 +1488,7 @@ var _REPLAY_LS_KEY = 'dashen_replay_data';
 function _replayDefaultTab(){
   return {
     date: _todayStr(),
+    seats: [],  // [{num:1, name:''}]
     roster: {good:[], shen:[], wolf:[], third:[]},
     rounds: Array.from({length:3}, function(_,i){ return {night:'', day:''}; }),
     sheriff: '',
@@ -1539,8 +1542,23 @@ function replayRender(){
   }
 
   var tab = _replayData[_replayCurTab];
-  // 兼容旧数据（seats → roster）
+  // 兼容旧数据
   if(!tab.roster) tab.roster = {good:[], shen:[], wolf:[], third:[]};
+  if(!tab.seats) tab.seats = [];
+
+  // 座位行（灰色，金色数字+名字）
+  var seatsHtml = '';
+  if(tab.seats.length > 0){
+    seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
+    tab.seats.forEach(function(s, i){
+      seatsHtml += '<div style="width:50px;height:66px;border-radius:8px;border:1.5px solid #555;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all .15s;flex-shrink:0" ' +
+        'onmouseover="this.style.borderColor=\'#888\'" onmouseout="this.style.borderColor=\'#555\'">' +
+        '<div style="font-size:18px;font-weight:900;color:#c9a84c;line-height:1;width:100%;text-align:center;cursor:pointer" onclick="replayEditSeatNum(' + _replayCurTab + ',' + i + ')" title="点击编辑号码">' + (s.num !== undefined ? s.num : (i+1)) + '</div>' +
+        '<div style="font-size:10px;color:#ccc;font-weight:600;text-align:center;word-break:break-all;padding:0 3px;cursor:pointer;line-height:1.2;width:100%" onclick="replayEditSeatName(' + _replayCurTab + ',' + i + ')" title="点击填写名字">' + (s.name || '<span style="color:#555">名字</span>') + '</div>' +
+        '</div>';
+    });
+    seatsHtml += '</div>';
+  }
 
   // 四阵营对战阵容
   var factionCfg = [
@@ -1618,6 +1636,7 @@ function replayRender(){
 
   contentEl.innerHTML = '<div class="card" style="margin-bottom:0">' +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">⚔️ 阵营</div>' +
+    seatsHtml +
     rosterHtml +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">📅 轮次记录</div>' +
     roundsHtml +
@@ -1662,6 +1681,43 @@ function replayRosterEditRole(faction, idx){
 
 function replayUpdateRound(tabIdx, roundIdx, field, val){
   _replayData[tabIdx].rounds[roundIdx][field] = val;
+  replayScheduleSave();
+}
+
+// 同步角色选取数量到复盘座位行
+function replaySyncSeats(count, previewList){
+  _replayData.forEach(function(tab){
+    var cur = tab.seats || [];
+    var next = [];
+    for(var i = 0; i < count; i++){
+      // 保留已有编辑内容，新增的 name 从 previewList 获取（如果有）
+      var existing = cur[i] || {};
+      var defaultName = (previewList && previewList[i]) ? previewList[i].name : '';
+      next.push({
+        num: existing.num !== undefined ? existing.num : (i + 1),
+        name: existing.name !== undefined ? existing.name : defaultName
+      });
+    }
+    tab.seats = next;
+  });
+  replayRender();
+}
+
+function replayEditSeatNum(tabIdx, seatIdx){
+  var seat = _replayData[tabIdx].seats[seatIdx];
+  var val = prompt('座位号：', seat.num);
+  if(val === null) return;
+  seat.num = val.trim();
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayEditSeatName(tabIdx, seatIdx){
+  var seat = _replayData[tabIdx].seats[seatIdx];
+  var val = prompt('玩家名字：', seat.name || '');
+  if(val === null) return;
+  seat.name = val.trim();
+  replayRender();
   replayScheduleSave();
 }
 
