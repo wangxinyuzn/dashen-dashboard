@@ -1567,10 +1567,29 @@ function replayRender(){
     {key:'third',label:'三方', color:'#b45309', bg:'rgba(180,83,9,.15)'}
   ];
   var winnerLabel = tab.winner === 'good' ? '好人胜' : tab.winner === 'wolf' ? '狼人胜' : '';
-  var winnerColor = tab.winner === 'good' ? 'rgba(74,222,128,0.18)' : tab.winner === 'wolf' ? 'rgba(248,113,113,0.18)' : '';
-  var winnerTextColor = tab.winner === 'good' ? '#4ade80' : tab.winner === 'wolf' ? '#f87171' : '';
-  var watermark = winnerLabel ? '<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:42px;font-weight:900;color:' + winnerTextColor + ';opacity:0.25;letter-spacing:4px;pointer-events:none;white-space:nowrap;text-shadow:0 0 20px ' + winnerColor + ';z-index:0">' + winnerLabel + '</div>' : '';
-  var rosterHtml = '<div style="position:relative;display:flex;flex-direction:column;gap:12px;padding-bottom:16px">' + watermark;
+  var watermarkSvg = '';
+  if(winnerLabel){
+    watermarkSvg = '<div style="position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-25deg);pointer-events:none;z-index:10;opacity:0.22">' +
+      '<svg width="260" height="260" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">' +
+      // 外圆
+      '<circle cx="130" cy="130" r="122" fill="none" stroke="#c9a84c" stroke-width="5"/>' +
+      // 内圆
+      '<circle cx="130" cy="130" r="108" fill="none" stroke="#c9a84c" stroke-width="2"/>' +
+      // 装饰圆点
+      '<circle cx="130" cy="130" r="96" fill="none" stroke="#c9a84c" stroke-width="1" stroke-dasharray="4 6"/>' +
+      // 顶部文字弧形（大圣狼人杀）
+      '<path id="arcTop" fill="none" d="M 35,130 A 95,95 0 0,1 225,130"/>' +
+      '<text font-size="16" font-weight="800" fill="#c9a84c" font-family="PingFang SC,Microsoft YaHei,sans-serif" letter-spacing="8">' +
+        '<textPath href="#arcTop" startOffset="10%">大 圣 狼 人 杀</textPath>' +
+      '</text>' +
+      // 中心大字
+      '<text x="130" y="148" text-anchor="middle" font-size="52" font-weight="900" fill="#c9a84c" font-family="PingFang SC,Microsoft YaHei,sans-serif" letter-spacing="6">' + winnerLabel + '</text>' +
+      // 底部装饰星
+      '<text x="130" y="210" text-anchor="middle" font-size="14" fill="#c9a84c">✦ ✦ ✦</text>' +
+      '</svg>' +
+      '</div>';
+  }
+  var rosterHtml = '<div style="position:relative;display:flex;flex-direction:column;gap:12px;padding-bottom:16px">';
   factionCfg.forEach(function(fc){
     var cards = tab.roster[fc.key] || [];
     rosterHtml += '<div style="display:flex;align-items:flex-start;gap:8px">' +
@@ -1636,13 +1655,14 @@ function replayRender(){
     '<textarea class="replay-round-input" rows="3" placeholder="这局的点评、亮点、复盘总结..." style="border-radius:8px" oninput="autoResize(this);replayUpdateDm(' + _replayCurTab + ',this.value)">' + tab.dm + '</textarea>' +
     '</div>';
 
-  contentEl.innerHTML = '<div class="card" style="margin-bottom:0">' +
+  contentEl.innerHTML = '<div class="card" style="margin-bottom:0;position:relative;overflow:hidden">' +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">👥 玩家信息</div>' +
     seatsHtml +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">⚔️ 阵营</div>' +
     rosterHtml +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">📅 轮次记录</div>' +
     roundsHtml +
+    watermarkSvg +
     winnerHtml +
     dmHtml +
     '</div>';
