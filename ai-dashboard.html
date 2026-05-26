@@ -1507,7 +1507,7 @@ var _REPLAY_LS_KEY = 'dashen_replay_data';
 
 function _replayDefaultTab(){
   return {
-    seats: Array.from({length:12}, function(_,i){ return {num: i+1, role:''}; }),
+    roster: {good:[], shen:[], wolf:[], third:[]},
     rounds: Array.from({length:5}, function(_,i){ return {night:'', day:''}; }),
     sheriff: '',
     winner: '',
@@ -1548,16 +1548,34 @@ function replayRender(){
   }
 
   var tab = _replayData[_replayCurTab];
+  // 兼容旧数据（seats → roster）
+  if(!tab.roster) tab.roster = {good:[], shen:[], wolf:[], third:[]};
 
-  // 座位卡片
-  var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0 16px">';
-  tab.seats.forEach(function(s, i){
-    seatsHtml += '<div class="replay-seat-card" onclick="replayEditSeat(' + _replayCurTab + ',' + i + ')">' +
-      '<span class="replay-seat-num">' + s.num + '号</span>' +
-      '<span class="replay-seat-role">' + (s.role || '点击填写') + '</span>' +
+  // 四阵营对战阵容
+  var factionCfg = [
+    {key:'good', label:'好人', color:'#1d4ed8', bg:'rgba(30,64,175,.15)'},
+    {key:'shen', label:'神职', color:'#7c3aed', bg:'rgba(124,58,237,.15)'},
+    {key:'wolf', label:'狼人', color:'#b91c1c', bg:'rgba(185,28,28,.15)'},
+    {key:'third',label:'三方', color:'#b45309', bg:'rgba(180,83,9,.15)'}
+  ];
+  var rosterHtml = '<div style="display:flex;flex-direction:column;gap:12px;padding-bottom:16px">';
+  factionCfg.forEach(function(fc){
+    var cards = tab.roster[fc.key] || [];
+    rosterHtml += '<div style="display:flex;align-items:flex-start;gap:8px">' +
+      '<div style="font-size:12px;font-weight:800;padding:5px 8px;border-radius:6px;border:1.5px solid ' + fc.color + ';color:' + fc.color + ';background:' + fc.bg + ';white-space:nowrap;margin-top:2px;min-width:32px;text-align:center">' + fc.label + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:7px;flex:1;align-items:flex-start;min-height:36px">';
+    cards.forEach(function(card, i){
+      rosterHtml += '<div class="battle-card">' +
+        '<div class="battle-card-del" onclick="replayRosterDel(\'' + fc.key + '\',' + i + ')">×</div>' +
+        '<div class="battle-card-num" onclick="replayRosterEditNum(\'' + fc.key + '\',' + i + ')">' + (card.num||'?') + '</div>' +
+        '<div class="battle-card-role" onclick="replayRosterEditRole(\'' + fc.key + '\',' + i + ')">' + (card.role||'') + '</div>' +
+        '</div>';
+    });
+    rosterHtml += '</div>' +
+      '<button class="battle-add-btn" onclick="replayRosterAdd(\'' + fc.key + '\')">＋</button>' +
       '</div>';
   });
-  seatsHtml += '</div>';
+  rosterHtml += '</div>';
 
   // 时间轴（含警长竞选）
   var sheriffVal = tab.sheriff || '';
@@ -1602,7 +1620,7 @@ function replayRender(){
 
   contentEl.innerHTML = '<div class="card" style="margin-bottom:0">' +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">🪑 对战阵容</div>' +
-    seatsHtml +
+    rosterHtml +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">📅 轮次记录</div>' +
     roundsHtml +
     winnerHtml +
@@ -1610,12 +1628,34 @@ function replayRender(){
     '</div>';
 }
 
-function replayEditSeat(tabIdx, seatIdx){
-  var tab = _replayData[tabIdx];
-  var seat = tab.seats[seatIdx];
-  var val = prompt((seatIdx+1) + '号位角色名：', seat.role || '');
+function replayRosterAdd(faction){
+  var tab = _replayData[_replayCurTab];
+  if(!tab.roster) tab.roster = {good:[],shen:[],wolf:[],third:[]};
+  tab.roster[faction].push({num:'?', role:''});
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayRosterDel(faction, idx){
+  _replayData[_replayCurTab].roster[faction].splice(idx, 1);
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayRosterEditNum(faction, idx){
+  var card = _replayData[_replayCurTab].roster[faction][idx];
+  var val = prompt('输入座位号：', card.num === '?' ? '' : card.num);
   if(val === null) return;
-  seat.role = val.trim();
+  card.num = val.trim() || '?';
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayRosterEditRole(faction, idx){
+  var card = _replayData[_replayCurTab].roster[faction][idx];
+  var val = prompt('输入身份/角色：', card.role || '');
+  if(val === null) return;
+  card.role = val.trim();
   replayRender();
   replayScheduleSave();
 }
