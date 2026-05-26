@@ -166,6 +166,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 /* 角色介绍 */
 .ri-tab{flex:1;padding:16px 8px;text-align:center;font-size:15px;font-weight:700;color:#888;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent}
+
+/* 复盘记录 */
+.replay-tab-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #444;background:#111;color:#888;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.replay-tab-btn.active{border-color:#c9a84c;background:rgba(201,168,76,.15);color:#c9a84c}
+.replay-tab-btn:hover{border-color:#c9a84c88;color:#c9a84c}
+.replay-seat-card{width:60px;height:72px;border-radius:8px;border:1.5px solid #c9a84c;background:#0a0010;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:4px;transition:all .15s;flex-shrink:0}
+.replay-seat-card:hover{background:#1a0a2e;box-shadow:0 0 8px rgba(201,168,76,.3)}
+.replay-seat-num{font-size:11px;color:#c9a84c88;font-weight:700}
+.replay-seat-role{font-size:11px;color:#e8d5a3;font-weight:600;text-align:center;word-break:break-all;padding:0 4px}
+.replay-round-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.replay-round-label{font-size:12px;color:#c9a84c;font-weight:700;width:44px;flex-shrink:0;padding-top:8px}
+.replay-round-inputs{flex:1;display:flex;flex-direction:column;gap:4px}
+.replay-round-input{width:100%;background:#0d0d1a;border:1px solid #333;border-radius:6px;color:#ddd;font-size:12px;padding:6px 8px;resize:none;font-family:inherit;box-sizing:border-box}
+.replay-round-input:focus{outline:none;border-color:#c9a84c66;background:#111}
+.replay-winner-btn{padding:7px 20px;border-radius:20px;border:1.5px solid #444;background:#111;color:#888;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.replay-winner-btn.active-good{border-color:#4ade80;background:rgba(74,222,128,.15);color:#4ade80}
+.replay-winner-btn.active-wolf{border-color:#f87171;background:rgba(248,113,113,.15);color:#f87171}
+.replay-winner-btn.active-god{border-color:#818cf8;background:rgba(129,140,248,.15);color:#818cf8}
+.replay-winner-btn:hover{border-color:#c9a84c88}
 .ri-tab:hover{color:#c9a84c;background:rgba(201,168,76,.05)}
 .ri-tab.active{color:#c9a84c;border-bottom-color:#c9a84c;background:rgba(201,168,76,.08)}
 .ri-role-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;transition:transform .15s}
@@ -358,6 +377,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="card" style="margin-bottom:0">
         <div id="mvp-grid" style="display:flex;flex-wrap:wrap;gap:16px;padding:4px;min-height:60px"></div>
       </div>
+    </div>
+
+    <!-- 复盘记录 -->
+    <div class="section-wrap" id="replay-section">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="section-header-icon">📝</span>
+          <span class="section-header-title">复 盘 记 录</span>
+        </div>
+        <button onclick="replayAddTab()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#c9a84c;padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;font-weight:700;white-space:nowrap">＋ 新增一局</button>
+      </div>
+      <!-- Tab 栏 -->
+      <div id="replay-tabs" style="display:flex;gap:8px;padding:0 4px 12px;flex-wrap:wrap"></div>
+      <!-- 当前局内容 -->
+      <div id="replay-content"></div>
     </div>
 
     <!-- 角色介绍 -->
@@ -1319,6 +1353,194 @@ setTimeout(function(){
 <script>
 // 点击遮罩关闭
 document.getElementById('role-skill-modal').addEventListener('click', function(e){ if(e.target===this) closeRoleSkillModal(); });
+</script>
+
+<script>
+// ===================== 复盘记录 =====================
+var _replayData = []; // [{seats:[], rounds:[], winner:'', dm:''}]
+var _replayCurTab = 0;
+var _replayGhSha = null;
+var _replaySaveTimer = null;
+var _REPLAY_LS_KEY = 'dashen_replay_data';
+
+function _replayDefaultTab(){
+  return {
+    seats: Array.from({length:12}, function(_,i){ return {num: i+1, role:''}; }),
+    rounds: Array.from({length:5}, function(_,i){ return {night:'', day:''}; }),
+    winner: '',
+    dm: ''
+  };
+}
+
+function replayAddTab(){
+  _replayData.push(_replayDefaultTab());
+  _replayCurTab = _replayData.length - 1;
+  replayRender();
+  replayScheduleSave();
+}
+
+function replaySelectTab(idx){
+  _replayCurTab = idx;
+  replayRender();
+}
+
+function replayRender(){
+  var tabsEl = document.getElementById('replay-tabs');
+  var contentEl = document.getElementById('replay-content');
+  if(!tabsEl || !contentEl) return;
+
+  // 渲染 Tabs
+  tabsEl.innerHTML = '';
+  _replayData.forEach(function(_, i){
+    var btn = document.createElement('button');
+    btn.className = 'replay-tab-btn' + (i === _replayCurTab ? ' active' : '');
+    btn.textContent = '第' + (i+1) + '局';
+    btn.onclick = function(){ replaySelectTab(i); };
+    tabsEl.appendChild(btn);
+  });
+
+  if(!_replayData.length){
+    contentEl.innerHTML = '<div style="color:#555;font-size:13px;padding:16px;text-align:center">点击「＋ 新增一局」开始复盘</div>';
+    return;
+  }
+
+  var tab = _replayData[_replayCurTab];
+
+  // 座位卡片
+  var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0 16px">';
+  tab.seats.forEach(function(s, i){
+    seatsHtml += '<div class="replay-seat-card" onclick="replayEditSeat(' + _replayCurTab + ',' + i + ')">' +
+      '<span class="replay-seat-num">' + s.num + '号</span>' +
+      '<span class="replay-seat-role">' + (s.role || '点击填写') + '</span>' +
+      '</div>';
+  });
+  seatsHtml += '</div>';
+
+  // 时间轴
+  var roundsHtml = '<div style="margin-bottom:16px">';
+  tab.rounds.forEach(function(r, i){
+    roundsHtml += '<div class="replay-round-row">' +
+      '<span class="replay-round-label">第' + (i+1) + '轮</span>' +
+      '<div class="replay-round-inputs">' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+      '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">🌙</span>' +
+      '<textarea class="replay-round-input" rows="1" placeholder="夜晚记录..." oninput="replayUpdateRound(' + _replayCurTab + ',' + i + ',\'night\',this.value)">' + r.night + '</textarea>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+      '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">☀️</span>' +
+      '<textarea class="replay-round-input" rows="1" placeholder="白天记录..." oninput="replayUpdateRound(' + _replayCurTab + ',' + i + ',\'day\',this.value)">' + r.day + '</textarea>' +
+      '</div>' +
+      '</div></div>';
+  });
+  roundsHtml += '</div>';
+
+  // 胜利阵营
+  var winnerHtml = '<div style="margin-bottom:14px">' +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">🏆 胜利阵营</div>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+    '<button class="replay-winner-btn' + (tab.winner==='good'?' active-good':'') + '" onclick="replaySetWinner(' + _replayCurTab + ',\'good\')">好人胜</button>' +
+    '<button class="replay-winner-btn' + (tab.winner==='wolf'?' active-wolf':'') + '" onclick="replaySetWinner(' + _replayCurTab + ',\'wolf\')">狼人胜</button>' +
+    '<button class="replay-winner-btn' + (tab.winner==='god'?' active-god':'') + '" onclick="replaySetWinner(' + _replayCurTab + ',\'god\')">神明胜</button>' +
+    '</div></div>';
+
+  // DM 评语
+  var dmHtml = '<div>' +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">💬 大圣评语</div>' +
+    '<textarea class="replay-round-input" rows="3" placeholder="这局的点评、亮点、复盘总结..." style="border-radius:8px" oninput="replayUpdateDm(' + _replayCurTab + ',this.value)">' + tab.dm + '</textarea>' +
+    '</div>';
+
+  contentEl.innerHTML = '<div class="card" style="margin-bottom:0">' +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">🪑 对战阵容</div>' +
+    seatsHtml +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">📅 轮次记录</div>' +
+    roundsHtml +
+    winnerHtml +
+    dmHtml +
+    '</div>';
+}
+
+function replayEditSeat(tabIdx, seatIdx){
+  var tab = _replayData[tabIdx];
+  var seat = tab.seats[seatIdx];
+  var val = prompt((seatIdx+1) + '号位角色名：', seat.role || '');
+  if(val === null) return;
+  seat.role = val.trim();
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayUpdateRound(tabIdx, roundIdx, field, val){
+  _replayData[tabIdx].rounds[roundIdx][field] = val;
+  replayScheduleSave();
+}
+
+function replaySetWinner(tabIdx, winner){
+  _replayData[tabIdx].winner = _replayData[tabIdx].winner === winner ? '' : winner;
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayUpdateDm(tabIdx, val){
+  _replayData[tabIdx].dm = val;
+  replayScheduleSave();
+}
+
+function replayScheduleSave(){
+  clearTimeout(_replaySaveTimer);
+  _replaySaveTimer = setTimeout(replaySave, 600);
+}
+
+function replaySave(){
+  // localStorage 备份
+  try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
+
+  // GitHub 同步（与 mvp-data.json 合并存储）
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    var sha = d.sha;
+    var existing = {};
+    try{ existing = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
+    existing.replay_data = _replayData;
+    var body = JSON.stringify({
+      message: 'replay data update',
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(existing)))),
+      sha: sha
+    });
+    return fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+      method:'PUT',
+      headers:{'Authorization':'token ' + _MVP_GH_TOKEN, 'Content-Type':'application/json'},
+      body: body
+    });
+  }).catch(function(){});
+}
+
+function replayLoad(){
+  // localStorage 先渲染
+  try{
+    var raw = localStorage.getItem(_REPLAY_LS_KEY);
+    if(raw) _replayData = JSON.parse(raw);
+  }catch(e){}
+  if(!_replayData.length) _replayData.push(_replayDefaultTab());
+  _replayCurTab = 0;
+  replayRender();
+
+  // GitHub 异步同步
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    var data = {};
+    try{ data = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
+    if(data.replay_data && data.replay_data.length){
+      _replayData = data.replay_data;
+      try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
+      replayRender();
+    }
+  }).catch(function(){});
+}
+
+// 启动
+replayLoad();
 </script>
 </body>
 </html>
