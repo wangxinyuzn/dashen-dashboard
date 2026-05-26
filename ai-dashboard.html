@@ -167,6 +167,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 /* 角色介绍 */
 .ri-tab{flex:1;padding:16px 8px;text-align:center;font-size:15px;font-weight:700;color:#888;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent}
 
+/* 对战阵容 */
+.battle-faction-row{display:flex;align-items:flex-start;gap:8px}
+.battle-faction-label{font-size:12px;font-weight:800;padding:5px 8px;border-radius:6px;border:1.5px solid;white-space:nowrap;margin-top:2px;min-width:32px;text-align:center}
+.battle-cards-wrap{display:flex;flex-wrap:wrap;gap:7px;flex:1;min-height:36px;align-items:flex-start}
+.battle-add-btn{width:34px;height:66px;border-radius:8px;border:1.5px dashed #444;background:transparent;color:#555;font-size:20px;cursor:pointer;transition:all .15s;flex-shrink:0;margin-top:2px}
+.battle-add-btn:hover{border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,.08)}
+.battle-card{width:50px;height:66px;border-radius:8px;border:1.5px solid #c9a84c;background:#0a0010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;transition:all .15s}
+.battle-card:hover{box-shadow:0 0 8px rgba(201,168,76,.35)}
+.battle-card-num{font-size:18px;font-weight:900;color:#c9a84c;cursor:pointer;line-height:1;width:100%;text-align:center;padding:2px 0}
+.battle-card-num:hover{color:#fff}
+.battle-card-role{font-size:10px;color:#e8d5a3;font-weight:600;text-align:center;word-break:break-all;padding:0 3px;cursor:pointer;line-height:1.2;width:100%}
+.battle-card-role:empty::before{content:'身份';color:#444}
+.battle-card-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#7f1d1d;color:#fca5a5;font-size:10px;display:none;align-items:center;justify-content:center;cursor:pointer;font-weight:900;z-index:10;border:1px solid #b91c1c}
+.battle-card:hover .battle-card-del{display:flex}
+
 /* 复盘记录 */
 .replay-tab-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #444;background:#111;color:#888;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
 .replay-tab-btn.active{border-color:#c9a84c;background:rgba(201,168,76,.15);color:#c9a84c}
@@ -250,6 +265,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
           <span class="rp-prev-empty">点击下方卡片添加到此处</span>
         </div>
         <div id="rp-hint" style="margin-top:6px;font-size:12px;color:#aaa;text-align:center;transition:opacity .3s">点击下方角色选取卡片组成对局阵容</div>
+      </div>
+      <!-- 对战阵容 -->
+      <div class="card" style="margin-top:12px;margin-bottom:0">
+        <div style="font-size:13px;color:#aaa;font-weight:700;margin-bottom:12px">🪑 对战阵容</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="battle-faction-row">
+            <div class="battle-faction-label" style="border-color:#1d4ed8;color:#1d4ed8;background:rgba(30,64,175,.15)">好人</div>
+            <div class="battle-cards-wrap" id="bf-good"></div>
+            <button class="battle-add-btn" onclick="battleAddCard('good')">＋</button>
+          </div>
+          <div class="battle-faction-row">
+            <div class="battle-faction-label" style="border-color:#7c3aed;color:#7c3aed;background:rgba(124,58,237,.15)">神职</div>
+            <div class="battle-cards-wrap" id="bf-shen"></div>
+            <button class="battle-add-btn" onclick="battleAddCard('shen')">＋</button>
+          </div>
+          <div class="battle-faction-row">
+            <div class="battle-faction-label" style="border-color:#b91c1c;color:#b91c1c;background:rgba(185,28,28,.15)">狼人</div>
+            <div class="battle-cards-wrap" id="bf-wolf"></div>
+            <button class="battle-add-btn" onclick="battleAddCard('wolf')">＋</button>
+          </div>
+          <div class="battle-faction-row">
+            <div class="battle-faction-label" style="border-color:#b45309;color:#b45309;background:rgba(180,83,9,.15)">三方</div>
+            <div class="battle-cards-wrap" id="bf-third"></div>
+            <button class="battle-add-btn" onclick="battleAddCard('third')">＋</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1356,6 +1397,107 @@ document.getElementById('role-skill-modal').addEventListener('click', function(e
 </script>
 
 <script>
+// ===================== 对战阵容 =====================
+var _battleData = {good:[], shen:[], wolf:[], third:[]};
+var _battleSaveTimer = null;
+var _BATTLE_LS_KEY = 'dashen_battle_roster';
+
+function battleAddCard(faction){
+  _battleData[faction].push({num:'?', role:''});
+  battleRender(faction);
+  battleScheduleSave();
+}
+
+function battleDelCard(faction, idx){
+  _battleData[faction].splice(idx, 1);
+  battleRender(faction);
+  battleScheduleSave();
+}
+
+function battleEditNum(faction, idx){
+  var cur = _battleData[faction][idx].num;
+  var val = prompt('输入座位号：', cur === '?' ? '' : cur);
+  if(val === null) return;
+  _battleData[faction][idx].num = val.trim() || '?';
+  battleRender(faction);
+  battleScheduleSave();
+}
+
+function battleEditRole(faction, idx){
+  var cur = _battleData[faction][idx].role;
+  var val = prompt('输入身份/角色：', cur);
+  if(val === null) return;
+  _battleData[faction][idx].role = val.trim();
+  battleRender(faction);
+  battleScheduleSave();
+}
+
+function battleRender(faction){
+  var wrap = document.getElementById('bf-' + faction);
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  _battleData[faction].forEach(function(card, i){
+    var el = document.createElement('div');
+    el.className = 'battle-card';
+    el.innerHTML = '<div class="battle-card-del" onclick="battleDelCard(\'' + faction + '\',' + i + ')">×</div>' +
+      '<div class="battle-card-num" onclick="battleEditNum(\'' + faction + '\',' + i + ')" title="点击编辑号码">' + (card.num||'?') + '</div>' +
+      '<div class="battle-card-role" onclick="battleEditRole(\'' + faction + '\',' + i + ')" title="点击填写身份">' + (card.role||'') + '</div>';
+    wrap.appendChild(el);
+  });
+}
+
+function battleRenderAll(){
+  ['good','shen','wolf','third'].forEach(battleRender);
+}
+
+function battleScheduleSave(){
+  clearTimeout(_battleSaveTimer);
+  _battleSaveTimer = setTimeout(battleSave, 600);
+}
+
+function battleSave(){
+  try{ localStorage.setItem(_BATTLE_LS_KEY, JSON.stringify(_battleData)); }catch(e){}
+  // 合并到 mvp-data.json
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    var sha = d.sha;
+    var existing = {};
+    try{ existing = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
+    existing.battle_roster = _battleData;
+    var body = JSON.stringify({
+      message: 'battle roster update',
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(existing)))),
+      sha: sha
+    });
+    return fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+      method:'PUT', headers:{'Authorization':'token ' + _MVP_GH_TOKEN, 'Content-Type':'application/json'}, body: body
+    });
+  }).catch(function(){});
+}
+
+function battleLoad(){
+  try{
+    var raw = localStorage.getItem(_BATTLE_LS_KEY);
+    if(raw) _battleData = JSON.parse(raw);
+  }catch(e){}
+  battleRenderAll();
+  // GitHub 异步同步
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    var data = {};
+    try{ data = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
+    if(data.battle_roster){
+      _battleData = Object.assign({good:[],shen:[],wolf:[],third:[]}, data.battle_roster);
+      try{ localStorage.setItem(_BATTLE_LS_KEY, JSON.stringify(_battleData)); }catch(e){}
+      battleRenderAll();
+    }
+  }).catch(function(){});
+}
+
+battleLoad();
+
 // ===================== 复盘记录 =====================
 var _replayData = []; // [{seats:[], rounds:[], winner:'', dm:''}]
 var _replayCurTab = 0;
