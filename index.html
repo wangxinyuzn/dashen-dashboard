@@ -1566,7 +1566,11 @@ function replayRender(){
     {key:'wolf', label:'狼人', color:'#b91c1c', bg:'rgba(185,28,28,.15)'},
     {key:'third',label:'三方', color:'#b45309', bg:'rgba(180,83,9,.15)'}
   ];
-  var rosterHtml = '<div style="display:flex;flex-direction:column;gap:12px;padding-bottom:16px">';
+  var winnerLabel = tab.winner === 'good' ? '好人胜' : tab.winner === 'wolf' ? '狼人胜' : '';
+  var winnerColor = tab.winner === 'good' ? 'rgba(74,222,128,0.18)' : tab.winner === 'wolf' ? 'rgba(248,113,113,0.18)' : '';
+  var winnerTextColor = tab.winner === 'good' ? '#4ade80' : tab.winner === 'wolf' ? '#f87171' : '';
+  var watermark = winnerLabel ? '<div style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:42px;font-weight:900;color:' + winnerTextColor + ';opacity:0.25;letter-spacing:4px;pointer-events:none;white-space:nowrap;text-shadow:0 0 20px ' + winnerColor + ';z-index:0">' + winnerLabel + '</div>' : '';
+  var rosterHtml = '<div style="position:relative;display:flex;flex-direction:column;gap:12px;padding-bottom:16px">' + watermark;
   factionCfg.forEach(function(fc){
     var cards = tab.roster[fc.key] || [];
     rosterHtml += '<div style="display:flex;align-items:flex-start;gap:8px">' +
@@ -1624,7 +1628,6 @@ function replayRender(){
     '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
     '<button class="replay-winner-btn' + (tab.winner==='good'?' active-good':'') + '" onclick="replaySetWinner(' + _replayCurTab + ',\'good\')">好人胜</button>' +
     '<button class="replay-winner-btn' + (tab.winner==='wolf'?' active-wolf':'') + '" onclick="replaySetWinner(' + _replayCurTab + ',\'wolf\')">狼人胜</button>' +
-    '<button class="replay-winner-btn' + (tab.winner==='god'?' active-god':'') + '" onclick="replaySetWinner(' + _replayCurTab + ',\'god\')">神明胜</button>' +
     '</div></div>';
 
   // DM 评语
