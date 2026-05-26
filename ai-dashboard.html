@@ -1485,8 +1485,9 @@ var _REPLAY_LS_KEY = 'dashen_replay_data';
 
 function _replayDefaultTab(){
   return {
+    date: _todayStr(),
     roster: {good:[], shen:[], wolf:[], third:[]},
-    rounds: Array.from({length:5}, function(_,i){ return {night:'', day:''}; }),
+    rounds: Array.from({length:3}, function(_,i){ return {night:'', day:''}; }),
     sheriff: '',
     winner: '',
     dm: ''
@@ -1512,11 +1513,23 @@ function replayRender(){
 
   // 渲染 Tabs
   tabsEl.innerHTML = '';
-  _replayData.forEach(function(_, i){
+  _replayData.forEach(function(tab, i){
     var btn = document.createElement('button');
     btn.className = 'replay-tab-btn' + (i === _replayCurTab ? ' active' : '');
-    btn.textContent = '第' + (i+1) + '局';
-    btn.onclick = function(){ replaySelectTab(i); };
+    btn.textContent = tab.date || _todayStr();
+    btn.title = '点击修改日期';
+    btn.onclick = function(e){
+      if(_replayCurTab === i){
+        // 已在当前Tab，点击修改日期
+        var val = prompt('修改日期：', tab.date || _todayStr());
+        if(val === null) return;
+        tab.date = val.trim() || _todayStr();
+        replayScheduleSave();
+        replayRender();
+      } else {
+        replaySelectTab(i);
+      }
+    };
     tabsEl.appendChild(btn);
   });
 
@@ -1566,7 +1579,8 @@ function replayRender(){
     '<textarea class="replay-round-input" rows="1" placeholder="竞选情况、谁当选了、关键发言..." oninput="autoResize(this);replayUpdateSheriff(' + _replayCurTab + ',this.value)">' + sheriffVal + '</textarea>' +
     '</div></div></div>';
   tab.rounds.forEach(function(r, i){
-    roundsHtml += '<div class="replay-round-row">' +
+    var canDel = i >= 3; // 第4轮起可删除
+    roundsHtml += '<div class="replay-round-row" id="replay-round-' + i + '">' +
       '<span class="replay-round-label">第' + (i+1) + '轮</span>' +
       '<div class="replay-round-inputs">' +
       '<div style="display:flex;align-items:center;gap:6px">' +
@@ -1577,8 +1591,14 @@ function replayRender(){
       '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">☀️</span>' +
       '<textarea class="replay-round-input" rows="1" placeholder="白天记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'day\',this.value)">' + r.day + '</textarea>' +
       '</div>' +
-      '</div></div>';
+      '</div>' +
+      (canDel ? '<button onclick="replayDelRound(' + _replayCurTab + ',' + i + ')" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#7f1d1d;border:1px solid #b91c1c;color:#fca5a5;font-size:14px;cursor:pointer;margin-top:4px;line-height:1">×</button>' : '<div style="width:26px;flex-shrink:0"></div>') +
+      '</div>';
   });
+  // 添加一轮按钮
+  roundsHtml += '<div style="margin-top:6px">' +
+    '<button onclick="replayAddRound(' + _replayCurTab + ')" style="background:rgba(201,168,76,.1);border:1.5px dashed #c9a84c88;color:#c9a84c;padding:5px 16px;border-radius:16px;font-size:12px;cursor:pointer;font-weight:700">＋ 添加一轮</button>' +
+    '</div>';
   roundsHtml += '</div>';
 
   // 胜利阵营
@@ -1642,6 +1662,19 @@ function replayRosterEditRole(faction, idx){
 
 function replayUpdateRound(tabIdx, roundIdx, field, val){
   _replayData[tabIdx].rounds[roundIdx][field] = val;
+  replayScheduleSave();
+}
+
+function replayAddRound(tabIdx){
+  _replayData[tabIdx].rounds.push({night:'', day:''});
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayDelRound(tabIdx, roundIdx){
+  if(_replayData[tabIdx].rounds.length <= 1) return;
+  _replayData[tabIdx].rounds.splice(roundIdx, 1);
+  replayRender();
   replayScheduleSave();
 }
 
