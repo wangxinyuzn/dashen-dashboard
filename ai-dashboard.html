@@ -626,8 +626,6 @@ document.addEventListener('click', function unlock(){
     var n = previewList.length;
     buildDeathCards(n);
     buildNumPicker(n);
-    // 同步复盘座位行
-    if(typeof replaySyncSeats === 'function') replaySyncSeats(n, previewList);
   }
 
   var _origRenderPreview = renderPreview;
@@ -1547,18 +1545,19 @@ function replayRender(){
   if(!tab.seats) tab.seats = [];
 
   // 座位行（灰色，金色数字+名字）
-  var seatsHtml = '';
+  var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
   if(tab.seats.length > 0){
-    seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
     tab.seats.forEach(function(s, i){
-      seatsHtml += '<div style="width:50px;height:66px;border-radius:8px;border:1.5px solid #555;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all .15s;flex-shrink:0" ' +
+      seatsHtml += '<div style="width:50px;height:66px;border-radius:8px;border:1.5px solid #555;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .15s;flex-shrink:0" ' +
         'onmouseover="this.style.borderColor=\'#888\'" onmouseout="this.style.borderColor=\'#555\'">' +
         '<div style="font-size:18px;font-weight:900;color:#c9a84c;line-height:1;width:100%;text-align:center;cursor:pointer" onclick="replayEditSeatNum(' + _replayCurTab + ',' + i + ')" title="点击编辑号码">' + (s.num !== undefined ? s.num : (i+1)) + '</div>' +
         '<div style="font-size:10px;color:#ccc;font-weight:600;text-align:center;word-break:break-all;padding:0 3px;cursor:pointer;line-height:1.2;width:100%" onclick="replayEditSeatName(' + _replayCurTab + ',' + i + ')" title="点击填写名字">' + (s.name || '<span style="color:#555">名字</span>') + '</div>' +
         '</div>';
     });
-    seatsHtml += '</div>';
+  } else {
+    seatsHtml += '<span style="color:#555;font-size:12px;padding:8px 0">请先在阵营中添加卡片</span>';
   }
+  seatsHtml += '</div>';
 
   // 四阵营对战阵容
   var factionCfg = [
@@ -1635,8 +1634,9 @@ function replayRender(){
     '</div>';
 
   contentEl.innerHTML = '<div class="card" style="margin-bottom:0">' +
-    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">⚔️ 阵营</div>' +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">👥 玩家信息</div>' +
     seatsHtml +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">⚔️ 阵营</div>' +
     rosterHtml +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">📅 轮次记录</div>' +
     roundsHtml +
@@ -1651,12 +1651,14 @@ function replayRosterAdd(faction){
   var tab = _replayData[_replayCurTab];
   if(!tab.roster) tab.roster = {good:[],shen:[],wolf:[],third:[]};
   tab.roster[faction].push({num:'?', role:''});
+  replaySyncSeatsFromRoster(_replayCurTab);
   replayRender();
   replayScheduleSave();
 }
 
 function replayRosterDel(faction, idx){
   _replayData[_replayCurTab].roster[faction].splice(idx, 1);
+  replaySyncSeatsFromRoster(_replayCurTab);
   replayRender();
   replayScheduleSave();
 }
@@ -1685,22 +1687,22 @@ function replayUpdateRound(tabIdx, roundIdx, field, val){
 }
 
 // 同步角色选取数量到复盘座位行
-function replaySyncSeats(count, previewList){
-  _replayData.forEach(function(tab){
-    var cur = tab.seats || [];
-    var next = [];
-    for(var i = 0; i < count; i++){
-      // 保留已有编辑内容，新增的 name 从 previewList 获取（如果有）
-      var existing = cur[i] || {};
-      var defaultName = (previewList && previewList[i]) ? previewList[i].name : '';
-      next.push({
-        num: existing.num !== undefined ? existing.num : (i + 1),
-        name: existing.name !== undefined ? existing.name : defaultName
-      });
-    }
-    tab.seats = next;
-  });
-  replayRender();
+// 根据当前局阵营总数同步玩家信息座位卡片
+function replaySyncSeatsFromRoster(tabIdx){
+  var tab = _replayData[tabIdx];
+  if(!tab.roster) return;
+  var total = (tab.roster.good||[]).length + (tab.roster.shen||[]).length +
+              (tab.roster.wolf||[]).length + (tab.roster.third||[]).length;
+  var cur = tab.seats || [];
+  var next = [];
+  for(var i = 0; i < total; i++){
+    var existing = cur[i] || {};
+    next.push({
+      num: existing.num !== undefined ? existing.num : (i + 1),
+      name: existing.name || ''
+    });
+  }
+  tab.seats = next;
 }
 
 function replayEditSeatNum(tabIdx, seatIdx){
