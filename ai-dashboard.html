@@ -1500,8 +1500,22 @@ function _replayDefaultTab(){
 }
 
 function replayAddTab(){
-  _replayData.push(_replayDefaultTab());
-  _replayCurTab = _replayData.length - 1;
+  _replayData.unshift(_replayDefaultTab()); // 新局插到最前
+  _replayCurTab = 0;
+  replayRender();
+  replayScheduleSave();
+}
+
+function replayDeleteTab(idx){
+  if(_replayData.length <= 1){
+    if(!confirm('只剩最后一局，确定清空吗？')) return;
+    _replayData = [_replayDefaultTab()];
+    _replayCurTab = 0;
+  } else {
+    if(!confirm('确定删除「' + (_replayData[idx].date || '该局') + '」的复盘记录吗？')) return;
+    _replayData.splice(idx, 1);
+    if(_replayCurTab >= _replayData.length) _replayCurTab = _replayData.length - 1;
+  }
   replayRender();
   replayScheduleSave();
 }
@@ -1519,13 +1533,16 @@ function replayRender(){
   // 渲染 Tabs
   tabsEl.innerHTML = '';
   _replayData.forEach(function(tab, i){
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+
     var btn = document.createElement('button');
     btn.className = 'replay-tab-btn' + (i === _replayCurTab ? ' active' : '');
     btn.textContent = tab.date || _todayStr();
     btn.title = '点击修改日期';
+    btn.style.paddingRight = '22px';
     btn.onclick = function(e){
       if(_replayCurTab === i){
-        // 已在当前Tab，点击修改日期
         var val = prompt('修改日期：', tab.date || _todayStr());
         if(val === null) return;
         tab.date = val.trim() || _todayStr();
@@ -1535,7 +1552,23 @@ function replayRender(){
         replaySelectTab(i);
       }
     };
-    tabsEl.appendChild(btn);
+
+    var delBtn = document.createElement('button');
+    delBtn.textContent = '×';
+    delBtn.title = '删除该局复盘';
+    delBtn.style.cssText = 'position:absolute;right:4px;top:50%;transform:translateY(-50%);' +
+      'width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.35);border:none;' +
+      'color:#ccc;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;';
+    delBtn.onmouseover = function(){ this.style.background='#c0392b'; this.style.color='#fff'; };
+    delBtn.onmouseout  = function(){ this.style.background='rgba(0,0,0,.35)'; this.style.color='#ccc'; };
+    delBtn.onclick = function(e){
+      e.stopPropagation();
+      replayDeleteTab(i);
+    };
+
+    wrap.appendChild(btn);
+    wrap.appendChild(delBtn);
+    tabsEl.appendChild(wrap);
   });
 
   if(!_replayData.length){
@@ -1810,11 +1843,20 @@ function replaySave(){
   }).catch(function(){});
 }
 
+// 按日期降序排列（最新在前），兼容无date字段
+function _replaySortDesc(arr){
+  return arr.slice().sort(function(a, b){
+    var da = a.date || '0000-00-00';
+    var db = b.date || '0000-00-00';
+    return db < da ? -1 : db > da ? 1 : 0;
+  });
+}
+
 function replayLoad(){
   // localStorage 先渲染
   try{
     var raw = localStorage.getItem(_REPLAY_LS_KEY);
-    if(raw) _replayData = JSON.parse(raw);
+    if(raw) _replayData = _replaySortDesc(JSON.parse(raw));
   }catch(e){}
   if(!_replayData.length) _replayData.push(_replayDefaultTab());
   _replayCurTab = 0;
@@ -1828,7 +1870,7 @@ function replayLoad(){
     var data = {};
     try{ data = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
     if(data.replay_data && data.replay_data.length){
-      _replayData = data.replay_data;
+      _replayData = _replaySortDesc(data.replay_data);
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
       replayRender();
     }
@@ -1886,7 +1928,7 @@ function _pollGitHub(){
     }
     // --- 复盘 ---
     if(data.replay_data && data.replay_data.length){
-      _replayData = data.replay_data;
+      _replayData = _replaySortDesc(data.replay_data);
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
       replayRender();
     }
