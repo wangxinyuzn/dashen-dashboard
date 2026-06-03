@@ -235,7 +235,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <span>🐺</span> 狼人杀面杀辅助工具
   </div>
   <div class="header-right">
-    <span class="header-tag">📅 每周自动更新</span>
+    <span class="header-tag" id="sync-status-tag">🔄 实时同步中...</span>
     <span id="today-label"></span>
     <button class="admin-btn">🔒 管理员</button>
   </div>
@@ -716,7 +716,8 @@ function mvpLoad(){
   renderMvpCards();
 
   // 第二步：异步从GitHub同步最新数据（后台更新）
-  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     _mvpGhSha = d.sha;
@@ -1433,7 +1434,8 @@ function battleScheduleSave(){
 function battleSave(){
   try{ localStorage.setItem(_BATTLE_LS_KEY, JSON.stringify(_battleData)); }catch(e){}
   // 合并到 mvp-data.json
-  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     var sha = d.sha;
@@ -1458,7 +1460,8 @@ function battleLoad(){
   }catch(e){}
   battleRenderAll();
   // GitHub 异步同步
-  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     var data = {};
@@ -1786,7 +1789,8 @@ function replaySave(){
   try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
 
   // GitHub 同步（与 mvp-data.json 合并存储）
-  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     var sha = d.sha;
@@ -1817,7 +1821,8 @@ function replayLoad(){
   replayRender();
 
   // GitHub 异步同步
-  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     var data = {};
@@ -1832,6 +1837,71 @@ function replayLoad(){
 
 // 启动
 replayLoad();
+
+// ===================== 实时轮询同步 =====================
+// 每 30 秒自动从 GitHub 拉取最新数据，保证所有人看到的数据实时一致
+function _updateSyncTag(ok){
+  var el = document.getElementById('sync-status-tag');
+  if(!el) return;
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2,'0');
+  var mm = String(now.getMinutes()).padStart(2,'0');
+  var ss = String(now.getSeconds()).padStart(2,'0');
+  if(ok){
+    el.textContent = '✅ 已同步 ' + hh + ':' + mm + ':' + ss;
+    el.style.background = 'rgba(82,196,26,.22)';
+    el.style.border = '1px solid rgba(82,196,26,.5)';
+  } else {
+    el.textContent = '⚠️ 同步失败 ' + hh + ':' + mm + ':' + ss;
+    el.style.background = 'rgba(255,77,79,.18)';
+    el.style.border = '1px solid rgba(255,77,79,.4)';
+  }
+}
+
+function _pollGitHub(){
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    if(!d || !d.content){ _updateSyncTag(false); return; }
+    var raw = '';
+    try{ raw = decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))); }catch(e){ _updateSyncTag(false); return; }
+    var data = {};
+    try{ data = JSON.parse(raw); }catch(e){ _updateSyncTag(false); return; }
+
+    // --- MVP ---
+    if(data.cards){
+      _mvpGhSha = d.sha;
+      _mvpCards = data.cards || [];
+      _mvpIdCounter = data.counter || 0;
+      try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
+      if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
+      renderMvpCards();
+    }
+    // --- 对战阵容 ---
+    if(data.battle_roster){
+      _battleData = Object.assign({good:[],shen:[],wolf:[],third:[]}, data.battle_roster);
+      try{ localStorage.setItem(_BATTLE_LS_KEY, JSON.stringify(_battleData)); }catch(e){}
+      battleRenderAll();
+    }
+    // --- 复盘 ---
+    if(data.replay_data && data.replay_data.length){
+      _replayData = data.replay_data;
+      try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
+      replayRender();
+    }
+
+    _updateSyncTag(true);
+  }).catch(function(){ _updateSyncTag(false); });
+}
+
+// 页面加载后 1 秒做一次初始同步，更新同步状态标签
+setTimeout(function(){
+  _pollGitHub();
+}, 1000);
+
+// 每 30 秒轮询一次
+setInterval(_pollGitHub, 30000);
 </script>
 </body>
 </html>
