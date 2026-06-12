@@ -1937,7 +1937,7 @@ function replayLoad(){
       // 如果用户正在输入复盘内容，不覆盖 DOM
       var _activeEl2 = document.activeElement;
       var _isTyping2 = _replayEditing ||
-        (_activeEl2 && (_activeEl2.classList.contains('replay-round-input') || _activeEl2.classList.contains('replay-seat-name-input') || _activeEl2.classList.contains('replay-roster-input'))));
+        (_activeEl2 && (_activeEl2.classList.contains('replay-round-input') || _activeEl2.classList.contains('replay-seat-name-input') || _activeEl2.classList.contains('replay-roster-input')));
       if(!_isTyping2){
         replayRender();
       }
