@@ -1861,7 +1861,7 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   else if(next === '三方') seat.role = thirdRoles[0];
   else seat.role = '';
   replayRender();
-  _replayLocalSave();，防止轮询覆盖
+  _replayLocalSave(); // 本地保存，等用户手动点保存同步
 }
 
 // 点击切换具体角色（狼人系/神职系/三方系循环）
