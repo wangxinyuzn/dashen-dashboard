@@ -1537,21 +1537,14 @@ function replayAddTab(){
 }
 
 // 快捷设置座位数（9人局/12人局），保留已有名字，超出部分补空
+// 新增一局并预置对应数量的座位
 function replayQuickSeats(count){
-  var tab = _replayData[_replayCurTab];
-  if(!tab) return;
-  if(!tab.seats) tab.seats = [];
-  var cur = tab.seats;
-  var next = [];
+  var newTab = _replayDefaultTab();
   for(var i = 0; i < count; i++){
-    next.push({
-      num: i + 1,
-      name: (cur[i] && cur[i].name) || '',
-      faction: (cur[i] && cur[i].faction) || '',
-      role: (cur[i] && cur[i].role) || ''
-    });
+    newTab.seats.push({num: i + 1, name: '', faction: '', role: ''});
   }
-  tab.seats = next;
+  _replayData.unshift(newTab);
+  _replayCurTab = 0;
   replayRender();
   _replayLocalSave();
 }
