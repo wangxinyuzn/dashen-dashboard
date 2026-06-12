@@ -1500,9 +1500,9 @@ var _replayCurTab = 0;
 var _replayEditing = false; // 全局锁：正在 prompt 编辑期间禁止轮询覆盖
 
 // HTML attribute 安全转义（用于 value=""）
-function _esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/[<]/g,'&lt;').replace(/[>]/g,'&gt;'); }
 // textarea 内容转义（只需防止 </textarea> 截断，保留 & 原样）
-function _escTa(str){ return String(str||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _escTa(str){ return String(str||'').replace(/[<]/g,'&lt;').replace(/[>]/g,'&gt;'); }
 var _replayGhSha = null;
 var _replaySaveTimer = null;
 var _REPLAY_LS_KEY = 'dashen_replay_data';
