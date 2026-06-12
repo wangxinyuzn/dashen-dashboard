@@ -2185,7 +2185,11 @@ function renderScoreBoard(){
     return;
   }
 
-  var medals = ['🥇','🥈','🥉'];
+  var medals = [
+    '<span style="font-size:18px;filter:drop-shadow(0 0 4px #c9a84c)">🥇</span>',
+    '<span style="font-size:18px;filter:drop-shadow(0 0 4px #9ca3af)">🥈</span>',
+    '<span style="font-size:18px;filter:drop-shadow(0 0 4px #cd7f32)">🥉</span>'
+  ];
   var medalBorder = ['#c9a84c','#9ca3af','#cd7f32'];
   var medalScoreColor = ['#e8c96a','#d1d5db','#cd9b6b'];
 
@@ -2195,7 +2199,7 @@ function renderScoreBoard(){
 
     if(idx < 3){
       return '<div style="width:110px;background:#111;border:2px solid ' + medalBorder[idx] + ';border-radius:10px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 0 10px ' + medalBorder[idx] + '55">' +
-        '<div style="font-size:16px;line-height:1">' + medals[idx] + '</div>' +
+        '<div style="line-height:1;margin-bottom:2px">' + medals[idx] + '</div>' +
         '<div style="font-size:13px;font-weight:800;color:#e8d5a3;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;text-align:center">' + name + '</div>' +
         '<div style="font-size:28px;font-weight:900;color:' + medalScoreColor[idx] + ';letter-spacing:-1px;line-height:1">' + d.score + '<span style="font-size:11px;font-weight:600;color:#888">分</span></div>' +
         mvpTag +
