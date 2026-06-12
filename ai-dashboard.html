@@ -382,37 +382,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
     </div>
 
-    <!-- MVP榜 -->
-    <div class="section-wrap">
-      <div class="section-header">
-        <span class="section-header-icon">🏆</span>
-        <span class="section-header-title">M V P 榜</span>
-        <div class="section-header-extra">
-          <button onclick="addMvpCard()">＋ 添加</button>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div id="mvp-grid" style="display:flex;flex-wrap:wrap;gap:16px;padding:4px;min-height:60px"></div>
-      </div>
-    </div>
+    <!-- 对战情况 + MVP榜 左右并列 -->
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
 
-    <!-- 复盘记录 -->
-    <div class="section-wrap" id="replay-section">
-      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="section-header-icon">⚔️</span>
-          <span class="section-header-title">对 战 情 况</span>
+      <!-- 对战情况（左） -->
+      <div style="flex:1;min-width:0" id="replay-section">
+        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="section-header-icon">⚔️</span>
+            <span class="section-header-title">对 战 情 况</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button onclick="replayQuickSeats(9)" style="background:rgba(129,140,248,.15);border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">9人局</button>
+            <button onclick="replayQuickSeats(12)" style="background:rgba(129,140,248,.15);border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">12人局</button>
+            <button onclick="replayAddTab()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#c9a84c;padding:4px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">＋ 新增一局</button>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <button onclick="replayQuickSeats(9)" style="background:rgba(129,140,248,.15);border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">9人局</button>
-          <button onclick="replayQuickSeats(12)" style="background:rgba(129,140,248,.15);border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">12人局</button>
-          <button onclick="replayAddTab()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#c9a84c;padding:4px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">＋ 新增一局</button>
+        <div class="card" style="margin-bottom:0;border-radius:0 0 12px 12px">
+          <div id="replay-tabs" style="display:flex;gap:8px;padding-bottom:12px;flex-wrap:wrap"></div>
+          <div id="replay-content"></div>
         </div>
       </div>
-      <!-- Tab 栏 -->
-      <div id="replay-tabs" style="display:flex;gap:8px;padding:0 4px 12px;flex-wrap:wrap"></div>
-      <!-- 当前局内容 -->
-      <div id="replay-content"></div>
+
+      <!-- MVP榜（右） -->
+      <div style="width:220px;flex-shrink:0">
+        <div class="section-header">
+          <span class="section-header-icon">🏆</span>
+          <span class="section-header-title">M V P 榜</span>
+          <div class="section-header-extra">
+            <button onclick="addMvpCard()">＋ 添加</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0;border-radius:0 0 12px 12px">
+          <div id="mvp-grid" style="display:flex;flex-wrap:wrap;gap:12px;padding:4px;min-height:60px"></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- 玩家胜率 -->
