@@ -1524,7 +1524,7 @@ function replayAddTab(){
   _replayData.unshift(_replayDefaultTab()); // 新局插到最前
   _replayCurTab = 0;
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayDeleteTab(idx){
@@ -1538,7 +1538,7 @@ function replayDeleteTab(idx){
     if(_replayCurTab >= _replayData.length) _replayCurTab = _replayData.length - 1;
   }
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replaySelectTab(idx){
@@ -1757,14 +1757,14 @@ function replayRosterAdd(faction){
   tab.roster[faction].push({num:'?', role:''});
   replaySyncSeatsFromRoster(_replayCurTab);
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayRosterDel(faction, idx){
   _replayData[_replayCurTab].roster[faction].splice(idx, 1);
   replaySyncSeatsFromRoster(_replayCurTab);
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayRosterEditNum(faction, idx){
@@ -1804,14 +1804,14 @@ function replayAddSeat(tabIdx){
   var nextNum = tab.seats.length + 1;
   tab.seats.push({num: nextNum, name: '', faction: '', role: ''});
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 // 删除玩家
 function replayDelSeat(tabIdx, seatIdx){
   _replayData[tabIdx].seats.splice(seatIdx, 1);
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayEditSeatNum(tabIdx, seatIdx){
@@ -1822,7 +1822,7 @@ function replayEditSeatNum(tabIdx, seatIdx){
   if(val === null) return;
   seat.num = val.trim();
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 // inline 编辑名字：输入时实时写入数据，不触发 replayRender 防止输入被打断
@@ -1855,13 +1855,12 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   var idx = cycle.indexOf(seat.faction || '');
   var next = cycle[(idx + 1) % cycle.length];
   seat.faction = next;
-  // 切换阵营时重置子角色
   if(next === '狼人') seat.role = wolfRoles[0];
   else if(next === '神职') seat.role = shenRoles[0];
   else if(next === '三方') seat.role = thirdRoles[0];
   else seat.role = '';
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存，防止轮询覆盖
 }
 
 // 点击切换具体角色（狼人系/神职系/三方系循环）
@@ -1881,7 +1880,7 @@ function replaySeatNextRole(tabIdx, seatIdx){
     seat.role = thirdRoles[(idx3 + 1) % thirdRoles.length];
   }
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 // inline 编辑阵营卡片的号码/身份
@@ -1900,14 +1899,14 @@ function replayRosterInlineInput(el){
 function replayAddRound(tabIdx){
   _replayData[tabIdx].rounds.push({night:'', day:''});
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayDelRound(tabIdx, roundIdx){
   if(_replayData[tabIdx].rounds.length <= 1) return;
   _replayData[tabIdx].rounds.splice(roundIdx, 1);
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayUpdateSheriff(tabIdx, val){
@@ -1918,7 +1917,7 @@ function replayUpdateSheriff(tabIdx, val){
 function replaySetWinner(tabIdx, winner){
   _replayData[tabIdx].winner = _replayData[tabIdx].winner === winner ? '' : winner;
   replayRender();
-  replayScheduleSave();
+  replaySave(); // 立即保存
 }
 
 function replayUpdateDm(tabIdx, val){
