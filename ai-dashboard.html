@@ -2137,11 +2137,11 @@ function renderScoreBoard(){
   // 胜利 +2，失败 +1，MVP榜里出现名字 +1
   var scoreMap = {};
 
-  // 从 MVP 榜收集名字（不重复）
+  // 从 MVP 榜统计每个名字出现的次数
   var mvpNames = {};
   _mvpCards.forEach(function(c){
     var n = (c.name || '').trim();
-    if(n) mvpNames[n] = true;
+    if(n) mvpNames[n] = (mvpNames[n] || 0) + 1;
   });
 
   _replayData.forEach(function(tab){
@@ -2168,9 +2168,12 @@ function renderScoreBoard(){
     });
   });
 
-  // MVP 额外加 1 分
+  // MVP 加分：每次出现 +1 分
   Object.keys(mvpNames).forEach(function(name){
-    if(scoreMap[name]){ scoreMap[name].score += 1; scoreMap[name].mvp++; }
+    if(scoreMap[name]){
+      scoreMap[name].mvp = mvpNames[name];
+      scoreMap[name].score += mvpNames[name];
+    }
   });
 
   var players = Object.keys(scoreMap).sort(function(a,b){
