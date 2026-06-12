@@ -2195,7 +2195,7 @@ function renderScoreBoard(){
 
   grid.innerHTML = players.map(function(name, idx){
     var d = scoreMap[name];
-    var mvpTag = d.mvp ? '<div style="font-size:10px;color:#e8c96a;font-weight:700;margin-top:2px">⭐ MVP x' + d.mvp + '</div>' : '';
+    var mvpTag = '<div style="font-size:10px;font-weight:700;margin-top:2px;' + (d.mvp ? 'color:#e8c96a' : 'visibility:hidden') + '">⭐ MVP x' + (d.mvp || 1) + '</div>';
 
     if(idx < 3){
       return '<div style="width:110px;min-height:110px;background:#111;border:2px solid ' + medalBorder[idx] + ';border-radius:10px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 0 10px ' + medalBorder[idx] + '55">' +
