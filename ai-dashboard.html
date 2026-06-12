@@ -1655,8 +1655,14 @@ function replayRender(){
     cards.forEach(function(card, i){
       rosterHtml += '<div class="battle-card">' +
         '<div class="battle-card-del" onclick="replayRosterDel(\'' + fc.key + '\',' + i + ')">×</div>' +
-        '<div class="battle-card-num" onclick="replayRosterEditNum(\'' + fc.key + '\',' + i + ')">' + (card.num||'?') + '</div>' +
-        '<div class="battle-card-role" onclick="replayRosterEditRole(\'' + fc.key + '\',' + i + ')">' + (card.role||'') + '</div>' +
+        '<input type="text" value="' + (card.num === '?' ? '' : (card.num||'')) + '" placeholder="?" ' +
+        'class="replay-roster-input" data-faction="' + fc.key + '" data-idx="' + i + '" data-field="num" ' +
+        'style="width:100%;background:transparent;border:none;border-bottom:1px solid #555;outline:none;font-size:18px;font-weight:900;color:#c9a84c;text-align:center;padding:2px 0;line-height:1;" ' +
+        'oninput="replayRosterInlineInput(this)" onblur="this.style.borderBottomColor=\'#555\'" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
+        '<input type="text" value="' + (card.role||'') + '" placeholder="身份" ' +
+        'class="replay-roster-input" data-faction="' + fc.key + '" data-idx="' + i + '" data-field="role" ' +
+        'style="width:100%;background:transparent;border:none;border-bottom:1px solid #555;outline:none;font-size:10px;color:#e8d5a3;font-weight:600;text-align:center;padding:1px 2px;line-height:1.2;" ' +
+        'oninput="replayRosterInlineInput(this)" onblur="this.style.borderBottomColor=\'#555\'" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
         '</div>';
     });
     rosterHtml += '</div>' +
@@ -1820,6 +1826,19 @@ function replaySeatNameBlur(el){
   }
 }
 
+// inline 编辑阵营卡片的号码/身份
+function replayRosterInlineInput(el){
+  var faction = el.dataset.faction;
+  var idx = parseInt(el.dataset.idx);
+  var field = el.dataset.field;
+  var tab = _replayData[_replayCurTab];
+  if(!tab || !tab.roster || !tab.roster[faction] || !tab.roster[faction][idx]) return;
+  tab.roster[faction][idx][field] = el.value || (field === 'num' ? '?' : '');
+  // 号码改了要同步玩家信息
+  if(field === 'num') replaySyncSeatsFromRoster(_replayCurTab);
+  replayScheduleSave();
+}
+
 function replayAddRound(tabIdx){
   _replayData[tabIdx].rounds.push({night:'', day:''});
   replayRender();
@@ -1912,7 +1931,7 @@ function replayLoad(){
       // 如果用户正在输入复盘内容，不覆盖 DOM
       var _activeEl2 = document.activeElement;
       var _isTyping2 = _replayEditing ||
-        (_activeEl2 && (_activeEl2.classList.contains('replay-round-input') || _activeEl2.classList.contains('replay-seat-name-input')));
+        (_activeEl2 && (_activeEl2.classList.contains('replay-round-input') || _activeEl2.classList.contains('replay-seat-name-input') || _activeEl2.classList.contains('replay-roster-input'))));
       if(!_isTyping2){
         replayRender();
       }
@@ -2070,7 +2089,7 @@ function _pollGitHub(){
       // 如果用户正在输入复盘内容，不覆盖 DOM，避免输入消失
       var _activeEl = document.activeElement;
       var _isTyping = _replayEditing ||
-        (_activeEl && (_activeEl.classList.contains('replay-round-input') || _activeEl.classList.contains('replay-seat-name-input')));
+        (_activeEl && (_activeEl.classList.contains('replay-round-input') || _activeEl.classList.contains('replay-seat-name-input') || _activeEl.classList.contains('replay-roster-input')));
       if(!_isTyping){
         replayRender();
       }
