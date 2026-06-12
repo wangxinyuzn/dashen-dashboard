@@ -236,7 +236,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <span>🐺</span> 狼人杀面杀辅助工具
   </div>
   <div class="header-right">
-    <span class="header-tag" id="sync-status-tag">🔄 实时同步中...</span>
     <span id="today-label"></span>
     <button id="manual-save-btn" onclick="replaySave()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#e8c96a;padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:700;transition:all .2s">💾 保存同步</button>
     <button class="admin-btn">🔒 管理员</button>
@@ -2158,13 +2157,7 @@ function _pollGitHub(){
   }).catch(function(){ _updateSyncTag(false); });
 }
 
-// 页面加载后 1 秒做一次初始同步，更新同步状态标签
-setTimeout(function(){
-  _pollGitHub();
-}, 1000);
-
-// 每 30 秒轮询一次
-setInterval(_pollGitHub, 30000);
+// 自动轮询已禁用，仅手动点击「💾 保存同步」按钮时同步
 </script>
 </body>
 </html>
