@@ -410,6 +410,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div id="replay-content"></div>
     </div>
 
+    <!-- 玩家胜率 -->
+    <div class="section-wrap" id="winrate-section">
+      <div class="section-header">
+        <span class="section-header-icon">📊</span>
+        <span class="section-header-title">玩 家 胜 率</span>
+        <div class="section-header-extra">
+          <span id="winrate-total-tag" style="font-size:11px;color:rgba(232,201,106,.7)"></span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="winrate-grid" style="display:flex;flex-wrap:wrap;gap:12px;min-height:60px;align-items:flex-start"></div>
+      </div>
+    </div>
+
     <!-- 角色介绍 -->
     <div class="section-wrap">
       <div class="section-header">
@@ -1908,6 +1922,100 @@ function replayLoad(){
 
 // 启动
 replayLoad();
+
+// ===================== 玩家胜率 =====================
+function renderWinRate(){
+  var grid = document.getElementById('winrate-grid');
+  var totalTag = document.getElementById('winrate-total-tag');
+  if(!grid) return;
+
+  var totalGames = _replayData.length;
+  if(totalTag) totalTag.textContent = '共 ' + totalGames + ' 局';
+
+  // 统计每个玩家的胜负
+  // playerMap: { name: { win: N, total: N } }
+  var playerMap = {};
+
+  _replayData.forEach(function(tab){
+    var winner = tab.winner; // 'good' | 'wolf' | 'third' | ''
+    var roster = tab.roster || {};
+
+    // 收集各阵营玩家名字（过滤空名字）
+    var factions = {
+      good:  (roster.good  || []).map(function(c){ return c.num || ''; }),
+      shen:  (roster.shen  || []).map(function(c){ return c.num || ''; }),
+      wolf:  (roster.wolf  || []).map(function(c){ return c.num || ''; }),
+      third: (roster.third || []).map(function(c){ return c.num || ''; })
+    };
+
+    // 用 seats 把座位号映射到名字
+    var seatMap = {}; // num -> name
+    if(tab.seats){
+      tab.seats.forEach(function(s){
+        if(s.name && s.name.trim()){
+          seatMap[String(s.num)] = s.name.trim();
+        }
+      });
+    }
+
+    // 把所有出现的玩家注册到 playerMap
+    ['good','shen','wolf','third'].forEach(function(faction){
+      (roster[faction] || []).forEach(function(card){
+        var num = String(card.num || '');
+        var name = seatMap[num] || '';
+        if(!name) return; // 没有名字就跳过
+        if(!playerMap[name]) playerMap[name] = {win:0, total:0};
+        playerMap[name].total += 1;
+
+        // 判断本局是否赢
+        var isWin = false;
+        if(winner === 'wolf' && faction === 'wolf') isWin = true;
+        if(winner === 'good' && (faction === 'good' || faction === 'shen')) isWin = true;
+        if(winner === 'third' && faction === 'third') isWin = true;
+        if(isWin) playerMap[name].win += 1;
+      });
+    });
+  });
+
+  // 过滤出至少出现过1次的玩家，按胜率降序排列
+  var players = Object.keys(playerMap).filter(function(name){
+    return playerMap[name].total >= 1;
+  }).sort(function(a, b){
+    var ra = playerMap[a].total ? playerMap[a].win / playerMap[a].total : 0;
+    var rb = playerMap[b].total ? playerMap[b].win / playerMap[b].total : 0;
+    if(rb !== ra) return rb - ra;
+    return playerMap[b].win - playerMap[a].win;
+  });
+
+  if(!players.length){
+    grid.innerHTML = '<span style="color:#555;font-size:13px;padding:8px 0">复盘记录中暂无玩家名字数据</span>';
+    return;
+  }
+
+  grid.innerHTML = players.map(function(name){
+    var d = playerMap[name];
+    var pct = d.total ? Math.round(d.win / d.total * 100) : 0;
+    // 颜色：≥60% 金色，40-59% 蓝色，<40% 红色
+    var color = pct >= 60 ? '#e8c96a' : pct >= 40 ? '#818cf8' : '#f87171';
+    var barColor = pct >= 60 ? 'linear-gradient(90deg,#c9a84c,#f5d36a)' : pct >= 40 ? 'linear-gradient(90deg,#4f6ef7,#818cf8)' : 'linear-gradient(90deg,#b91c1c,#f87171)';
+    return '<div style="width:110px;background:#111;border:1.5px solid #333;border-radius:10px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">' +
+      '<div style="font-size:13px;font-weight:800;color:#e8d5a3;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;text-align:center">' + name + '</div>' +
+      '<div style="font-size:26px;font-weight:900;color:' + color + ';letter-spacing:-1px;line-height:1">' + pct + '<span style="font-size:13px;font-weight:700">%</span></div>' +
+      '<div style="width:100%;background:#222;border-radius:4px;height:6px;overflow:hidden">' +
+        '<div style="height:100%;border-radius:4px;background:' + barColor + ';width:' + pct + '%"></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#666;letter-spacing:.5px">' + d.win + ' 胜 / ' + d.total + ' 局</div>' +
+      '</div>';
+  }).join('');
+}
+
+// hook 到 replayRender 之后自动刷新胜率
+var _origReplayRender = replayRender;
+replayRender = function(){
+  _origReplayRender();
+  renderWinRate();
+};
+renderWinRate();
 
 // ===================== 实时轮询同步 =====================
 // 每 30 秒自动从 GitHub 拉取最新数据，保证所有人看到的数据实时一致
