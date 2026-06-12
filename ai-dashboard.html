@@ -1603,32 +1603,55 @@ function replayRender(){
   // 兼容旧数据
   if(!tab.roster) tab.roster = {good:[], shen:[], wolf:[], third:[]};
   if(!tab.seats) tab.seats = [];
+  // 确保每个 seat 有 faction/role 字段
+  tab.seats.forEach(function(s){ if(!s.faction) s.faction=''; if(!s.role) s.role=''; });
 
-  // 座位行（灰色，金色数字+名字，inline编辑）
+  // 阵营配置
+  var _factionCycle = ['', '平民', '狼人', '神职', '三方'];
+  var _factionColor = {'平民':'#4f6ef7','狼人':'#ef4444','神职':'#a855f7','三方':'#f59e0b','':''};
+  var _wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var _thirdRoles = ['丘比特','炸弹人','盗贼'];
+
+  // 座位行（带身份按钮）
   var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
   if(tab.seats.length > 0){
     tab.seats.forEach(function(s, i){
-      seatsHtml += '<div style="width:50px;height:66px;border-radius:8px;border:1.5px solid #555;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .15s;flex-shrink:0" ' +
-        'onmouseover="this.style.borderColor=\'#888\'" onmouseout="this.style.borderColor=\'#555\'">' +
+      var fc = s.faction || '';
+      var fcColor = _factionColor[fc] || '#555';
+      var borderColor = fc ? fcColor : '#555';
+      // 子角色按钮
+      var subBtn = '';
+      if(fc === '狼人'){
+        var roleIdx = _wolfRoles.indexOf(s.role);
+        var roleLabel = s.role || _wolfRoles[0];
+        subBtn = '<div onclick="replaySeatNextRole(' + _replayCurTab + ',' + i + ')" ' +
+          'style="font-size:9px;font-weight:700;color:#ef4444;cursor:pointer;padding:1px 4px;border:1px solid #ef444466;border-radius:4px;text-align:center;line-height:1.4;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46px">' +
+          _esc(roleLabel) + '</div>';
+      } else if(fc === '三方'){
+        var roleLabel3 = s.role || _thirdRoles[0];
+        subBtn = '<div onclick="replaySeatNextRole(' + _replayCurTab + ',' + i + ')" ' +
+          'style="font-size:9px;font-weight:700;color:#f59e0b;cursor:pointer;padding:1px 4px;border:1px solid #f59e0b66;border-radius:4px;text-align:center;line-height:1.4;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46px">' +
+          _esc(roleLabel3) + '</div>';
+      }
+      seatsHtml +=
+        '<div style="width:50px;min-height:' + (subBtn ? '112px' : '96px') + ';border-radius:8px;border:1.5px solid ' + borderColor + ';background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:4px 2px 2px;gap:2px;transition:all .15s;flex-shrink:0;position:relative">' +
+        '<div onclick="replayDelSeat(' + _replayCurTab + ',' + i + ')" style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#7f1d1d;border:1px solid #b91c1c;color:#fca5a5;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;line-height:1">×</div>' +
         '<div style="font-size:18px;font-weight:900;color:#c9a84c;line-height:1;width:100%;text-align:center;cursor:pointer" onclick="replayEditSeatNum(' + _replayCurTab + ',' + i + ')" title="点击编辑号码">' + (s.num !== undefined ? s.num : (i+1)) + '</div>' +
         '<input class="replay-seat-name-input" type="text" value="' + _esc(s.name || '') + '" placeholder="名字" ' +
         'data-tab="' + _replayCurTab + '" data-seat="' + i + '" ' +
-        'style="width:44px;font-size:10px;color:#ccc;font-weight:600;text-align:center;background:transparent;border:none;border-bottom:1px solid #555;outline:none;padding:1px 2px;line-height:1.2;" ' +
+        'style="width:46px;font-size:10px;color:#ccc;font-weight:600;text-align:center;background:transparent;border:none;border-bottom:1px solid #555;outline:none;padding:1px 2px;line-height:1.2;" ' +
         'oninput="replaySeatNameInput(this)" onblur="replaySeatNameBlur(this)" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
+        '<div onclick="replaySeatNextFaction(' + _replayCurTab + ',' + i + ')" ' +
+        'style="font-size:9px;font-weight:700;color:' + (fc ? fcColor : '#555') + ';cursor:pointer;padding:1px 4px;border:1px solid ' + (fc ? fcColor+'66' : '#444') + ';border-radius:4px;text-align:center;line-height:1.4;margin-top:1px;width:46px;box-sizing:border-box">' +
+        (fc || '身份') + '</div>' +
+        subBtn +
         '</div>';
     });
   } else {
-    seatsHtml += '<span style="color:#555;font-size:12px;padding:8px 0">请先在阵营中添加卡片</span>';
+    seatsHtml += '<span style="color:#555;font-size:12px;padding:8px 0">暂无玩家</span>';
   }
+  seatsHtml += '<button onclick="replayAddSeat(' + _replayCurTab + ')" style="width:50px;min-height:86px;border-radius:8px;border:1.5px dashed #555;background:transparent;color:#555;font-size:20px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center" onmouseover="this.style.borderColor=\'#c9a84c\';this.style.color=\'#c9a84c\'" onmouseout="this.style.borderColor=\'#555\';this.style.color=\'#555\'">＋</button>';
   seatsHtml += '</div>';
-
-  // 四阵营对战阵容
-  var factionCfg = [
-    {key:'good', label:'好人', color:'#1d4ed8', bg:'rgba(30,64,175,.15)'},
-    {key:'shen', label:'神职', color:'#7c3aed', bg:'rgba(124,58,237,.15)'},
-    {key:'wolf', label:'狼人', color:'#b91c1c', bg:'rgba(185,28,28,.15)'},
-    {key:'third',label:'三方', color:'#b45309', bg:'rgba(180,83,9,.15)'}
-  ];
   var winnerLabel = tab.winner === 'good' ? '好人胜' : tab.winner === 'wolf' ? '狼人胜' : '';
   var watermarkSvg = '';
   if(winnerLabel){
@@ -1652,30 +1675,16 @@ function replayRender(){
       '</svg>' +
       '</div>';
   }
-  var rosterHtml = '<div style="position:relative;display:flex;flex-direction:column;gap:12px;padding-bottom:16px">';
-  factionCfg.forEach(function(fc){
-    var cards = tab.roster[fc.key] || [];
-    rosterHtml += '<div style="display:flex;align-items:flex-start;gap:8px">' +
-      '<div style="font-size:12px;font-weight:800;padding:5px 8px;border-radius:6px;border:1.5px solid ' + fc.color + ';color:' + fc.color + ';background:' + fc.bg + ';white-space:nowrap;margin-top:2px;min-width:32px;text-align:center">' + fc.label + '</div>' +
-      '<div style="display:flex;flex-wrap:wrap;gap:7px;flex:1;align-items:flex-start;min-height:36px">';
-    cards.forEach(function(card, i){
-      rosterHtml += '<div class="battle-card">' +
-        '<div class="battle-card-del" onclick="replayRosterDel(\'' + fc.key + '\',' + i + ')">×</div>' +
-        '<input type="text" value="' + _esc(card.num === '?' ? '' : (card.num||'')) + '" placeholder="?" ' +
-        'class="replay-roster-input" data-faction="' + fc.key + '" data-idx="' + i + '" data-field="num" ' +
-        'style="width:100%;background:transparent;border:none;border-bottom:1px solid #555;outline:none;font-size:18px;font-weight:900;color:#c9a84c;text-align:center;padding:2px 0;line-height:1;" ' +
-        'oninput="replayRosterInlineInput(this)" onblur="this.style.borderBottomColor=\'#555\'" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
-        '<input type="text" value="' + _esc(card.role||'') + '" placeholder="身份" ' +
-        'class="replay-roster-input" data-faction="' + fc.key + '" data-idx="' + i + '" data-field="role" ' +
-        'style="width:100%;background:transparent;border:none;border-bottom:1px solid #555;outline:none;font-size:10px;color:#e8d5a3;font-weight:600;text-align:center;padding:1px 2px;line-height:1.2;" ' +
-        'oninput="replayRosterInlineInput(this)" onblur="this.style.borderBottomColor=\'#555\'" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
-        '</div>';
-    });
-    rosterHtml += '</div>' +
-      '<button class="battle-add-btn" onclick="replayRosterAdd(\'' + fc.key + '\')">＋</button>' +
-      '</div>';
+  // 从 seats 自动同步 roster（供胜率统计用）
+  var _rosterSync = {good:[], shen:[], wolf:[], third:[]};
+  tab.seats.forEach(function(s){
+    var fc = s.faction || '';
+    if(fc === '平民') _rosterSync.good.push({num: String(s.num||''), role: s.role||''});
+    else if(fc === '神职') _rosterSync.shen.push({num: String(s.num||''), role: s.role||''});
+    else if(fc === '狼人') _rosterSync.wolf.push({num: String(s.num||''), role: s.role||''});
+    else if(fc === '三方') _rosterSync.third.push({num: String(s.num||''), role: s.role||''});
   });
-  rosterHtml += '</div>';
+  tab.roster = _rosterSync;
 
   // 时间轴（含警长竞选）
   var sheriffVal = tab.sheriff || '';
@@ -1727,8 +1736,6 @@ function replayRender(){
   contentEl.innerHTML = '<div class="card" style="margin-bottom:0;position:relative;overflow:hidden">' +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">👥 玩家信息</div>' +
     seatsHtml +
-    '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">⚔️ 阵营</div>' +
-    rosterHtml +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">📅 轮次记录</div>' +
     roundsHtml +
     watermarkSvg +
@@ -1782,23 +1789,24 @@ function replayUpdateRound(tabIdx, roundIdx, field, val){
   replayScheduleSave();
 }
 
-// 同步角色选取数量到复盘座位行
-// 根据当前局阵营总数同步玩家信息座位卡片
-function replaySyncSeatsFromRoster(tabIdx){
+// 同步（现在不再依赖 roster，保留空函数供兼容）
+function replaySyncSeatsFromRoster(tabIdx){ }
+
+// 添加玩家
+function replayAddSeat(tabIdx){
   var tab = _replayData[tabIdx];
-  if(!tab.roster) return;
-  var total = (tab.roster.good||[]).length + (tab.roster.shen||[]).length +
-              (tab.roster.wolf||[]).length + (tab.roster.third||[]).length;
-  var cur = tab.seats || [];
-  var next = [];
-  for(var i = 0; i < total; i++){
-    var existing = cur[i] || {};
-    next.push({
-      num: existing.num !== undefined ? existing.num : (i + 1),
-      name: existing.name || ''
-    });
-  }
-  tab.seats = next;
+  if(!tab.seats) tab.seats = [];
+  var nextNum = tab.seats.length + 1;
+  tab.seats.push({num: nextNum, name: '', faction: '', role: ''});
+  replayRender();
+  replayScheduleSave();
+}
+
+// 删除玩家
+function replayDelSeat(tabIdx, seatIdx){
+  _replayData[tabIdx].seats.splice(seatIdx, 1);
+  replayRender();
+  replayScheduleSave();
 }
 
 function replayEditSeatNum(tabIdx, seatIdx){
@@ -1830,6 +1838,39 @@ function replaySeatNameBlur(el){
     _replayData[tabIdx].seats[seatIdx].name = el.value;
     replayScheduleSave();
   }
+}
+
+// 点击切换阵营：空→平民→狼人→神职→三方→空
+function replaySeatNextFaction(tabIdx, seatIdx){
+  var seat = _replayData[tabIdx].seats[seatIdx];
+  var cycle = ['', '平民', '狼人', '神职', '三方'];
+  var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var thirdRoles = ['丘比特','炸弹人','盗贼'];
+  var idx = cycle.indexOf(seat.faction || '');
+  var next = cycle[(idx + 1) % cycle.length];
+  seat.faction = next;
+  // 切换阵营时重置子角色
+  if(next === '狼人') seat.role = wolfRoles[0];
+  else if(next === '三方') seat.role = thirdRoles[0];
+  else seat.role = '';
+  replayRender();
+  replayScheduleSave();
+}
+
+// 点击切换具体角色（狼人系/三方系循环）
+function replaySeatNextRole(tabIdx, seatIdx){
+  var seat = _replayData[tabIdx].seats[seatIdx];
+  var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var thirdRoles = ['丘比特','炸弹人','盗贼'];
+  if(seat.faction === '狼人'){
+    var idx = wolfRoles.indexOf(seat.role);
+    seat.role = wolfRoles[(idx + 1) % wolfRoles.length];
+  } else if(seat.faction === '三方'){
+    var idx2 = thirdRoles.indexOf(seat.role);
+    seat.role = thirdRoles[(idx2 + 1) % thirdRoles.length];
+  }
+  replayRender();
+  replayScheduleSave();
 }
 
 // inline 编辑阵营卡片的号码/身份
@@ -1957,48 +1998,27 @@ function renderWinRate(){
   var totalGames = _replayData.length;
   if(totalTag) totalTag.textContent = '共 ' + totalGames + ' 局';
 
-  // 统计每个玩家的胜负
-  // playerMap: { name: { win: N, total: N } }
+  // 统计每个玩家的胜负（直接从 seats.faction 读取）
   var playerMap = {};
 
   _replayData.forEach(function(tab){
     var winner = tab.winner; // 'good' | 'wolf' | 'third' | ''
-    var roster = tab.roster || {};
+    if(!tab.seats) return;
 
-    // 收集各阵营玩家名字（过滤空名字）
-    var factions = {
-      good:  (roster.good  || []).map(function(c){ return c.num || ''; }),
-      shen:  (roster.shen  || []).map(function(c){ return c.num || ''; }),
-      wolf:  (roster.wolf  || []).map(function(c){ return c.num || ''; }),
-      third: (roster.third || []).map(function(c){ return c.num || ''; })
-    };
+    tab.seats.forEach(function(s){
+      var name = (s.name || '').trim();
+      if(!name) return;
+      var fc = s.faction || ''; // 平民/神职/狼人/三方
+      if(!fc) return; // 没有设置阵营的不统计
 
-    // 用 seats 把座位号映射到名字
-    var seatMap = {}; // num -> name
-    if(tab.seats){
-      tab.seats.forEach(function(s){
-        if(s.name && s.name.trim()){
-          seatMap[String(s.num)] = s.name.trim();
-        }
-      });
-    }
+      if(!playerMap[name]) playerMap[name] = {win:0, total:0};
+      playerMap[name].total += 1;
 
-    // 把所有出现的玩家注册到 playerMap
-    ['good','shen','wolf','third'].forEach(function(faction){
-      (roster[faction] || []).forEach(function(card){
-        var num = String(card.num || '');
-        var name = seatMap[num] || '';
-        if(!name) return; // 没有名字就跳过
-        if(!playerMap[name]) playerMap[name] = {win:0, total:0};
-        playerMap[name].total += 1;
-
-        // 判断本局是否赢
-        var isWin = false;
-        if(winner === 'wolf' && faction === 'wolf') isWin = true;
-        if(winner === 'good' && (faction === 'good' || faction === 'shen')) isWin = true;
-        if(winner === 'third' && faction === 'third') isWin = true;
-        if(isWin) playerMap[name].win += 1;
-      });
+      var isWin = false;
+      if(winner === 'wolf' && fc === '狼人') isWin = true;
+      if(winner === 'good' && (fc === '平民' || fc === '神职')) isWin = true;
+      if(winner === 'third' && fc === '三方') isWin = true;
+      if(isWin) playerMap[name].win += 1;
     });
   });
 
