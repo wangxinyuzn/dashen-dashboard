@@ -1584,14 +1584,17 @@ function replayRender(){
   if(!tab.roster) tab.roster = {good:[], shen:[], wolf:[], third:[]};
   if(!tab.seats) tab.seats = [];
 
-  // 座位行（灰色，金色数字+名字）
+  // 座位行（灰色，金色数字+名字，inline编辑）
   var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
   if(tab.seats.length > 0){
     tab.seats.forEach(function(s, i){
       seatsHtml += '<div style="width:50px;height:66px;border-radius:8px;border:1.5px solid #555;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .15s;flex-shrink:0" ' +
         'onmouseover="this.style.borderColor=\'#888\'" onmouseout="this.style.borderColor=\'#555\'">' +
         '<div style="font-size:18px;font-weight:900;color:#c9a84c;line-height:1;width:100%;text-align:center;cursor:pointer" onclick="replayEditSeatNum(' + _replayCurTab + ',' + i + ')" title="点击编辑号码">' + (s.num !== undefined ? s.num : (i+1)) + '</div>' +
-        '<div style="font-size:10px;color:#ccc;font-weight:600;text-align:center;word-break:break-all;padding:0 3px;cursor:pointer;line-height:1.2;width:100%" onclick="replayEditSeatName(' + _replayCurTab + ',' + i + ')" title="点击填写名字">' + (s.name || '<span style="color:#555">名字</span>') + '</div>' +
+        '<input class="replay-seat-name-input" type="text" value="' + (s.name || '') + '" placeholder="名字" ' +
+        'data-tab="' + _replayCurTab + '" data-seat="' + i + '" ' +
+        'style="width:44px;font-size:10px;color:#ccc;font-weight:600;text-align:center;background:transparent;border:none;border-bottom:1px solid #555;outline:none;padding:1px 2px;line-height:1.2;" ' +
+        'oninput="replaySeatNameInput(this)" onblur="replaySeatNameBlur(this)" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
         '</div>';
     });
   } else {
@@ -1783,15 +1786,24 @@ function replayEditSeatNum(tabIdx, seatIdx){
   replayScheduleSave();
 }
 
-function replayEditSeatName(tabIdx, seatIdx){
-  var seat = _replayData[tabIdx].seats[seatIdx];
-  _replayEditing = true;
-  var val = prompt('玩家名字：', seat.name || '');
-  _replayEditing = false;
-  if(val === null) return;
-  seat.name = val.trim();
-  replayRender();
-  replayScheduleSave();
+// inline 编辑名字：输入时实时写入数据，不触发 replayRender 防止输入被打断
+function replaySeatNameInput(el){
+  var tabIdx = parseInt(el.dataset.tab);
+  var seatIdx = parseInt(el.dataset.seat);
+  if(_replayData[tabIdx] && _replayData[tabIdx].seats[seatIdx] !== undefined){
+    _replayData[tabIdx].seats[seatIdx].name = el.value;
+    replayScheduleSave();
+  }
+}
+// 失焦时也保存一次
+function replaySeatNameBlur(el){
+  el.style.borderBottomColor = '#555';
+  var tabIdx = parseInt(el.dataset.tab);
+  var seatIdx = parseInt(el.dataset.seat);
+  if(_replayData[tabIdx] && _replayData[tabIdx].seats[seatIdx] !== undefined){
+    _replayData[tabIdx].seats[seatIdx].name = el.value;
+    replayScheduleSave();
+  }
 }
 
 function replayAddRound(tabIdx){
@@ -1885,7 +1897,9 @@ function replayLoad(){
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
       // 如果用户正在输入复盘内容，不覆盖 DOM
       var _activeEl2 = document.activeElement;
-      if(!_replayEditing && (!_activeEl2 || !_activeEl2.classList.contains('replay-round-input'))){
+      var _isTyping2 = _replayEditing ||
+        (_activeEl2 && (_activeEl2.classList.contains('replay-round-input') || _activeEl2.classList.contains('replay-seat-name-input')));
+      if(!_isTyping2){
         replayRender();
       }
     }
@@ -1947,7 +1961,9 @@ function _pollGitHub(){
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
       // 如果用户正在输入复盘内容，不覆盖 DOM，避免输入消失
       var _activeEl = document.activeElement;
-      if(!_replayEditing && (!_activeEl || !_activeEl.classList.contains('replay-round-input'))){
+      var _isTyping = _replayEditing ||
+        (_activeEl && (_activeEl.classList.contains('replay-round-input') || _activeEl.classList.contains('replay-seat-name-input')));
+      if(!_isTyping){
         replayRender();
       }
     }
