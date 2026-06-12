@@ -238,6 +238,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <div class="header-right">
     <span class="header-tag" id="sync-status-tag">🔄 实时同步中...</span>
     <span id="today-label"></span>
+    <button id="manual-save-btn" onclick="replaySave()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#e8c96a;padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:700;transition:all .2s">💾 保存同步</button>
     <button class="admin-btn">🔒 管理员</button>
   </div>
 </div>
@@ -1524,7 +1525,7 @@ function replayAddTab(){
   _replayData.unshift(_replayDefaultTab()); // 新局插到最前
   _replayCurTab = 0;
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayDeleteTab(idx){
@@ -1538,7 +1539,7 @@ function replayDeleteTab(idx){
     if(_replayCurTab >= _replayData.length) _replayCurTab = _replayData.length - 1;
   }
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replaySelectTab(idx){
@@ -1569,7 +1570,7 @@ function replayRender(){
         _replayEditing = false;
         if(val === null) return;
         tab.date = val.trim() || _todayStr();
-        replayScheduleSave();
+        _replayLocalSave();
         replayRender();
       } else {
         replaySelectTab(i);
@@ -1757,14 +1758,14 @@ function replayRosterAdd(faction){
   tab.roster[faction].push({num:'?', role:''});
   replaySyncSeatsFromRoster(_replayCurTab);
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayRosterDel(faction, idx){
   _replayData[_replayCurTab].roster[faction].splice(idx, 1);
   replaySyncSeatsFromRoster(_replayCurTab);
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayRosterEditNum(faction, idx){
@@ -1775,7 +1776,7 @@ function replayRosterEditNum(faction, idx){
   if(val === null) return;
   card.num = val.trim() || '?';
   replayRender();
-  replayScheduleSave();
+  _replayLocalSave();
 }
 
 function replayRosterEditRole(faction, idx){
@@ -1786,12 +1787,12 @@ function replayRosterEditRole(faction, idx){
   if(val === null) return;
   card.role = val.trim();
   replayRender();
-  replayScheduleSave();
+  _replayLocalSave();
 }
 
 function replayUpdateRound(tabIdx, roundIdx, field, val){
   _replayData[tabIdx].rounds[roundIdx][field] = val;
-  replayScheduleSave();
+  _replayLocalSave();
 }
 
 // 同步（现在不再依赖 roster，保留空函数供兼容）
@@ -1804,14 +1805,14 @@ function replayAddSeat(tabIdx){
   var nextNum = tab.seats.length + 1;
   tab.seats.push({num: nextNum, name: '', faction: '', role: ''});
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 // 删除玩家
 function replayDelSeat(tabIdx, seatIdx){
   _replayData[tabIdx].seats.splice(seatIdx, 1);
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayEditSeatNum(tabIdx, seatIdx){
@@ -1822,7 +1823,7 @@ function replayEditSeatNum(tabIdx, seatIdx){
   if(val === null) return;
   seat.num = val.trim();
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 // inline 编辑名字：输入时实时写入数据，不触发 replayRender 防止输入被打断
@@ -1831,7 +1832,7 @@ function replaySeatNameInput(el){
   var seatIdx = parseInt(el.dataset.seat);
   if(_replayData[tabIdx] && _replayData[tabIdx].seats[seatIdx] !== undefined){
     _replayData[tabIdx].seats[seatIdx].name = el.value;
-    replayScheduleSave();
+    _replayLocalSave();
   }
 }
 // 失焦时也保存一次
@@ -1841,7 +1842,7 @@ function replaySeatNameBlur(el){
   var seatIdx = parseInt(el.dataset.seat);
   if(_replayData[tabIdx] && _replayData[tabIdx].seats[seatIdx] !== undefined){
     _replayData[tabIdx].seats[seatIdx].name = el.value;
-    replayScheduleSave();
+    _replayLocalSave();
   }
 }
 
@@ -1860,7 +1861,7 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   else if(next === '三方') seat.role = thirdRoles[0];
   else seat.role = '';
   replayRender();
-  replaySave(); // 立即保存，防止轮询覆盖
+  _replayLocalSave();，防止轮询覆盖
 }
 
 // 点击切换具体角色（狼人系/神职系/三方系循环）
@@ -1880,7 +1881,7 @@ function replaySeatNextRole(tabIdx, seatIdx){
     seat.role = thirdRoles[(idx3 + 1) % thirdRoles.length];
   }
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 // inline 编辑阵营卡片的号码/身份
@@ -1893,48 +1894,55 @@ function replayRosterInlineInput(el){
   tab.roster[faction][idx][field] = el.value || (field === 'num' ? '?' : '');
   // 号码改了要同步玩家信息
   if(field === 'num') replaySyncSeatsFromRoster(_replayCurTab);
-  replayScheduleSave();
+  _replayLocalSave();
 }
 
 function replayAddRound(tabIdx){
   _replayData[tabIdx].rounds.push({night:'', day:''});
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayDelRound(tabIdx, roundIdx){
   if(_replayData[tabIdx].rounds.length <= 1) return;
   _replayData[tabIdx].rounds.splice(roundIdx, 1);
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayUpdateSheriff(tabIdx, val){
   _replayData[tabIdx].sheriff = val;
-  replayScheduleSave();
+  _replayLocalSave();
 }
 
 function replaySetWinner(tabIdx, winner){
   _replayData[tabIdx].winner = _replayData[tabIdx].winner === winner ? '' : winner;
   replayRender();
-  replaySave(); // 立即保存
+  _replayLocalSave();
 }
 
 function replayUpdateDm(tabIdx, val){
   _replayData[tabIdx].dm = val;
-  replayScheduleSave();
+  _replayLocalSave();
 }
 
-function replayScheduleSave(){
-  clearTimeout(_replaySaveTimer);
-  _replaySaveTimer = setTimeout(replaySave, 2000);
+function replayScheduleSave(){ _replayLocalSave(); }
+
+// 仅本地保存（不上传 GitHub）
+function _replayLocalSave(){
+  try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
+  // 标记有未保存的改动
+  var saveBtn = document.getElementById('manual-save-btn');
+  if(saveBtn){ saveBtn.style.background='rgba(239,68,68,.25)'; saveBtn.style.borderColor='#ef4444'; saveBtn.style.color='#ef4444'; saveBtn.textContent='💾 有未保存'; }
 }
 
+// 手动保存（点击按钮触发，同步到 GitHub）
 function replaySave(){
-  // localStorage 备份
+  var saveBtn = document.getElementById('manual-save-btn');
+  if(saveBtn){ saveBtn.textContent='⏳ 保存中...'; saveBtn.style.opacity='0.7'; saveBtn.disabled=true; }
+
   try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
 
-  // GitHub 同步（与 mvp-data.json 合并存储）
   fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
     cache: 'no-cache',
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
@@ -1953,7 +1961,14 @@ function replaySave(){
       headers:{'Authorization':'token ' + _MVP_GH_TOKEN, 'Content-Type':'application/json'},
       body: body
     });
-  }).catch(function(){});
+  }).then(function(){
+    if(saveBtn){ saveBtn.textContent='✅ 已保存'; saveBtn.style.background='rgba(74,222,128,.2)'; saveBtn.style.borderColor='#4ade80'; saveBtn.style.color='#4ade80'; saveBtn.style.opacity='1'; saveBtn.disabled=false; }
+    setTimeout(function(){
+      if(saveBtn){ saveBtn.textContent='💾 保存同步'; saveBtn.style.background='rgba(201,168,76,.15)'; saveBtn.style.borderColor='#c9a84c'; saveBtn.style.color='#e8c96a'; }
+    }, 2000);
+  }).catch(function(){
+    if(saveBtn){ saveBtn.textContent='❌ 保存失败'; saveBtn.style.background='rgba(239,68,68,.2)'; saveBtn.style.borderColor='#ef4444'; saveBtn.style.color='#ef4444'; saveBtn.style.opacity='1'; saveBtn.disabled=false; }
+  });
 }
 
 // 按日期降序排列（最新在前），兼容无date字段
@@ -1985,13 +2000,7 @@ function replayLoad(){
     if(data.replay_data && data.replay_data.length){
       _replayData = _replaySortDesc(data.replay_data);
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
-      // 如果用户正在输入复盘内容，不覆盖 DOM
-      var _activeEl2 = document.activeElement;
-      var _isTyping2 = _replayEditing ||
-        (_activeEl2 && (_activeEl2.classList.contains('replay-round-input') || _activeEl2.classList.contains('replay-seat-name-input') || _activeEl2.classList.contains('replay-roster-input')));
-      if(!_isTyping2){
-        replayRender();
-      }
+      replayRender(); // 首次加载时同步 GitHub 数据
     }
   }).catch(function(){});
 }
@@ -2118,18 +2127,8 @@ function _pollGitHub(){
       try{ localStorage.setItem(_BATTLE_LS_KEY, JSON.stringify(_battleData)); }catch(e){}
       battleRenderAll();
     }
-    // --- 复盘 ---
-    if(data.replay_data && data.replay_data.length){
-      _replayData = _replaySortDesc(data.replay_data);
-      try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
-      // 如果用户正在输入复盘内容，不覆盖 DOM，避免输入消失
-      var _activeEl = document.activeElement;
-      var _isTyping = _replayEditing ||
-        (_activeEl && (_activeEl.classList.contains('replay-round-input') || _activeEl.classList.contains('replay-seat-name-input') || _activeEl.classList.contains('replay-roster-input')));
-      if(!_isTyping){
-        replayRender();
-      }
-    }
+    // --- 复盘（轮询不覆盖，由手动保存按钮控制）---
+    // 仅在首次加载时同步，后续由用户手动保存
 
     _updateSyncTag(true);
   }).catch(function(){ _updateSyncTag(false); });
