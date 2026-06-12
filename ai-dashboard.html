@@ -1611,6 +1611,7 @@ function replayRender(){
   var _factionColor = {'平民':'#4f6ef7','狼人':'#ef4444','神职':'#a855f7','三方':'#f59e0b','':''};
   var _wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
   var _thirdRoles = ['丘比特','炸弹人','盗贼'];
+  var _shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
 
   // 座位行（带身份按钮）
   var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
@@ -1622,11 +1623,15 @@ function replayRender(){
       // 子角色按钮
       var subBtn = '';
       if(fc === '狼人'){
-        var roleIdx = _wolfRoles.indexOf(s.role);
         var roleLabel = s.role || _wolfRoles[0];
         subBtn = '<div onclick="replaySeatNextRole(' + _replayCurTab + ',' + i + ')" ' +
           'style="font-size:9px;font-weight:700;color:#ef4444;cursor:pointer;padding:1px 4px;border:1px solid #ef444466;border-radius:4px;text-align:center;line-height:1.4;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46px">' +
           _esc(roleLabel) + '</div>';
+      } else if(fc === '神职'){
+        var roleLabelS = s.role || _shenRoles[0];
+        subBtn = '<div onclick="replaySeatNextRole(' + _replayCurTab + ',' + i + ')" ' +
+          'style="font-size:9px;font-weight:700;color:#a855f7;cursor:pointer;padding:1px 4px;border:1px solid #a855f766;border-radius:4px;text-align:center;line-height:1.4;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46px">' +
+          _esc(roleLabelS) + '</div>';
       } else if(fc === '三方'){
         var roleLabel3 = s.role || _thirdRoles[0];
         subBtn = '<div onclick="replaySeatNextRole(' + _replayCurTab + ',' + i + ')" ' +
@@ -1845,29 +1850,35 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
   var cycle = ['', '平民', '狼人', '神职', '三方'];
   var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
   var thirdRoles = ['丘比特','炸弹人','盗贼'];
   var idx = cycle.indexOf(seat.faction || '');
   var next = cycle[(idx + 1) % cycle.length];
   seat.faction = next;
   // 切换阵营时重置子角色
   if(next === '狼人') seat.role = wolfRoles[0];
+  else if(next === '神职') seat.role = shenRoles[0];
   else if(next === '三方') seat.role = thirdRoles[0];
   else seat.role = '';
   replayRender();
   replayScheduleSave();
 }
 
-// 点击切换具体角色（狼人系/三方系循环）
+// 点击切换具体角色（狼人系/神职系/三方系循环）
 function replaySeatNextRole(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
   var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
   var thirdRoles = ['丘比特','炸弹人','盗贼'];
   if(seat.faction === '狼人'){
     var idx = wolfRoles.indexOf(seat.role);
     seat.role = wolfRoles[(idx + 1) % wolfRoles.length];
+  } else if(seat.faction === '神职'){
+    var idx2 = shenRoles.indexOf(seat.role);
+    seat.role = shenRoles[(idx2 + 1) % shenRoles.length];
   } else if(seat.faction === '三方'){
-    var idx2 = thirdRoles.indexOf(seat.role);
-    seat.role = thirdRoles[(idx2 + 1) % thirdRoles.length];
+    var idx3 = thirdRoles.indexOf(seat.role);
+    seat.role = thirdRoles[(idx3 + 1) % thirdRoles.length];
   }
   replayRender();
   replayScheduleSave();
