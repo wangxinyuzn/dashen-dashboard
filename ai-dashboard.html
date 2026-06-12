@@ -227,6 +227,68 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
 /* 分隔线 */
 .divider{border:none;border-top:1px solid #f0f2f7;margin:16px 0}
+/* ===== 移动端响应式 ===== */
+@media (max-width: 768px) {
+  .layout { padding: 10px 8px; }
+
+  /* Header */
+  .header { padding: 0 12px; height: 48px; }
+  .header-left { font-size: 13px; gap: 6px; }
+  .header-right { gap: 6px; }
+  #today-label { display: none; }
+  #manual-save-btn { padding: 3px 10px; font-size: 11px; }
+  .admin-btn { display: none; }
+
+  /* section-header */
+  .section-header { padding: 8px 12px; }
+  .section-header-title { font-size: 13px; letter-spacing: 2px; }
+  .card { padding: 10px; }
+
+  /* 并排容器 → 纵向堆叠 */
+  .flex-row-wrap { flex-direction: column !important; }
+
+  /* 上警情况固定宽度取消 */
+  .shangjing-col {
+    width: 100% !important;
+    flex-shrink: unset !important;
+  }
+
+  /* num-picker 按钮更小 */
+  .num-btn { width: 34px; height: 44px; font-size: 14px; }
+  .num-picker { gap: 6px; }
+
+  /* kpi-grid */
+  .kpi-grid { gap: 8px; }
+  .kpi-card { min-height: 60px; }
+
+  /* MVP 榜卡片 */
+  .mvp-card { width: 110px !important; }
+
+  /* 胜率/积分榜卡片 wrap 时更小 */
+  #winrate-grid, #score-grid { gap: 8px; }
+  #winrate-grid > div, #score-grid > div { width: 90px !important; min-height: 90px !important; }
+  #winrate-grid > div > div:nth-child(2),
+  #score-grid > div > div:nth-child(3) { font-size: 22px !important; }
+
+  /* 复盘 tab 按钮 */
+  #replay-tabs { gap: 6px; padding-bottom: 8px; }
+
+  /* 对战情况 header 按钮换行 */
+  #replay-section .section-header { flex-wrap: wrap; gap: 6px; }
+  #replay-section .section-header > div:last-child { flex-wrap: wrap; gap: 6px; }
+
+  /* 玩家座位卡片 */
+  .battle-seat-card { min-width: 70px !important; }
+
+  /* 角色选取 flex 列改行 */
+  .role-pick-box { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .section-header-title { font-size: 12px; letter-spacing: 1px; }
+  #winrate-grid > div, #score-grid > div { width: 80px !important; }
+  .num-btn { width: 30px; height: 38px; font-size: 13px; }
+}
 </style>
 </head>
 <body>
@@ -271,7 +333,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     </div>
 
     <!-- 角色选取 + 上警情况 左右布局 -->
-    <div style="display:flex;gap:16px;align-items:stretch;margin-bottom:16px">
+    <div class="flex-row-wrap" style="display:flex;gap:16px;align-items:stretch;margin-bottom:16px">
 
       <!-- 角色选取（左） -->
       <div style="flex:1.2;display:flex;flex-direction:column">
@@ -297,7 +359,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     </div>
 
     <!-- 警长竞选 + 警长 左右布局 -->
-    <div style="display:flex;gap:16px;align-items:stretch;margin-bottom:16px">
+    <div class="flex-row-wrap" style="display:flex;gap:16px;align-items:stretch;margin-bottom:16px">
 
       <!-- 警长竞选（左） -->
       <div style="flex:3;display:flex;flex-direction:column">
@@ -348,7 +410,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     </div>
 
     <!-- 对战情况 + 上警情况 左右并列 -->
-    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
+    <div class="flex-row-wrap" style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
 
       <!-- 对战情况（左） -->
       <div style="flex:1;min-width:0" id="replay-section">
@@ -370,7 +432,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
 
       <!-- 上警情况（右） -->
-      <div style="width:280px;flex-shrink:0;display:flex;flex-direction:column">
+      <div class="shangjing-col" style="width:280px;flex-shrink:0;display:flex;flex-direction:column">
         <div class="section-header">
           <span class="section-header-icon">🐺</span>
           <span class="section-header-title">上 警 情 况</span>
