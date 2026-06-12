@@ -1483,6 +1483,7 @@ function autoResize(el){
 }
 var _replayData = []; // [{seats:[], rounds:[], winner:'', dm:''}]
 var _replayCurTab = 0;
+var _replayEditing = false; // 全局锁：正在 prompt 编辑期间禁止轮询覆盖
 var _replayGhSha = null;
 var _replaySaveTimer = null;
 var _REPLAY_LS_KEY = 'dashen_replay_data';
@@ -1543,7 +1544,9 @@ function replayRender(){
     btn.style.paddingRight = '22px';
     btn.onclick = function(e){
       if(_replayCurTab === i){
+        _replayEditing = true;
         var val = prompt('修改日期：', tab.date || _todayStr());
+        _replayEditing = false;
         if(val === null) return;
         tab.date = val.trim() || _todayStr();
         replayScheduleSave();
@@ -1725,7 +1728,9 @@ function replayRosterDel(faction, idx){
 
 function replayRosterEditNum(faction, idx){
   var card = _replayData[_replayCurTab].roster[faction][idx];
+  _replayEditing = true;
   var val = prompt('输入座位号：', card.num === '?' ? '' : card.num);
+  _replayEditing = false;
   if(val === null) return;
   card.num = val.trim() || '?';
   replayRender();
@@ -1734,7 +1739,9 @@ function replayRosterEditNum(faction, idx){
 
 function replayRosterEditRole(faction, idx){
   var card = _replayData[_replayCurTab].roster[faction][idx];
+  _replayEditing = true;
   var val = prompt('输入身份/角色：', card.role || '');
+  _replayEditing = false;
   if(val === null) return;
   card.role = val.trim();
   replayRender();
@@ -1767,7 +1774,9 @@ function replaySyncSeatsFromRoster(tabIdx){
 
 function replayEditSeatNum(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
+  _replayEditing = true;
   var val = prompt('座位号：', seat.num);
+  _replayEditing = false;
   if(val === null) return;
   seat.num = val.trim();
   replayRender();
@@ -1776,7 +1785,9 @@ function replayEditSeatNum(tabIdx, seatIdx){
 
 function replayEditSeatName(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
+  _replayEditing = true;
   var val = prompt('玩家名字：', seat.name || '');
+  _replayEditing = false;
   if(val === null) return;
   seat.name = val.trim();
   replayRender();
@@ -1874,7 +1885,7 @@ function replayLoad(){
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
       // 如果用户正在输入复盘内容，不覆盖 DOM
       var _activeEl2 = document.activeElement;
-      if(!_activeEl2 || !_activeEl2.classList.contains('replay-round-input')){
+      if(!_replayEditing && (!_activeEl2 || !_activeEl2.classList.contains('replay-round-input'))){
         replayRender();
       }
     }
@@ -1936,7 +1947,7 @@ function _pollGitHub(){
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
       // 如果用户正在输入复盘内容，不覆盖 DOM，避免输入消失
       var _activeEl = document.activeElement;
-      if(!_activeEl || !_activeEl.classList.contains('replay-round-input')){
+      if(!_replayEditing && (!_activeEl || !_activeEl.classList.contains('replay-round-input'))){
         replayRender();
       }
     }
