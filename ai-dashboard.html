@@ -433,6 +433,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
     </div>
 
+    <!-- 积分榜 -->
+    <div class="section-wrap" id="score-section">
+      <div class="section-header">
+        <span class="section-header-icon">🎖️</span>
+        <span class="section-header-title">积 分 榜</span>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div style="font-size:11px;color:#888;margin-bottom:10px;line-height:1.8;letter-spacing:.3px">
+          📌 <span style="color:#c9a84c;font-weight:700">计分规则：</span>胜利 <span style="color:#4ade80;font-weight:700">+2分</span>，失败 <span style="color:#f87171;font-weight:700">+1分</span>，当局 MVP <span style="color:#e8c96a;font-weight:700">+1分</span>
+        </div>
+        <div id="score-grid" style="display:flex;flex-wrap:wrap;gap:12px;min-height:60px;align-items:flex-start"></div>
+      </div>
+    </div>
+
     <!-- 角色介绍 -->
     <div class="section-wrap">
       <div class="section-header">
@@ -723,6 +737,8 @@ function mvpSave(){
   }).then(function(r){ return r.json(); }).then(function(d){
     if(d.content && d.content.sha) _mvpGhSha = d.content.sha;
   }).catch(function(){});
+  // 积分榜联动刷新
+  try{ renderScoreBoard(); }catch(e){}
 }
 
 function mvpLoad(){
@@ -2099,6 +2115,7 @@ var _origReplayRender = replayRender;
 replayRender = function(){
   try{ _origReplayRender(); }catch(e){ console.error('replayRender err:', e); }
   try{ renderWinRate(); }catch(e){ console.error('renderWinRate err:', e); }
+  try{ renderScoreBoard(); }catch(e){ console.error('renderScoreBoard err:', e); }
   // 上警数量跟随当前局座位数
   try{
     var tab = _replayData[_replayCurTab];
@@ -2108,6 +2125,79 @@ replayRender = function(){
   }catch(e){}
 };
 renderWinRate();
+renderScoreBoard();
+
+
+// ===================== 积分榜 =====================
+function renderScoreBoard(){
+  var grid = document.getElementById('score-grid');
+  if(!grid) return;
+
+  // 统计积分
+  // 胜利 +2，失败 +1，MVP榜里出现名字 +1
+  var scoreMap = {};
+
+  // 从 MVP 榜收集名字（不重复）
+  var mvpNames = {};
+  _mvpCards.forEach(function(c){
+    var n = (c.name || '').trim();
+    if(n) mvpNames[n] = true;
+  });
+
+  _replayData.forEach(function(tab){
+    var winner = tab.winner; // 'good'|'wolf'|'third'|''
+    if(!tab.seats) return;
+
+    tab.seats.forEach(function(s){
+      var name = (s.name || '').trim();
+      if(!name) return;
+      var fc = s.faction || '';
+      if(!fc) return;
+
+      if(!scoreMap[name]) scoreMap[name] = {score:0, win:0, lose:0, mvp:0};
+
+      var isWin = false;
+      if(winner === 'wolf' && fc === '狼人') isWin = true;
+      if(winner === 'good' && (fc === '平民' || fc === '神职')) isWin = true;
+      if(winner === 'third' && fc === '三方') isWin = true;
+
+      if(winner){ // 有胜负结果才计分
+        if(isWin){ scoreMap[name].score += 2; scoreMap[name].win++; }
+        else{ scoreMap[name].score += 1; scoreMap[name].lose++; }
+      }
+    });
+  });
+
+  // MVP 额外加 1 分
+  Object.keys(mvpNames).forEach(function(name){
+    if(scoreMap[name]){ scoreMap[name].score += 1; scoreMap[name].mvp++; }
+  });
+
+  var players = Object.keys(scoreMap).sort(function(a,b){
+    return scoreMap[b].score - scoreMap[a].score;
+  });
+
+  if(!players.length){
+    grid.innerHTML = '<span style="color:#555;font-size:13px;padding:8px 0">暂无数据，请先填写对战情况</span>';
+    return;
+  }
+
+  var medals = ['🥇','🥈','🥉'];
+  grid.innerHTML = players.map(function(name, idx){
+    var d = scoreMap[name];
+    var rankLabel = idx < 3 ? medals[idx] : '<span style="font-size:12px;color:#666">#' + (idx+1) + '</span>';
+    var scoreColor = idx === 0 ? '#e8c96a' : idx === 1 ? '#c0c0c0' : idx === 2 ? '#cd7f32' : '#818cf8';
+    var mvpTag = d.mvp ? '<div style="font-size:10px;color:#e8c96a;font-weight:700;margin-top:2px">⭐ MVP x' + d.mvp + '</div>' : '';
+    return '<div style="width:110px;background:#111;border:1.5px solid #333;border-radius:10px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;gap:4px">' +
+      '<div style="font-size:16px;line-height:1">' + rankLabel + '</div>' +
+      '<div style="font-size:13px;font-weight:800;color:#e8d5a3;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;text-align:center">' + name + '</div>' +
+      '<div style="font-size:28px;font-weight:900;color:' + scoreColor + ';letter-spacing:-1px;line-height:1">' + d.score + '<span style="font-size:11px;font-weight:600;color:#888">分</span></div>' +
+      mvpTag +
+      '<div style="font-size:10px;color:#555;letter-spacing:.3px">' + d.win + '胜 ' + d.lose + '负</div>' +
+      '</div>';
+  }).join('');
+}
+// ===================== 积分榜 END =====================
 
 // ===================== 实时轮询同步 =====================
 // 每 30 秒自动从 GitHub 拉取最新数据，保证所有人看到的数据实时一致
