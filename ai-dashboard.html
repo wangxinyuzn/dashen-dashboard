@@ -1498,6 +1498,9 @@ function autoResize(el){
 var _replayData = []; // [{seats:[], rounds:[], winner:'', dm:''}]
 var _replayCurTab = 0;
 var _replayEditing = false; // 全局锁：正在 prompt 编辑期间禁止轮询覆盖
+
+// HTML attribute 安全转义
+function _esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 var _replayGhSha = null;
 var _replaySaveTimer = null;
 var _REPLAY_LS_KEY = 'dashen_replay_data';
@@ -1605,7 +1608,7 @@ function replayRender(){
       seatsHtml += '<div style="width:50px;height:66px;border-radius:8px;border:1.5px solid #555;background:#2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .15s;flex-shrink:0" ' +
         'onmouseover="this.style.borderColor=\'#888\'" onmouseout="this.style.borderColor=\'#555\'">' +
         '<div style="font-size:18px;font-weight:900;color:#c9a84c;line-height:1;width:100%;text-align:center;cursor:pointer" onclick="replayEditSeatNum(' + _replayCurTab + ',' + i + ')" title="点击编辑号码">' + (s.num !== undefined ? s.num : (i+1)) + '</div>' +
-        '<input class="replay-seat-name-input" type="text" value="' + (s.name || '') + '" placeholder="名字" ' +
+        '<input class="replay-seat-name-input" type="text" value="' + _esc(s.name || '') + '" placeholder="名字" ' +
         'data-tab="' + _replayCurTab + '" data-seat="' + i + '" ' +
         'style="width:44px;font-size:10px;color:#ccc;font-weight:600;text-align:center;background:transparent;border:none;border-bottom:1px solid #555;outline:none;padding:1px 2px;line-height:1.2;" ' +
         'oninput="replaySeatNameInput(this)" onblur="replaySeatNameBlur(this)" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
@@ -1655,11 +1658,11 @@ function replayRender(){
     cards.forEach(function(card, i){
       rosterHtml += '<div class="battle-card">' +
         '<div class="battle-card-del" onclick="replayRosterDel(\'' + fc.key + '\',' + i + ')">×</div>' +
-        '<input type="text" value="' + (card.num === '?' ? '' : (card.num||'')) + '" placeholder="?" ' +
+        '<input type="text" value="' + _esc(card.num === '?' ? '' : (card.num||'')) + '" placeholder="?" ' +
         'class="replay-roster-input" data-faction="' + fc.key + '" data-idx="' + i + '" data-field="num" ' +
         'style="width:100%;background:transparent;border:none;border-bottom:1px solid #555;outline:none;font-size:18px;font-weight:900;color:#c9a84c;text-align:center;padding:2px 0;line-height:1;" ' +
         'oninput="replayRosterInlineInput(this)" onblur="this.style.borderBottomColor=\'#555\'" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
-        '<input type="text" value="' + (card.role||'') + '" placeholder="身份" ' +
+        '<input type="text" value="' + _esc(card.role||'') + '" placeholder="身份" ' +
         'class="replay-roster-input" data-faction="' + fc.key + '" data-idx="' + i + '" data-field="role" ' +
         'style="width:100%;background:transparent;border:none;border-bottom:1px solid #555;outline:none;font-size:10px;color:#e8d5a3;font-weight:600;text-align:center;padding:1px 2px;line-height:1.2;" ' +
         'oninput="replayRosterInlineInput(this)" onblur="this.style.borderBottomColor=\'#555\'" onfocus="this.style.borderBottomColor=\'#c9a84c\'" />' +
@@ -2031,8 +2034,8 @@ function renderWinRate(){
 // hook 到 replayRender 之后自动刷新胜率
 var _origReplayRender = replayRender;
 replayRender = function(){
-  _origReplayRender();
-  renderWinRate();
+  try{ _origReplayRender(); }catch(e){ console.error('replayRender err:', e); }
+  try{ renderWinRate(); }catch(e){ console.error('renderWinRate err:', e); }
 };
 renderWinRate();
 
