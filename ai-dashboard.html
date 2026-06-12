@@ -1499,8 +1499,10 @@ var _replayData = []; // [{seats:[], rounds:[], winner:'', dm:''}]
 var _replayCurTab = 0;
 var _replayEditing = false; // 全局锁：正在 prompt 编辑期间禁止轮询覆盖
 
-// HTML attribute 安全转义
+// HTML attribute 安全转义（用于 value=""）
 function _esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// textarea 内容转义（只需防止 </textarea> 截断，保留 & 原样）
+function _escTa(str){ return String(str||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 var _replayGhSha = null;
 var _replaySaveTimer = null;
 var _REPLAY_LS_KEY = 'dashen_replay_data';
@@ -1682,7 +1684,7 @@ function replayRender(){
     '<div class="replay-round-inputs">' +
     '<div style="display:flex;align-items:center;gap:6px">' +
     '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">🗳️</span>' +
-    '<textarea class="replay-round-input" rows="1" placeholder="竞选情况、谁当选了、关键发言..." oninput="autoResize(this);replayUpdateSheriff(' + _replayCurTab + ',this.value)">' + sheriffVal + '</textarea>' +
+    '<textarea class="replay-round-input" rows="1" placeholder="竞选情况、谁当选了、关键发言..." oninput="autoResize(this);replayUpdateSheriff(' + _replayCurTab + ',this.value)">' + _escTa(sheriffVal) + '</textarea>' +
     '</div></div></div>';
   tab.rounds.forEach(function(r, i){
     var canDel = i >= 3; // 第4轮起可删除
@@ -1691,11 +1693,11 @@ function replayRender(){
       '<div class="replay-round-inputs">' +
       '<div style="display:flex;align-items:center;gap:6px">' +
       '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">🌙</span>' +
-      '<textarea class="replay-round-input" rows="1" placeholder="夜晚记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'night\',this.value)">' + r.night + '</textarea>' +
+      '<textarea class="replay-round-input" rows="1" placeholder="夜晚记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'night\',this.value)">' + _escTa(r.night) + '</textarea>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:6px">' +
       '<span style="font-size:12px;color:#888;width:22px;flex-shrink:0">☀️</span>' +
-      '<textarea class="replay-round-input" rows="1" placeholder="白天记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'day\',this.value)">' + r.day + '</textarea>' +
+      '<textarea class="replay-round-input" rows="1" placeholder="白天记录..." oninput="autoResize(this);replayUpdateRound(' + _replayCurTab + ',' + i + ',\'day\',this.value)">' + _escTa(r.day) + '</textarea>' +
       '</div>' +
       '</div>' +
       (canDel ? '<button onclick="replayDelRound(' + _replayCurTab + ',' + i + ')" style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#7f1d1d;border:1px solid #b91c1c;color:#fca5a5;font-size:14px;cursor:pointer;line-height:1">×</button>' : '<div style="width:26px;flex-shrink:0"></div>') +
@@ -1718,7 +1720,7 @@ function replayRender(){
   // DM 评语
   var dmHtml = '<div>' +
     '<div style="font-size:13px;color:#aaa;margin-bottom:8px;font-weight:700">⚖️ 法官视角评语</div>' +
-    '<textarea class="replay-round-input" rows="3" placeholder="这局的点评、亮点、复盘总结..." style="border-radius:8px" oninput="autoResize(this);replayUpdateDm(' + _replayCurTab + ',this.value)">' + tab.dm + '</textarea>' +
+    '<textarea class="replay-round-input" rows="3" placeholder="这局的点评、亮点、复盘总结..." style="border-radius:8px" oninput="autoResize(this);replayUpdateDm(' + _replayCurTab + ',this.value)">' + _escTa(tab.dm) + '</textarea>' +
     '</div>';
 
   contentEl.innerHTML = '<div class="card" style="margin-bottom:0;position:relative;overflow:hidden">' +
