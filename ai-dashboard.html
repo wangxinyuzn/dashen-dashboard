@@ -1872,7 +1872,11 @@ function replayLoad(){
     if(data.replay_data && data.replay_data.length){
       _replayData = _replaySortDesc(data.replay_data);
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
-      replayRender();
+      // 如果用户正在输入复盘内容，不覆盖 DOM
+      var _activeEl2 = document.activeElement;
+      if(!_activeEl2 || !_activeEl2.classList.contains('replay-round-input')){
+        replayRender();
+      }
     }
   }).catch(function(){});
 }
@@ -1930,7 +1934,11 @@ function _pollGitHub(){
     if(data.replay_data && data.replay_data.length){
       _replayData = _replaySortDesc(data.replay_data);
       try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
-      replayRender();
+      // 如果用户正在输入复盘内容，不覆盖 DOM，避免输入消失
+      var _activeEl = document.activeElement;
+      if(!_activeEl || !_activeEl.classList.contains('replay-round-input')){
+        replayRender();
+      }
     }
 
     _updateSyncTag(true);
