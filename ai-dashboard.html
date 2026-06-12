@@ -2093,13 +2093,16 @@ function renderWinRate(){
     return;
   }
 
-  grid.innerHTML = players.map(function(name){
+  var winrateMedalBorder = ['#c9a84c','#9ca3af','#cd7f32'];
+
+  grid.innerHTML = players.map(function(name, idx){
     var d = playerMap[name];
     var pct = d.total ? Math.round(d.win / d.total * 100) : 0;
     // 颜色：≥60% 金色，40-59% 蓝色，<40% 红色
     var color = pct >= 60 ? '#e8c96a' : pct >= 40 ? '#818cf8' : '#f87171';
     var barColor = pct >= 60 ? 'linear-gradient(90deg,#c9a84c,#f5d36a)' : pct >= 40 ? 'linear-gradient(90deg,#4f6ef7,#818cf8)' : 'linear-gradient(90deg,#b91c1c,#f87171)';
-    return '<div style="width:110px;background:#111;border:1.5px solid #333;border-radius:10px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">' +
+    var border = idx < 3 ? '2px solid ' + winrateMedalBorder[idx] + ';box-shadow:0 0 10px ' + winrateMedalBorder[idx] + '55' : '1.5px solid #333';
+    return '<div style="width:110px;background:#111;border:' + border + ';border-radius:10px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;gap:5px">' +
       '<div style="font-size:13px;font-weight:800;color:#e8d5a3;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;text-align:center">' + name + '</div>' +
       '<div style="font-size:26px;font-weight:900;color:' + color + ';letter-spacing:-1px;line-height:1">' + pct + '<span style="font-size:13px;font-weight:700">%</span></div>' +
       '<div style="width:100%;background:#222;border-radius:4px;height:6px;overflow:hidden">' +
