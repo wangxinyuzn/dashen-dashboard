@@ -444,7 +444,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <span class="section-header-title">随 机 骰 子</span>
       </div>
       <div class="card" style="margin-bottom:0">
-        <div style="display:flex;align-items:center;gap:24px;padding:8px 4px">
+        <div style="display:flex;align-items:center;gap:20px;padding:8px 4px;flex-wrap:wrap">
           <!-- 骰子1 -->
           <div class="dice-wrap" id="dice1-wrap">
             <div class="dice" id="dice1">
@@ -457,12 +457,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
               <div class="dice-face">1</div>
             </div>
           </div>
+          <!-- 骰子3 -->
+          <div class="dice-wrap" id="dice3-wrap">
+            <div class="dice" id="dice3">
+              <div class="dice-face">1</div>
+            </div>
+          </div>
           <!-- 掷骰按钮 -->
           <button onclick="rollDice()" id="dice-btn" style="background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1));border:2px solid #c9a84c;color:#e8d5a3;padding:10px 22px;border-radius:20px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px;white-space:nowrap">🎲 掷骰</button>
           <!-- 和值显示 -->
           <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
             <span style="font-size:11px;color:#aaa;letter-spacing:1px">合 计</span>
             <div id="dice-sum" style="font-size:42px;font-weight:900;color:#c9a84c;min-width:52px;text-align:center;line-height:1;text-shadow:0 0 12px rgba(201,168,76,.5)">—</div>
+            <div id="dice-sum-hint" style="font-size:11px;color:#888;text-align:center;min-height:16px"></div>
           </div>
         </div>
       </div>
@@ -810,37 +817,49 @@ buildDeathCards(0); // 占位，会被角色选取syncCount覆盖
 
 // ===================== 随机骰子 =====================
 var _diceRolling = false;
+
+function getDicePlayerCount(){
+  // 优先读对战情况当前局座位数，其次读上警情况按钮数
+  try{
+    var tab = _replayData && _replayData[_replayCurTab];
+    if(tab && tab.seats && tab.seats.length > 0) return tab.seats.length;
+  }catch(e){}
+  var btns = document.querySelectorAll('.num-btn');
+  return btns.length || 0;
+}
+
 function rollDice(){
   if(_diceRolling) return;
   _diceRolling = true;
   var btn = document.getElementById('dice-btn');
   var sumEl = document.getElementById('dice-sum');
+  var hintEl = document.getElementById('dice-sum-hint');
   btn.disabled = true;
   btn.style.opacity = '0.5';
   sumEl.textContent = '—';
+  if(hintEl) hintEl.textContent = '';
 
   var d1 = document.getElementById('dice1');
   var d2 = document.getElementById('dice2');
+  var d3 = document.getElementById('dice3');
   var f1 = d1.querySelector('.dice-face');
   var f2 = d2.querySelector('.dice-face');
+  var f3 = d3.querySelector('.dice-face');
 
-  // 加 rolling class
   d1.classList.add('rolling');
   d2.classList.add('rolling');
+  d3.classList.add('rolling');
 
-  // 快速随机显示数字，模拟滚动效果
-  var total = 0;
   var elapsed = 0;
   var baseInterval = 60;
-  var result1, result2;
+  var result1, result2, result3;
 
   function tick(){
-    // 随机显示中间数
     f1.textContent = Math.ceil(Math.random()*6);
     f2.textContent = Math.ceil(Math.random()*6);
+    f3.textContent = Math.ceil(Math.random()*6);
     elapsed += baseInterval;
 
-    // 逐渐减速
     if(elapsed < 800){
       setTimeout(tick, baseInterval);
     } else if(elapsed < 1200){
@@ -850,20 +869,32 @@ function rollDice(){
       baseInterval = 200;
       setTimeout(tick, baseInterval);
     } else {
-      // 停止
       result1 = Math.ceil(Math.random()*6);
       result2 = Math.ceil(Math.random()*6);
+      result3 = Math.ceil(Math.random()*6);
       f1.textContent = result1;
       f2.textContent = result2;
+      f3.textContent = result3;
       d1.classList.remove('rolling');
       d2.classList.remove('rolling');
-      // 弹出停止动画
+      d3.classList.remove('rolling');
       d1.style.transform = 'scale(1.15)';
       d2.style.transform = 'scale(1.15)';
+      d3.style.transform = 'scale(1.15)';
       setTimeout(function(){
         d1.style.transform = '';
         d2.style.transform = '';
-        sumEl.textContent = result1 + result2;
+        d3.style.transform = '';
+        var rawSum = result1 + result2 + result3;
+        var playerCount = getDicePlayerCount();
+        var finalSum = rawSum;
+        var hint = '';
+        if(playerCount > 0 && rawSum > playerCount){
+          finalSum = rawSum - playerCount;
+          hint = rawSum + ' − ' + playerCount + ' = ' + finalSum;
+        }
+        sumEl.textContent = finalSum;
+        if(hintEl) hintEl.textContent = hint;
         btn.disabled = false;
         btn.style.opacity = '';
         _diceRolling = false;
