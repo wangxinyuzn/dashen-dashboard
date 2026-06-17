@@ -457,6 +457,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
               <div id="dice-sum" style="font-size:42px;font-weight:900;color:#c9a84c;min-width:52px;text-align:center;line-height:1;text-shadow:0 0 12px rgba(201,168,76,.5)">—</div>
               <div id="dice-sum-hint" style="font-size:11px;color:#888;text-align:center;min-height:16px"></div>
             </div>
+            <!-- 顺/逆方块 -->
+            <div id="dice-direction" style="width:64px;height:64px;border-radius:10px;background:#0a0010;border:2px solid #c9a84c;display:none;align-items:center;justify-content:center;font-size:32px;font-weight:900;letter-spacing:0;box-shadow:0 0 12px rgba(201,168,76,.25)"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1003,6 +1006,17 @@ function rollDice(){
   }
   sumEl.textContent = finalSum;
   if(hintEl) hintEl.textContent = hint;
+
+  // 顺/逆方块
+  var dirEl = document.getElementById('dice-direction');
+  if(dirEl){
+    var isOdd = finalSum % 2 !== 0;
+    dirEl.textContent = isOdd ? '顺' : '逆';
+    dirEl.style.color = isOdd ? '#4ade80' : '#f87171';
+    dirEl.style.borderColor = isOdd ? '#4ade80' : '#f87171';
+    dirEl.style.boxShadow = isOdd ? '0 0 12px rgba(74,222,128,.3)' : '0 0 12px rgba(248,113,113,.3)';
+    dirEl.style.display = 'flex';
+  }
 }
 
 // ===================== MVP榜 =====================
