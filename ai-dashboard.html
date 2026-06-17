@@ -815,8 +815,6 @@ function buildDeathCards(count){
 buildDeathCards(0); // 占位，会被角色选取syncCount覆盖
 
 // ===================== 随机骰子 =====================
-var _diceRolling = false;
-
 function getDicePlayerCount(){
   // 优先读对战情况当前局座位数，其次读上警情况按钮数
   try{
@@ -828,15 +826,9 @@ function getDicePlayerCount(){
 }
 
 function rollDice(){
-  if(_diceRolling) return;
-  _diceRolling = true;
   var btn = document.getElementById('dice-btn');
   var sumEl = document.getElementById('dice-sum');
   var hintEl = document.getElementById('dice-sum-hint');
-  btn.disabled = true;
-  btn.style.opacity = '0.5';
-  sumEl.textContent = '—';
-  if(hintEl) hintEl.textContent = '';
 
   var d1 = document.getElementById('dice1');
   var d2 = document.getElementById('dice2');
@@ -845,62 +837,34 @@ function rollDice(){
   var f2 = d2.querySelector('.dice-face');
   var f3 = d3.querySelector('.dice-face');
 
-  d1.classList.add('rolling');
-  d2.classList.add('rolling');
-  d3.classList.add('rolling');
+  var result1 = Math.ceil(Math.random()*6);
+  var result2 = Math.ceil(Math.random()*6);
+  var result3 = Math.ceil(Math.random()*6);
 
-  var elapsed = 0;
-  var baseInterval = 60;
-  var result1, result2, result3;
+  f1.textContent = result1;
+  f2.textContent = result2;
+  f3.textContent = result3;
 
-  function tick(){
-    f1.textContent = Math.ceil(Math.random()*6);
-    f2.textContent = Math.ceil(Math.random()*6);
-    f3.textContent = Math.ceil(Math.random()*6);
-    elapsed += baseInterval;
+  // 简单弹跳动画（视觉反馈，无滚动过程）
+  d1.style.transform = 'scale(1.15)';
+  d2.style.transform = 'scale(1.15)';
+  d3.style.transform = 'scale(1.15)';
+  setTimeout(function(){
+    d1.style.transform = '';
+    d2.style.transform = '';
+    d3.style.transform = '';
+  }, 150);
 
-    if(elapsed < 800){
-      setTimeout(tick, baseInterval);
-    } else if(elapsed < 1200){
-      baseInterval = 120;
-      setTimeout(tick, baseInterval);
-    } else if(elapsed < 1600){
-      baseInterval = 200;
-      setTimeout(tick, baseInterval);
-    } else {
-      result1 = Math.ceil(Math.random()*6);
-      result2 = Math.ceil(Math.random()*6);
-      result3 = Math.ceil(Math.random()*6);
-      f1.textContent = result1;
-      f2.textContent = result2;
-      f3.textContent = result3;
-      d1.classList.remove('rolling');
-      d2.classList.remove('rolling');
-      d3.classList.remove('rolling');
-      d1.style.transform = 'scale(1.15)';
-      d2.style.transform = 'scale(1.15)';
-      d3.style.transform = 'scale(1.15)';
-      setTimeout(function(){
-        d1.style.transform = '';
-        d2.style.transform = '';
-        d3.style.transform = '';
-        var rawSum = result1 + result2 + result3;
-        var playerCount = getDicePlayerCount();
-        var finalSum = rawSum;
-        var hint = '';
-        if(playerCount > 0 && rawSum > playerCount){
-          finalSum = rawSum - playerCount;
-          hint = rawSum + ' − ' + playerCount + ' = ' + finalSum;
-        }
-        sumEl.textContent = finalSum;
-        if(hintEl) hintEl.textContent = hint;
-        btn.disabled = false;
-        btn.style.opacity = '';
-        _diceRolling = false;
-      }, 200);
-    }
+  var rawSum = result1 + result2 + result3;
+  var playerCount = getDicePlayerCount();
+  var finalSum = rawSum;
+  var hint = '';
+  if(playerCount > 0 && rawSum > playerCount){
+    finalSum = rawSum - playerCount;
+    hint = rawSum + ' − ' + playerCount + ' = ' + finalSum;
   }
-  tick();
+  sumEl.textContent = finalSum;
+  if(hintEl) hintEl.textContent = hint;
 }
 
 // ===================== MVP榜 =====================
