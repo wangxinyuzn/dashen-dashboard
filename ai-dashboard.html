@@ -475,7 +475,156 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       </div>
     </div>
 
-    <!-- 死亡情况 -->
+    <!-- 天黑请闭眼 -->
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-header-icon">🌙</span>
+        <span class="section-header-title">天 黑 请 闭 眼</span>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <!-- MP3 播放器 -->
+        <audio id="night-audio" src="bgm-night.mp3" preload="auto"></audio>
+        <div style="display:flex;align-items:center;gap:18px;padding:10px 4px;flex-wrap:wrap">
+          <!-- 封面图标 -->
+          <div id="night-cover" style="width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#1a0a2e,#2d1060);border:2px solid #c9a84c;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(201,168,76,.25);transition:transform .4s">
+            <span style="font-size:30px">🌙</span>
+          </div>
+          <!-- 信息 + 进度 -->
+          <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:13px;font-weight:700;color:#e8c96a;letter-spacing:1px">狼人杀背景音乐</div>
+            <!-- 进度条 -->
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="night-cur" style="font-size:11px;color:#aaa;min-width:32px">0:00</span>
+              <div id="night-bar-wrap" onclick="nightSeek(event)" style="flex:1;height:6px;background:rgba(201,168,76,.2);border-radius:3px;cursor:pointer;position:relative">
+                <div id="night-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c9a84c,#e8c96a);border-radius:3px;transition:width .3s;pointer-events:none"></div>
+              </div>
+              <span id="night-dur" style="font-size:11px;color:#aaa;min-width:32px;text-align:right">—</span>
+            </div>
+            <!-- 控制按钮行 -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <!-- 重播 -->
+              <button onclick="nightReplay()" title="重播" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">⏮</button>
+              <!-- 播放/暂停 -->
+              <button id="night-play-btn" onclick="nightToggle()" title="播放/暂停" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.3),rgba(201,168,76,.15));border:2px solid #c9a84c;color:#e8c96a;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 0 10px rgba(201,168,76,.2)" onmouseover="this.style.background='linear-gradient(135deg,rgba(201,168,76,.5),rgba(201,168,76,.3))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(201,168,76,.3),rgba(201,168,76,.15))'">▶</button>
+              <!-- 音量减 -->
+              <button onclick="nightVolDown()" title="音量减" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔉</button>
+              <!-- 音量条 -->
+              <div id="night-vol-wrap" onclick="nightVolSeek(event)" style="width:80px;height:6px;background:rgba(201,168,76,.2);border-radius:3px;cursor:pointer;position:relative">
+                <div id="night-vol-bar" style="height:100%;width:80%;background:linear-gradient(90deg,#c9a84c,#e8c96a);border-radius:3px;pointer-events:none"></div>
+              </div>
+              <!-- 音量加 -->
+              <button onclick="nightVolUp()" title="音量加" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔊</button>
+              <!-- 音量数值 -->
+              <span id="night-vol-label" style="font-size:11px;color:#888;min-width:28px">80%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      var audio = document.getElementById('night-audio');
+      var playBtn = document.getElementById('night-play-btn');
+      var bar = document.getElementById('night-bar');
+      var curEl = document.getElementById('night-cur');
+      var durEl = document.getElementById('night-dur');
+      var volBar = document.getElementById('night-vol-bar');
+      var volLabel = document.getElementById('night-vol-label');
+      var cover = document.getElementById('night-cover');
+      var _spinning = false;
+
+      audio.volume = 0.8;
+
+      function fmt(s){
+        s = Math.floor(s||0);
+        return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+      }
+
+      audio.addEventListener('loadedmetadata', function(){
+        durEl.textContent = fmt(audio.duration);
+      });
+
+      audio.addEventListener('timeupdate', function(){
+        if(!audio.duration) return;
+        var pct = audio.currentTime / audio.duration * 100;
+        bar.style.width = pct + '%';
+        curEl.textContent = fmt(audio.currentTime);
+      });
+
+      audio.addEventListener('ended', function(){
+        playBtn.textContent = '▶';
+        stopSpin();
+      });
+
+      function startSpin(){
+        if(_spinning) return;
+        _spinning = true;
+        cover.style.animation = 'nightSpin 4s linear infinite';
+      }
+      function stopSpin(){
+        _spinning = false;
+        cover.style.animation = '';
+      }
+
+      window.nightToggle = function(){
+        if(audio.paused){
+          audio.play();
+          playBtn.textContent = '⏸';
+          startSpin();
+        } else {
+          audio.pause();
+          playBtn.textContent = '▶';
+          stopSpin();
+        }
+      };
+
+      window.nightReplay = function(){
+        audio.currentTime = 0;
+        audio.play();
+        playBtn.textContent = '⏸';
+        startSpin();
+      };
+
+      window.nightVolUp = function(){
+        audio.volume = Math.min(1, audio.volume + 0.1);
+        updateVol();
+      };
+      window.nightVolDown = function(){
+        audio.volume = Math.max(0, audio.volume - 0.1);
+        updateVol();
+      };
+      function updateVol(){
+        var pct = Math.round(audio.volume * 100);
+        volBar.style.width = pct + '%';
+        volLabel.textContent = pct + '%';
+      }
+
+      window.nightSeek = function(e){
+        var wrap = document.getElementById('night-bar-wrap');
+        var rect = wrap.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        pct = Math.max(0, Math.min(1, pct));
+        if(audio.duration) audio.currentTime = pct * audio.duration;
+      };
+
+      window.nightVolSeek = function(e){
+        var wrap = document.getElementById('night-vol-wrap');
+        var rect = wrap.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        pct = Math.max(0, Math.min(1, pct));
+        audio.volume = pct;
+        updateVol();
+      };
+    })();
+    </script>
+    <style>
+    @keyframes nightSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    </style>
+
+    <!-- 在场情况 -->
     <div class="section-wrap">
       <div class="section-header">
         <span class="section-header-icon">🟢</span>
