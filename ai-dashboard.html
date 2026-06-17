@@ -594,6 +594,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         // 无论任何状态，点击都重置到120并开始倒计时
         clearInterval(_timer);
         _remain = _total;
+        timerEl.style.fontSize = '72px';
         updateDisplay();
         btnEl.textContent = '重 置';
         _timer = setInterval(function(){
@@ -601,7 +602,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
           updateDisplay();
           if(_remain <= 0){
             clearInterval(_timer);
-            timerEl.textContent = '0';
+            timerEl.style.fontSize = '18px';
+            timerEl.style.color = '#f87171';
+            timerEl.style.textShadow = '0 0 12px rgba(248,113,113,.5)';
+            timerEl.textContent = '你有点过分了哦';
             btnEl.textContent = '开 始';
           }
         }, 1000);
