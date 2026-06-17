@@ -478,10 +478,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <!-- 死亡情况 -->
     <div class="section-wrap">
       <div class="section-header">
-        <span class="section-header-icon">💀</span>
-        <span class="section-header-title">死 亡 情 况</span>
+        <span class="section-header-icon">🟢</span>
+        <span class="section-header-title">在 场 情 况</span>
         <div class="section-header-extra">
-          <span style="font-size:11px;color:rgba(232,201,106,.6)">点击卡片标记死亡</span>
+          <span style="font-size:11px;color:rgba(232,201,106,.6)">点击卡片标记出局</span>
           <button onclick="resetDeathCards()">🔄 复原</button>
         </div>
       </div>
@@ -768,10 +768,9 @@ document.addEventListener('click', function unlock(){
 
   window.rpAdd = function(img, name){ addToPreview({img:img, name:name}); };
 
-  // 角色数量变化时同步死亡卡片和数字选号
+  // 角色数量变化时同步数字选号，在场情况卡片由 buildNumPicker 内部的 refresh() 联动
   function syncCount(){
     var n = previewList.length;
-    buildDeathCards(n);
     buildNumPicker(n);
   }
 
@@ -1455,6 +1454,8 @@ function buildNumPicker(count){
       ? jingXia.map(n=>makeCard(n,'#c9a84c',false)).join('')
       : '<span class="kpi-num-dash">—</span>';
     renderJingzhang();
+    // 在场情况卡片数量 = 上警 + 警下（排除退水）
+    buildDeathCards(shangJing.length + jingXia.length);
   }
 
   window.moveToTuishui = function(n){
