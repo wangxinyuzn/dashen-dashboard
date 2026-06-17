@@ -437,119 +437,80 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     </div>
 
-    <!-- 随机骰子 -->
-    <div class="section-wrap">
-      <div class="section-header">
-        <span class="section-header-icon">🎲</span>
-        <span class="section-header-title">随 机 骰 子</span>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <div style="display:flex;align-items:center;gap:20px;padding:8px 4px;flex-wrap:wrap">
-          <!-- 骰子1 -->
-          <div class="dice-wrap" id="dice1-wrap">
-            <div class="dice" id="dice1">
-              <div class="dice-face">1</div>
+    <!-- 随机骰子 + 天黑请闭眼 并排一行 -->
+    <div class="flex-row-wrap" style="display:flex;gap:16px;align-items:stretch;margin-bottom:16px">
+
+      <!-- 随机骰子 -->
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column">
+        <div class="section-header">
+          <span class="section-header-icon">🎲</span>
+          <span class="section-header-title">随 机 骰 子</span>
+        </div>
+        <div class="card" style="flex:1;margin-bottom:0;border-radius:0 0 12px 12px">
+          <div style="display:flex;align-items:center;gap:20px;padding:8px 4px;flex-wrap:wrap">
+            <div class="dice-wrap" id="dice1-wrap"><div class="dice" id="dice1"><div class="dice-face">1</div></div></div>
+            <div class="dice-wrap" id="dice2-wrap"><div class="dice" id="dice2"><div class="dice-face">1</div></div></div>
+            <div class="dice-wrap" id="dice3-wrap"><div class="dice" id="dice3"><div class="dice-face">1</div></div></div>
+            <button onclick="rollDice()" id="dice-btn" style="background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1));border:2px solid #c9a84c;color:#e8d5a3;padding:10px 22px;border-radius:20px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px;white-space:nowrap">🎲 掷骰</button>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <span style="font-size:11px;color:#aaa;letter-spacing:1px">合 计</span>
+              <div id="dice-sum" style="font-size:42px;font-weight:900;color:#c9a84c;min-width:52px;text-align:center;line-height:1;text-shadow:0 0 12px rgba(201,168,76,.5)">—</div>
+              <div id="dice-sum-hint" style="font-size:11px;color:#888;text-align:center;min-height:16px"></div>
             </div>
-          </div>
-          <!-- 骰子2 -->
-          <div class="dice-wrap" id="dice2-wrap">
-            <div class="dice" id="dice2">
-              <div class="dice-face">1</div>
-            </div>
-          </div>
-          <!-- 骰子3 -->
-          <div class="dice-wrap" id="dice3-wrap">
-            <div class="dice" id="dice3">
-              <div class="dice-face">1</div>
-            </div>
-          </div>
-          <!-- 掷骰按钮 -->
-          <button onclick="rollDice()" id="dice-btn" style="background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1));border:2px solid #c9a84c;color:#e8d5a3;padding:10px 22px;border-radius:20px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px;white-space:nowrap">🎲 掷骰</button>
-          <!-- 和值显示 -->
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-            <span style="font-size:11px;color:#aaa;letter-spacing:1px">合 计</span>
-            <div id="dice-sum" style="font-size:42px;font-weight:900;color:#c9a84c;min-width:52px;text-align:center;line-height:1;text-shadow:0 0 12px rgba(201,168,76,.5)">—</div>
-            <div id="dice-sum-hint" style="font-size:11px;color:#888;text-align:center;min-height:16px"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 天黑请闭眼 -->
-    <div class="section-wrap">
-      <div class="section-header">
-        <span class="section-header-icon">🌙</span>
-        <span class="section-header-title">天 黑 请 闭 眼</span>
-      </div>
-      <div class="card" style="margin-bottom:0">
-        <!-- MP3 播放器 -->
-        <audio id="night-audio" src="bgm-night.mp3" preload="auto"></audio>
-        <div style="display:flex;align-items:center;gap:18px;padding:10px 4px;flex-wrap:wrap">
-          <!-- 封面图标 -->
-          <div id="night-cover" style="width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#1a0a2e,#2d1060);border:2px solid #c9a84c;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(201,168,76,.25);transition:transform .4s">
-            <span style="font-size:30px">🌙</span>
-          </div>
-          <!-- 信息 + 进度 -->
-          <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px">
-            <div style="font-size:13px;font-weight:700;color:#e8c96a;letter-spacing:1px">狼人杀背景音乐</div>
-            <!-- 进度条 -->
-            <div style="display:flex;align-items:center;gap:8px">
-              <span id="night-cur" style="font-size:11px;color:#aaa;min-width:32px">0:00</span>
-              <div id="night-bar-wrap" onclick="nightSeek(event)" style="flex:1;height:6px;background:rgba(201,168,76,.2);border-radius:3px;cursor:pointer;position:relative">
-                <div id="night-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#c9a84c,#e8c96a);border-radius:3px;transition:width .3s;pointer-events:none"></div>
-              </div>
-              <span id="night-dur" style="font-size:11px;color:#aaa;min-width:32px;text-align:right">—</span>
+      <!-- 天黑请闭眼 -->
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column">
+        <div class="section-header">
+          <span class="section-header-icon">🌙</span>
+          <span class="section-header-title">天 黑 请 闭 眼</span>
+        </div>
+        <div class="card" style="flex:1;margin-bottom:0;border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center">
+          <audio id="night-audio" src="bgm-night.mp3" preload="auto"></audio>
+          <!-- CD 风格播放器 -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:12px 8px">
+            <!-- 旋转封面 -->
+            <div id="night-cover" style="width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 38% 38%,#3d1a7a,#1a0a2e 60%,#0a0010);border:3px solid #c9a84c;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(201,168,76,.35),inset 0 0 20px rgba(0,0,0,.5)">
+              <div style="width:18px;height:18px;border-radius:50%;background:#0a0010;border:2px solid rgba(201,168,76,.5)"></div>
             </div>
-            <!-- 控制按钮行 -->
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <!-- 歌曲名 -->
+            <div style="font-size:13px;font-weight:700;color:#e8c96a;letter-spacing:1px;text-align:center">狼人杀背景音乐</div>
+            <!-- 控制按钮 -->
+            <div style="display:flex;align-items:center;gap:12px">
               <!-- 重播 -->
-              <button onclick="nightReplay()" title="从头重播" style="height:36px;padding:0 14px;border-radius:18px;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;white-space:nowrap" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔁 重播</button>
+              <button onclick="nightReplay()" title="从头重播" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔁</button>
               <!-- 播放/暂停 -->
-              <button id="night-play-btn" onclick="nightToggle()" title="播放/暂停" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.3),rgba(201,168,76,.15));border:2px solid #c9a84c;color:#e8c96a;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 0 10px rgba(201,168,76,.2)" onmouseover="this.style.background='linear-gradient(135deg,rgba(201,168,76,.5),rgba(201,168,76,.3))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(201,168,76,.3),rgba(201,168,76,.15))'">▶</button>
+              <button id="night-play-btn" onclick="nightToggle()" title="播放/暂停" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.35),rgba(201,168,76,.15));border:2.5px solid #c9a84c;color:#e8c96a;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 0 14px rgba(201,168,76,.3)" onmouseover="this.style.background='linear-gradient(135deg,rgba(201,168,76,.55),rgba(201,168,76,.3))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(201,168,76,.35),rgba(201,168,76,.15))'">▶</button>
               <!-- 音量减 -->
-              <button onclick="nightVolDown()" title="音量减" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔉</button>
-              <!-- 音量条 -->
-              <div id="night-vol-wrap" onclick="nightVolSeek(event)" style="width:80px;height:6px;background:rgba(201,168,76,.2);border-radius:3px;cursor:pointer;position:relative">
+              <button onclick="nightVolDown()" title="音量减" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔉</button>
+              <!-- 音量加 -->
+              <button onclick="nightVolUp()" title="音量加" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔊</button>
+            </div>
+            <!-- 音量条 + 数值 -->
+            <div style="display:flex;align-items:center;gap:8px;width:180px">
+              <div id="night-vol-wrap" onclick="nightVolSeek(event)" style="flex:1;height:5px;background:rgba(201,168,76,.2);border-radius:3px;cursor:pointer;position:relative">
                 <div id="night-vol-bar" style="height:100%;width:80%;background:linear-gradient(90deg,#c9a84c,#e8c96a);border-radius:3px;pointer-events:none"></div>
               </div>
-              <!-- 音量加 -->
-              <button onclick="nightVolUp()" title="音量加" style="width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔊</button>
-              <!-- 音量数值 -->
-              <span id="night-vol-label" style="font-size:11px;color:#888;min-width:28px">80%</span>
+              <span id="night-vol-label" style="font-size:11px;color:#888;min-width:28px;text-align:right">80%</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+    </div><!-- end 骰子+天黑 row -->
+
     <script>
     (function(){
       var audio = document.getElementById('night-audio');
       var playBtn = document.getElementById('night-play-btn');
-      var bar = document.getElementById('night-bar');
-      var curEl = document.getElementById('night-cur');
-      var durEl = document.getElementById('night-dur');
       var volBar = document.getElementById('night-vol-bar');
       var volLabel = document.getElementById('night-vol-label');
       var cover = document.getElementById('night-cover');
       var _spinning = false;
 
       audio.volume = 0.8;
-
-      function fmt(s){
-        s = Math.floor(s||0);
-        return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
-      }
-
-      audio.addEventListener('loadedmetadata', function(){
-        durEl.textContent = fmt(audio.duration);
-      });
-
-      audio.addEventListener('timeupdate', function(){
-        if(!audio.duration) return;
-        var pct = audio.currentTime / audio.duration * 100;
-        bar.style.width = pct + '%';
-        curEl.textContent = fmt(audio.currentTime);
-      });
 
       audio.addEventListener('ended', function(){
         playBtn.textContent = '▶';
@@ -598,14 +559,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         volBar.style.width = pct + '%';
         volLabel.textContent = pct + '%';
       }
-
-      window.nightSeek = function(e){
-        var wrap = document.getElementById('night-bar-wrap');
-        var rect = wrap.getBoundingClientRect();
-        var pct = (e.clientX - rect.left) / rect.width;
-        pct = Math.max(0, Math.min(1, pct));
-        if(audio.duration) audio.currentTime = pct * audio.duration;
-      };
 
       window.nightVolSeek = function(e){
         var wrap = document.getElementById('night-vol-wrap');
