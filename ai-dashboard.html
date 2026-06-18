@@ -1110,9 +1110,9 @@ function renderMvpCards(){
         <div class="mvp-badge" onclick="mvpToggleWin(${card.id})" title="点击切换胜/败" style="cursor:pointer">
           ${(function(){
             var isWin = (card.win !== 'lose');
-            var fillColor = isWin ? 'rgba(74,222,128,.25)' : 'rgba(248,113,113,.2)';
-            var strokeColor = isWin ? '#4ade80' : '#f87171';
-            var glowColor = isWin ? 'rgba(74,222,128,.8)' : 'rgba(248,113,113,.8)';
+            var fillColor = isWin ? 'rgba(201,168,76,.25)' : 'rgba(248,113,113,.2)';
+            var strokeColor = isWin ? '#c9a84c' : '#f87171';
+            var glowColor = isWin ? 'rgba(201,168,76,.8)' : 'rgba(248,113,113,.8)';
             var label = isWin ? '胜' : '败';
             return `<svg viewBox="0 0 40 40" width="40" height="40" style="filter:drop-shadow(0 0 6px ${glowColor})">
               <polygon points="20,2 38,20 20,38 2,20" fill="none" stroke="${strokeColor}" stroke-width="2"/>
