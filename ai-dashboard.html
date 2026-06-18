@@ -1038,7 +1038,7 @@ function mvpSave(){
   try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
   // 图片base64可能很大，存GitHub时只保留非base64或限制
   var saveData = {
-    cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||''}; }),
+    cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||'', win:c.win||'win'}; }),
     counter: _mvpIdCounter
   };
   var body = JSON.stringify({
@@ -1107,12 +1107,19 @@ function renderMvpCards(){
     el.id = 'mvp-' + card.id;
     el.innerHTML = `
       <div class="mvp-card-inner">
-        <div class="mvp-badge">
-          <svg viewBox="0 0 40 40" width="40" height="40">
-            <polygon points="20,2 38,20 20,38 2,20" fill="none" stroke="#c9a84c" stroke-width="2"/>
-            <polygon points="20,8 32,20 20,32 8,20" fill="rgba(201,168,76,.15)" stroke="#c9a84c" stroke-width="1"/>
-            <text x="20" y="25" text-anchor="middle" fill="#c9a84c" font-size="14" font-weight="900">★</text>
-          </svg>
+        <div class="mvp-badge" onclick="mvpToggleWin(${card.id})" title="点击切换胜/败" style="cursor:pointer">
+          ${(function(){
+            var isWin = (card.win !== 'lose');
+            var fillColor = isWin ? 'rgba(74,222,128,.25)' : 'rgba(248,113,113,.2)';
+            var strokeColor = isWin ? '#4ade80' : '#f87171';
+            var glowColor = isWin ? 'rgba(74,222,128,.8)' : 'rgba(248,113,113,.8)';
+            var label = isWin ? '胜' : '败';
+            return `<svg viewBox="0 0 40 40" width="40" height="40" style="filter:drop-shadow(0 0 6px ${glowColor})">
+              <polygon points="20,2 38,20 20,38 2,20" fill="none" stroke="${strokeColor}" stroke-width="2"/>
+              <polygon points="20,8 32,20 20,32 8,20" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
+              <text x="20" y="25" text-anchor="middle" fill="${strokeColor}" font-size="14" font-weight="900">${label}</text>
+            </svg>`;
+          })()}
         </div>
         <div class="mvp-img-area" onclick="mvpUploadImg(${card.id})" title="点击上传图片">
           ${card.img
@@ -1223,6 +1230,14 @@ function mvpSetDate(id, val){
   const card = _mvpCards.find(function(c){ return c.id===id; });
   if(!card) return;
   card.date = val;
+  mvpSave();
+}
+
+function mvpToggleWin(id){
+  var card = _mvpCards.find(function(c){ return c.id===id; });
+  if(!card) return;
+  card.win = (card.win !== 'lose') ? 'lose' : 'win';
+  renderMvpCards();
   mvpSave();
 }
 
