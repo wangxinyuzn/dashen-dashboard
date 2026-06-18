@@ -1036,6 +1036,8 @@ var _mvpGhSha = null; // 当前文件的SHA，更新时需要
 function mvpSave(){
   // 同时存localStorage（本地备份）+ GitHub（共享）
   try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
+  // GitHub SHA 未就绪时（数据尚未从 GitHub 同步回来），不写 GitHub，防止用本地空数据覆盖远端数据
+  if(!_mvpGhSha) return;
   // 图片base64可能很大，存GitHub时只保留非base64或限制
   var saveData = {
     cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||'', win:c.win||'win'}; }),
