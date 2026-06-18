@@ -2526,12 +2526,11 @@ function renderScoreBoard(){
     });
   });
 
-  // MVP 加分：每次出现 +1 分
+  // MVP 加分：每次出现 +1 分（即使没参加对战也要出现在榜上）
   Object.keys(mvpNames).forEach(function(name){
-    if(scoreMap[name]){
-      scoreMap[name].mvp = mvpNames[name];
-      scoreMap[name].score += mvpNames[name];
-    }
+    if(!scoreMap[name]) scoreMap[name] = {score:0, win:0, lose:0, mvp:0};
+    scoreMap[name].mvp = mvpNames[name];
+    scoreMap[name].score += mvpNames[name];
   });
 
   var players = Object.keys(scoreMap).sort(function(a,b){
