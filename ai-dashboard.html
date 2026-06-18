@@ -1084,6 +1084,7 @@ function mvpLoad(){
     try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
     if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
     renderMvpCards();
+    try{ renderScoreBoard(); }catch(e){}
   }).catch(function(){}); // GitHub失败就保持localStorage的数据
 }
 
@@ -2612,6 +2613,7 @@ function _pollGitHub(){
       try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
       if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
       renderMvpCards();
+      try{ renderScoreBoard(); }catch(e){}
     }
     // --- 对战阵容 ---
     if(data.battle_roster){
