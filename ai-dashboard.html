@@ -1038,7 +1038,7 @@ function mvpSave(){
   try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
   // 图片base64可能很大，存GitHub时只保留非base64或限制
   var saveData = {
-    cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||''}; }),
+    cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||'', faction:c.faction||''}; }),
     counter: _mvpIdCounter
   };
   var body = JSON.stringify({
@@ -1126,6 +1126,30 @@ function renderMvpCards(){
           <span class="mvp-name" onclick="mvpEditName(${card.id})" title="点击编辑名称">${card.name || '点击输入称号'}</span>
 
         </div>
+        <!-- 身份按钮（仿对战情况） -->
+        ${(function(){
+          var fc = card.faction || '';
+          var _factionColor = {'平民':'#4f6ef7','狼人':'#ef4444','神职':'#a855f7','三方':'#f59e0b','':''};
+          var _wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+          var _shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
+          var _thirdRoles = ['丘比特','炸弹人','盗贼'];
+          var fcColor = _factionColor[fc] || '#555';
+          var borderColor = fc ? fcColor : '#555';
+          var subBtn = '';
+          if(fc === '狼人'){
+            var roleLabel = card.role || _wolfRoles[0];
+            subBtn = '<div onclick="mvpNextRole(' + card.id + ')" style="font-size:9px;font-weight:700;color:#ef4444;cursor:pointer;padding:1px 4px;border:1px solid #ef444466;border-radius:4px;text-align:center;line-height:1.4;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90%">' + _esc(roleLabel) + '</div>';
+          } else if(fc === '神职'){
+            var roleLabelS = card.role || _shenRoles[0];
+            subBtn = '<div onclick="mvpNextRole(' + card.id + ')" style="font-size:9px;font-weight:700;color:#a855f7;cursor:pointer;padding:1px 4px;border:1px solid #a855f766;border-radius:4px;text-align:center;line-height:1.4;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90%">' + _esc(roleLabelS) + '</div>';
+          } else if(fc === '三方'){
+            var roleLabel3 = card.role || _thirdRoles[0];
+            subBtn = '<div onclick="mvpNextRole(' + card.id + ')" style="font-size:9px;font-weight:700;color:#f59e0b;cursor:pointer;padding:1px 4px;border:1px solid #f59e0b66;border-radius:4px;text-align:center;line-height:1.4;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90%">' + _esc(roleLabel3) + '</div>';
+          }
+          return '<div style="padding:6px 8px;background:rgba(0,0,0,.5);border-top:1px solid rgba(201,168,76,.2);display:flex;flex-direction:column;align-items:center;gap:0">' +
+            '<div onclick="mvpNextFaction(' + card.id + ')" style="font-size:9px;font-weight:700;color:' + (fc ? fcColor : '#555') + ';cursor:pointer;padding:2px 8px;border:1px solid ' + (fc ? fcColor+'66' : '#444') + ';border-radius:4px;text-align:center;line-height:1.5;width:90%;box-sizing:border-box">' +
+            (fc || '身份') + '</div>' + subBtn + '</div>';
+        })()}
         <!-- 日期（静态展示，点击编辑） -->
         <div style="padding:6px 8px;background:rgba(0,0,0,.6);border-top:1px solid rgba(201,168,76,.2);border-radius:0 0 10px 10px">
           <input type="text" value="${_esc(card.date || '')}"
@@ -1185,6 +1209,44 @@ function mvpSetDate(id, val){
   const card = _mvpCards.find(function(c){ return c.id===id; });
   if(!card) return;
   card.date = val;
+  mvpSave();
+}
+
+function mvpNextFaction(id){
+  var card = _mvpCards.find(function(c){ return c.id===id; });
+  if(!card) return;
+  var cycle = ['', '平民', '狼人', '神职', '三方'];
+  var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
+  var thirdRoles = ['丘比特','炸弹人','盗贼'];
+  var idx = cycle.indexOf(card.faction || '');
+  var next = cycle[(idx + 1) % cycle.length];
+  card.faction = next;
+  if(next === '狼人') card.role = wolfRoles[0];
+  else if(next === '神职') card.role = shenRoles[0];
+  else if(next === '三方') card.role = thirdRoles[0];
+  else card.role = '';
+  renderMvpCards();
+  mvpSave();
+}
+
+function mvpNextRole(id){
+  var card = _mvpCards.find(function(c){ return c.id===id; });
+  if(!card) return;
+  var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
+  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
+  var thirdRoles = ['丘比特','炸弹人','盗贼'];
+  if(card.faction === '狼人'){
+    var idx = wolfRoles.indexOf(card.role);
+    card.role = wolfRoles[(idx + 1) % wolfRoles.length];
+  } else if(card.faction === '神职'){
+    var idx2 = shenRoles.indexOf(card.role);
+    card.role = shenRoles[(idx2 + 1) % shenRoles.length];
+  } else if(card.faction === '三方'){
+    var idx3 = thirdRoles.indexOf(card.role);
+    card.role = thirdRoles[(idx3 + 1) % thirdRoles.length];
+  }
+  renderMvpCards();
   mvpSave();
 }
 
