@@ -1668,6 +1668,7 @@ function buildNumPicker(count){
 // 7天日历
 (function(){
   const cal = document.getElementById('week-cal');
+  if(!cal) return;
   const weekNames = ['周日','周一','周二','周三','周四','周五','周六'];
   const today = new Date();
   today.setHours(0,0,0,0);
