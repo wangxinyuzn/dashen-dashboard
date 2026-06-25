@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新媒体短视频数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#f5f6fa;color:#333}
+
+.header{background:linear-gradient(135deg,#4f6ef7,#6c8bff);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(79,110,247,.3)}
+.header-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600}
+.header-meta{display:flex;align-items:center;gap:12px;font-size:13px;opacity:.9}
+.update-tag{background:rgba(255,255,255,.2);padding:2px 10px;border-radius:10px;font-size:12px}
+.admin-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:3px 12px;border-radius:4px;font-size:12px;cursor:pointer}
+
+/* 时间选择器 */
+.time-bar{background:#fff;border-bottom:1px solid #eee;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.time-bar .time-label{font-size:13px;color:#666;font-weight:500;white-space:nowrap}
+.time-bar input[type=date]{border:1px solid #d9d9d9;border-radius:4px;padding:4px 10px;font-size:13px;color:#333;outline:none;cursor:pointer}
+.time-bar input[type=date]:focus{border-color:#4f6ef7}
+.time-bar .sep{color:#aaa;font-size:13px}
+.preset-btns{display:flex;gap:6px;flex-wrap:wrap}
+.preset-btn{padding:4px 12px;border:1px solid #d9d9d9;border-radius:4px;font-size:12px;color:#555;cursor:pointer;white-space:nowrap;background:#fff;transition:all .2s}
+.preset-btn:hover,.preset-btn.active{background:#4f6ef7;color:#fff;border-color:#4f6ef7}
+.apply-btn{padding:5px 16px;background:#4f6ef7;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;white-space:nowrap}
+.apply-btn:hover{background:#3d5ce0}
+.period-tip{font-size:12px;color:#888;white-space:nowrap}
+
+.tab-bar{background:#fff;border-bottom:1px solid #eee;padding:0 24px;display:flex;gap:4px;overflow-x:auto}
+.tab-item{padding:11px 16px;font-size:13px;color:#666;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab-item.active{color:#4f6ef7;border-bottom-color:#4f6ef7;font-weight:500}
+.tab-item:hover{color:#4f6ef7}
+
+.main{display:flex;min-height:calc(100vh - 140px)}
+.sidebar{width:160px;background:#fff;border-right:1px solid #eee;padding:16px 0;flex-shrink:0;overflow-y:auto;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 110px)}
+.sidebar-label{font-size:11px;color:#999;padding:4px 16px 8px;letter-spacing:.5px}
+.sidebar-item{display:flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;color:#666;cursor:pointer;border-left:3px solid transparent;transition:all .15s;border-radius:0 6px 6px 0;margin-right:8px}
+.sidebar-item.active{color:#4f6ef7;background:#f0f3ff;border-left-color:#4f6ef7;font-weight:600}
+.sidebar-item:hover{background:#f5f7ff;color:#4f6ef7}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.content{flex:1;padding:20px 24px;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+
+.card{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.03);transition:box-shadow .2s}
+.card:hover{box-shadow:0 6px 24px rgba(0,0,0,.13),0 0 0 1px rgba(0,0,0,.05)}
+.card-title{font-size:14px;font-weight:600;color:#333;margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.bar-icon{width:14px;height:14px;background:linear-gradient(135deg,#4f6ef7,#a78bfa);border-radius:2px;display:inline-block;flex-shrink:0}
+.period-badge{display:none}
+.period-badge .cur{color:#4f6ef7;font-weight:600}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+#overview-kpi.kpi-grid{grid-template-columns:repeat(2,1fr);gap:16px}
+.kpi-card{background:#fff;border:none;border-radius:10px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.03);transition:box-shadow .2s}
+.kpi-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05)}
+.kpi-label{font-size:11px;color:#aaa;margin-bottom:8px;font-weight:500}
+.kpi-number{font-size:28px;font-weight:700;color:#4f6ef7;line-height:1.1}
+.kpi-compare{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;flex-wrap:wrap}
+.up{color:#52c41a}.down{color:#ff4d4f}.neutral{color:#888}
+
+.progress-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.progress-row:last-child{border-bottom:none}
+.progress-label{width:210px;font-size:13px;color:#555;flex-shrink:0}
+.progress-bar-wrap{flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;margin:0 16px}
+.progress-bar{height:100%;border-radius:4px;transition:width 1s ease}
+.progress-value{font-size:13px;color:#888;width:130px;text-align:right;flex-shrink:0}
+.bar-orange{background:linear-gradient(90deg,#ffa940,#ffca00)}
+.bar-red{background:linear-gradient(90deg,#ff7875,#ff4d4f)}
+.bar-green{background:linear-gradient(90deg,#95de64,#52c41a)}
+.editable-goal{cursor:pointer;border-bottom:1px dashed #ccc;transition:color .15s,border-color .15s}
+.editable-goal:hover{color:#4f6ef7 !important;border-bottom-color:#4f6ef7 !important}
+.editable-name{color:#333}
+.editable-val{color:#888}
+
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{background:#f5f6fa;color:#888;font-weight:500;padding:8px 12px;text-align:left;border-bottom:1px solid #eee}
+.compare-table td{padding:10px 12px;border-bottom:1px solid #f5f5f5}
+.compare-table tr:last-child td{border-bottom:none}
+.this-val{color:#4f6ef7;font-weight:600}
+.last-val{color:#aaa}
+.change-up{color:#52c41a}.change-down{color:#ff4d4f}
+
+.chart-wrap{position:relative;height:200px;margin-top:8px}
+
+.hit-list{display:flex;flex-direction:column;gap:8px}
+.hit-item{display:flex;align-items:center;padding:10px 14px;background:#fafbff;border-radius:6px;border-left:3px solid #4f6ef7;font-size:13px}
+.hit-rank{width:22px;height:22px;border-radius:50%;background:#4f6ef7;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px}
+.hit-rank.top3{background:#fa8c16}
+.hit-name{flex:1;color:#333}.hit-views{color:#4f6ef7;font-weight:600}
+
+.todo-list{display:flex;flex-direction:column;gap:8px}
+.todo-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fafbff;border-radius:6px;font-size:13px;color:#555;transition:background .15s}
+.todo-item:hover{background:#f0f4ff}
+.todo-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#4f6ef7;flex-shrink:0}
+.todo-item .todo-emoji{font-size:15px;cursor:pointer;flex-shrink:0;user-select:none;border-radius:4px;padding:1px 3px}
+.todo-item .todo-emoji:hover{background:#e8edff}
+.todo-item .todo-text{flex:1;border:none;background:transparent;font-size:13px;color:#555;outline:none;cursor:pointer;padding:2px 4px;border-radius:4px;min-width:0}
+.todo-item .todo-text:focus{background:#fff;box-shadow:0 0 0 2px #4f6ef766;cursor:text}
+.todo-item .todo-del{opacity:0;cursor:pointer;color:#bbb;font-size:16px;flex-shrink:0;transition:opacity .15s,color .15s;line-height:1}
+.todo-item:hover .todo-del{opacity:1}
+.todo-item .todo-del:hover{color:#ff4d4f}
+.todo-item.done .todo-text{text-decoration:line-through;color:#bbb}
+.todo-add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;color:#4f6ef7;font-size:13px;cursor:pointer;border-radius:6px;transition:background .15s;user-select:none;margin-top:2px}
+.todo-add-btn:hover{background:#f0f4ff}
+
+@media(max-width:768px){.sidebar{display:none}.kpi-grid{grid-template-columns:1fr 1fr}}
+
+/* 爆款内容表格 */
+.boom-table{width:100%;border-collapse:collapse;font-size:13px}
+.boom-table th{background:#f5f7ff;color:#666;font-weight:600;padding:9px 10px;text-align:left;border-bottom:2px solid #e8edff;white-space:nowrap}
+.boom-table td{padding:8px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.boom-table tr:hover td{background:#fafbff}
+.boom-table tr:last-child td{border-bottom:none}
+.boom-seq{color:#aaa;font-size:12px;text-align:center;width:36px}
+.boom-platform-tags{display:flex;flex-wrap:wrap;gap:4px}
+.boom-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;user-select:none;transition:opacity .15s}
+.boom-tag:hover{opacity:.75}
+.boom-tag.dy{background:#e8f4ff;color:#1d7dfa}
+.boom-tag.xhs{background:#ffe8ec;color:#ff2442}
+.boom-tag.sph{background:#e8faf0;color:#07c160}
+.boom-tag.ks{background:#fff3e0;color:#ff6b00}
+.boom-tag.inactive{background:#f5f5f5 !important;color:#bbb !important}
+.boom-img-cell{width:80px}
+.boom-img-wrap{width:72px;height:48px;background:#f5f5f5;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1.5px dashed #ddd;transition:border-color .15s;position:relative}
+.boom-img-wrap:hover{border-color:#4f6ef7}
+.boom-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.boom-img-wrap .upload-hint{font-size:10px;color:#bbb;text-align:center;line-height:1.4;pointer-events:none}
+.boom-input{border:none;background:transparent;font-size:13px;color:#333;outline:none;width:100%;padding:2px 4px;border-radius:4px;cursor:pointer;font-family:inherit}
+.boom-input:focus{background:#fff;box-shadow:0 0 0 2px #4f6ef766;cursor:text}
+.boom-input.views{color:#4f6ef7;font-weight:600}
+.boom-input.analysis{color:#666;font-size:12px}
+.boom-del-btn{opacity:0;cursor:pointer;color:#bbb;font-size:18px;transition:opacity .15s,color .15s;padding:0 4px;line-height:1;background:none;border:none}
+.boom-table tr:hover .boom-del-btn{opacity:1}
+.boom-del-btn:hover{color:#ff4d4f}
+.boom-add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;color:#4f6ef7;font-size:13px;cursor:pointer;border-radius:6px;transition:background .15s;user-select:none;margin-top:4px}
+.boom-add-btn:hover{background:#f0f4ff}
+
+/* 趋势图切换按钮 */
+.trend-btn{padding:4px 12px;border-radius:14px;border:1.5px solid var(--c,#4f6ef7);color:var(--c,#4f6ef7);background:#fff;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit}
+.trend-btn:hover{background:color-mix(in srgb,var(--c,#4f6ef7) 10%,#fff)}
+.trend-btn.active{background:var(--c,#4f6ef7);color:#fff}
+
+/* 折叠按钮 */
+.collapse-btn{margin-left:auto;width:22px;height:22px;border-radius:50%;border:none;background:#f0f0f0;color:#888;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .2s;flex-shrink:0;line-height:1}
+.collapse-btn:hover{background:#e0e6ff;color:#4f6ef7}
+.collapse-btn.collapsed{transform:rotate(-90deg)}
+.collapsible-body{overflow:hidden;transition:max-height .3s ease,opacity .2s ease;max-height:2000px;opacity:1}
+.collapsible-body.collapsed{max-height:0;opacity:0}
+
+/* 营销日历 - 横向表格 */
+.cal-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cal-htable{border-collapse:collapse;font-size:12px;min-width:100%;table-layout:fixed}
+.cal-htable th,.cal-htable td{border:1px solid #eee;padding:0;vertical-align:middle}
+.cal-htable .row-label{width:52px;min-width:52px;background:#fafafa;font-size:12px;color:#666;font-weight:600;text-align:center;padding:6px 4px;white-space:nowrap;position:sticky;left:0;z-index:2;border-right:2px solid #e8e8e8}
+.cal-htable .date-header{min-width:90px;width:90px;text-align:center;background:#fff0f6;padding:7px 4px}
+.cal-htable .date-header.today{background:#eb2f96;color:#fff}
+.cal-htable .date-header .date-num{font-size:13px;font-weight:700;line-height:1.2}
+.cal-htable .date-header .date-week{font-size:10px;opacity:.8;margin-top:1px}
+.cal-htable .date-header.weekend-col .date-num{color:#ff4d4f}
+.cal-htable .date-header.today .date-num{color:#fff}
+.cal-htable .week-row td{background:#fafbff;text-align:center;font-size:11px;color:#888;padding:4px 2px;font-weight:500}
+.cal-htable .week-row td.today-col{background:#fff0f6;color:#eb2f96;font-weight:700}
+.cal-htable .week-row td.weekend-col{color:#ff4d4f}
+.cal-htable .note-cell{padding:2px 4px;min-height:32px;position:relative}
+.cal-note-input{width:100%;border:none;background:transparent;font-size:12px;color:#333;outline:none;padding:4px 20px 4px 4px;font-family:inherit;display:block;min-height:32px;box-sizing:border-box;resize:none;line-height:1.4}
+.cal-note-input:focus{background:#fff5f9;box-shadow:inset 0 0 0 1.5px #ffadd2;border-radius:3px}
+.cal-note-input::placeholder{color:#ddd;font-size:11px}
+.cal-htable tr:hover .row-label{background:#fff0f6;color:#eb2f96}
+.cal-label-input{width:100%;border:none;background:transparent;font-size:12px;color:#666;font-weight:600;text-align:center;outline:none;padding:2px;font-family:inherit;cursor:pointer;border-radius:3px}
+.cal-label-input:focus{background:#fff0f6;color:#eb2f96;cursor:text;box-shadow:0 0 0 1.5px #ffadd2}
+/* 单元格合并&颜色 */
+.cal-selected{outline:2px solid #eb2f96 !important;outline-offset:-2px;z-index:1;position:relative}
+#cal-toolbar{position:fixed;z-index:9999;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:340px}
+#cal-toolbar .cal-tb-swatch{width:20px;height:20px;border-radius:4px;border:1px solid #ccc;cursor:pointer;display:inline-block;flex-shrink:0;transition:transform .1s}
+#cal-toolbar .cal-tb-swatch:hover{transform:scale(1.25);border-color:#eb2f96}
+#cal-toolbar .cal-tb-btn{font-size:12px;padding:3px 9px;border-radius:6px;border:1px solid #d9d9d9;background:#fafafa;cursor:pointer;white-space:nowrap;transition:background .15s}
+#cal-toolbar .cal-tb-btn:hover:not(:disabled){background:#fff0f6;border-color:#eb2f96;color:#eb2f96}
+#cal-toolbar .cal-tb-btn:disabled{opacity:.38;cursor:not-allowed}
+#cal-toolbar .cal-tb-close{margin-left:2px;font-size:14px;line-height:1;background:none;border:none;cursor:pointer;color:#aaa;padding:2px 4px;border-radius:4px}
+#cal-toolbar .cal-tb-close:hover{color:#eb2f96}
+#cal-toolbar label.cal-tb-color-pick{display:flex;align-items:center;gap:3px;font-size:11px;color:#888;cursor:pointer}
+#cal-toolbar input[type=color]{width:22px;height:22px;border:none;padding:0;cursor:pointer;border-radius:4px;background:none}
+
+/* 流量分析编辑器 */
+.analysis-editor{width:100%;min-height:140px;border:1.5px solid #f0eaff;border-radius:8px;padding:14px 16px;font-size:13px;color:#333;line-height:1.8;resize:vertical;outline:none;font-family:inherit;background:#fdfbff;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+.analysis-editor:focus{border-color:#b37feb;box-shadow:0 0 0 3px #f9f0ff}
+.analysis-editor::placeholder{color:#d3c4ef}
+.analysis-meta{font-size:11px;color:#bbb;margin-top:6px;text-align:right}
+
+/* 热点新闻 */
+.hot-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .1s}
+.hot-item:last-child{border-bottom:none}
+.hot-item:hover{background:#fffbe6;border-radius:6px;padding-left:6px;padding-right:6px;margin:0 -6px}
+.hot-rank{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.hot-rank.r1{background:#ff4d4f;color:#fff}
+.hot-rank.r2{background:#fa8c16;color:#fff}
+.hot-rank.r3{background:#fadb14;color:#333}
+.hot-rank.rn{background:#f0f0f0;color:#999}
+.hot-title{flex:1;font-size:13px;color:#333;line-height:1.5}
+.hot-title a{color:inherit;text-decoration:none}
+.hot-title a:hover{color:#1d7dfa;text-decoration:underline}
+.hot-badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;margin-left:6px;vertical-align:middle}
+.hot-badge.science{background:#e6fffb;color:#08979c}
+.hot-badge.kids{background:#fff0f6;color:#c41d7f}
+.hot-badge.wiki{background:#f0f5ff;color:#2f54eb}
+.hot-heat{font-size:11px;color:#bbb;flex-shrink:0;white-space:nowrap;margin-top:3px}
+.hot-error{color:#ff4d4f;font-size:12px;padding:12px;background:#fff2f0;border-radius:6px;line-height:1.6}
+
+.note-cell{position:relative}
+.cal-paint-btn{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:3px;border:none;background:none;font-size:11px;cursor:pointer;opacity:0;transition:opacity .15s;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.note-cell .cal-paint-btn{opacity:.25}
+.note-cell:hover .cal-paint-btn{opacity:1}
+.cal-paint-btn:hover{background:#fff0f6}
+
+/* ====== 新媒体周报板块 ====== */
+.weekly-report-card{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.03)}
+.weekly-report-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.weekly-report-title{font-size:14px;font-weight:600;color:#333;display:flex;align-items:center;gap:6px}
+.weekly-report-subtitle{font-size:11px;color:#aaa;font-weight:400;margin-left:4px}
+.weekly-report-table{width:100%;border-collapse:collapse;font-size:13px}
+.weekly-report-table th{background:#f5f6fa;color:#666;font-weight:600;padding:10px 14px;text-align:left;border-bottom:2px solid #e8edf5;white-space:nowrap;font-size:12px}
+.weekly-report-table th:first-child{border-radius:8px 0 0 0}
+.weekly-report-table th:last-child{border-radius:0 8px 0 0}
+.weekly-report-table td{padding:12px 14px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.weekly-report-table tr:last-child td{border-bottom:none}
+.weekly-report-table tr:hover td{background:#fafbff}
+.wr-metric{display:flex;align-items:center;gap:8px;font-weight:600;color:#333}
+.wr-metric-icon{font-size:16px;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wr-val{font-weight:700;color:#4f6ef7;font-size:15px}
+.wr-val-sub{font-size:11px;color:#aaa;font-weight:400;display:block;margin-top:1px}
+.wr-last-val{color:#888;font-size:14px}
+.wr-up{color:#52c41a;font-weight:600}.wr-down{color:#ff4d4f;font-weight:600}.wr-neutral{color:#aaa;font-weight:400}
+.wr-goal{color:#fa8c16;font-weight:600;font-size:14px;cursor:pointer;border-bottom:1px dashed #ffc069;transition:color .15s}
+.wr-goal:hover{color:#d46b08}
+.wr-completion{display:flex;align-items:center;gap:10px}
+.wr-completion-pct{font-weight:800;font-size:16px;min-width:50px}
+.wr-completion-bar{flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;min-width:80px}
+.wr-completion-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.wr-week-range{font-size:11px;color:#bbb;display:block;margin-top:2px}
+
+/* 目标完成情况 - 卡片式 */
+.goal-section-label{font-size:15px;color:#333;font-weight:700;letter-spacing:.5px;margin:0 0 10px;padding:0}
+.goal-card-row{display:grid;gap:12px;margin-bottom:12px}
+.goal-card-row.play-row{grid-template-columns:1fr 1fr}
+.goal-card-row.boom-row{grid-template-columns:1fr 1fr 1fr 1fr}
+/* 左右两栏总布局 */
+.goal-layout{display:grid;grid-template-columns:auto 1fr 32px auto 1fr;gap:12px;align-items:center}
+.goal-col{display:flex;flex-direction:column;gap:12px}
+.goal-col .goal-card{margin:0}
+@media(max-width:768px){.goal-layout{grid-template-columns:1fr}}
+.goal-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);position:relative;overflow:hidden;transition:box-shadow .2s}
+.goal-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)}
+.goal-card .gc-label{font-size:11px;color:#aaa;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.goal-card .gc-pct{font-size:44px;font-weight:800;line-height:1;margin-bottom:6px;letter-spacing:-1px}
+.goal-card .gc-cur{font-size:13px;font-weight:600;line-height:1.4}
+.goal-card .gc-boom-cur{font-size:13px;font-weight:600;line-height:1.4}
+.goal-card .gc-goal{font-size:11px;color:#bbb;margin-bottom:8px}
+.goal-card .gc-bar-wrap{height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-bottom:4px}
+.goal-card .gc-bar{height:100%;border-radius:3px;transition:width 1s ease}
+.goal-card .gc-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
+@media(max-width:768px){.goal-card-row.play-row{grid-template-columns:1fr 1fr}.goal-card-row.boom-row{grid-template-columns:1fr 1fr}}
+
+/* 平台页彩色左竖条 */
+#page-1 .card{border-left:4px solid #1d7dfa}
+#page-2 .card{border-left:4px solid #ff2442}
+#page-3 .card{border-left:4px solid #07c160}
+#page-4 .card{border-left:4px solid #ff6200}
+/* 平台页 KPI 数字也用对应平台色 */
+#page-1 .kpi-number{color:#1d7dfa}
+#page-2 .kpi-number{color:#ff2442}
+#page-3 .kpi-number{color:#07c160}
+#page-4 .kpi-number{color:#ff6200}
+/* 平台页进度/对比表头 */
+#page-1 .compare-table th{border-bottom-color:#1d7dfa33}
+#page-2 .compare-table th{border-bottom-color:#ff244233}
+#page-3 .compare-table th{border-bottom-color:#07c16033}
+#page-4 .compare-table th{border-bottom-color:#ff620033}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title"><span style="font-size:20px">📱</span><span>新媒体短视频数据看板</span></div>
+  <div class="header-meta">
+    <span class="update-tag">📅 数据来源：大圣数据底稿</span>
+    <span id="today-label">2026年5月19日 周二</span>
+    <button class="admin-btn">🔒 管理员</button>
+  </div>
+</div>
+
+<!-- 时间选择器 -->
+<div class="time-bar">
+  <span class="time-label">📅 数据周期</span>
+  <input type="date" id="date-start" value="2026-05-12">
+  <span class="sep">至</span>
+  <input type="date" id="date-end" value="2026-05-18">
+  <div class="preset-btns">
+    <button class="preset-btn active" onclick="applyPreset(this,'last-week')">上周（自然周）</button>
+    <button class="preset-btn" onclick="applyPreset(this,'last-30')">最近30天</button>
+    <button class="preset-btn" onclick="applyPreset(this,'q2')">Q2至今</button>
+    <button class="preset-btn" onclick="applyPreset(this,'all')">全部</button>
+  </div>
+  <button class="apply-btn" onclick="applyDateRange()">🔄 刷新</button>
+  <span class="period-tip" id="period-tip"></span>
+</div>
+
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab(0)">📊 数据总览</div>
+  <div class="tab-item" onclick="switchTab(1)">🎵 抖音</div>
+  <div class="tab-item" onclick="switchTab(2)">📕 小红书</div>
+  <div class="tab-item" onclick="switchTab(3)">▶️ 视频号</div>
+  <div class="tab-item" onclick="switchTab(4)">⚡ 快手</div>
+  <div class="tab-item" onclick="switchTab(5)">💡 公众号</div>
+</div>
+
+<div class="main">
+  <div class="sidebar" id="sidebar">
+    <div id="sidebar-overview-nav">
+      <div class="sidebar-label">数据总览</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-weekly-report',this)">📋 新媒体周报</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-goal',this)">🎯 目标完成</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-kpi',this)">📊 平台数据</div>
+      <div class="sidebar-item" onclick="scrollToSection('overview-trend-card',this)">📈 流量趋势</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-analysis',this)">🔍 流量分析</div>
+      <div class="sidebar-item" onclick="scrollToSection('boom-card-title',this)">🔥 爆款内容</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-todo',this)">✅ 本周 TO DO</div>
+      <div class="sidebar-item" onclick="scrollToSection('sec-cal',this)">📅 营销日历</div>
+    </div>
+
+  </div>
+  <div class="content">
+
+    <!-- 总览 -->
+    <div class="page active" id="page-0">
+      <div class="period-badge">当前周期：<span class="cur" id="overview-period">-</span></div>
+      <div class="weekly-report-card" id="sec-weekly-report">
+        <div class="weekly-report-header">
+          <div class="weekly-report-title">
+            <span class="bar-icon" style="background:linear-gradient(135deg,#4f6ef7,#a78bfa)"></span>
+            新媒体周报
+            <span class="weekly-report-subtitle" id="wr-week-label">（加载中...）</span>
+          </div>
+        </div>
+        <table class="weekly-report-table">
+          <thead>
+            <tr>
+              <th style="min-width:160px">指标</th>
+              <th style="min-width:130px">本周值</th>
+              <th style="min-width:130px">上周值</th>
+              <th style="min-width:110px">环比</th>
+              <th style="min-width:110px">Q2目标</th>
+              <th style="min-width:200px">完成率</th>
+            </tr>
+          </thead>
+          <tbody id="wr-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="sec-goal">
+        <div class="card-title"><span class="bar-icon"></span> 目标完成情况 <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:6px">（本季度累计 · 点击名称或目标值可修改）</span></div>
+        <div id="goal-rows"></div>
+      </div>
+
+      <div class="card" id="sec-kpi">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#52c41a,#95de64)"></span> 各平台核心数据</div>
+        <div class="kpi-grid" id="overview-kpi"></div>
+      </div>
+
+      <div class="card" id="overview-trend-card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span><span class="bar-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb)"></span> 流量趋势 — <span id="trend-title">全平台播放量</span></span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center" id="trend-platform-btns">
+            <button class="trend-btn active" data-platform="all"   onclick="switchTrend('all')"   style="--c:#4f6ef7">全部</button>
+            <button class="trend-btn"        data-platform="dy"    onclick="switchTrend('dy')"    style="--c:#1d7dfa">🎵 抖音</button>
+            <button class="trend-btn"        data-platform="xhs"   onclick="switchTrend('xhs')"   style="--c:#ff2442">📕 小红书</button>
+            <button class="trend-btn"        data-platform="sph"   onclick="switchTrend('sph')"   style="--c:#07c160">▶️ 视频号</button>
+            <button class="trend-btn"        data-platform="ks"    onclick="switchTrend('ks')"    style="--c:#ff6200">⚡ 快手</button>
+            <button class="collapse-btn" id="trend-collapse-btn" onclick="toggleCollapse('trend')" title="折叠/展开">▾</button>
+          </div>
+        </div>
+        <div class="collapsible-body" id="trend-collapse-body">
+          <div class="chart-wrap" style="height:240px"><canvas id="chart-overview-trend"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card" id="sec-analysis">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb)"></span>
+          <span>流量分析 — <span id="analysis-platform-title">全平台</span></span>
+          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px">（点击上方播放量卡片切换平台 · 内容可自由编辑）</span>
+          <button class="collapse-btn" id="analysis-collapse-btn" onclick="toggleCollapse('analysis')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="analysis-collapse-body">
+          <div id="analysis-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+            <button class="trend-btn active" data-aplatform="all"  onclick="switchAnalysis('all')"  style="--c:#722ed1">全部</button>
+            <button class="trend-btn"        data-aplatform="dy"   onclick="switchAnalysis('dy')"   style="--c:#1d7dfa">🎵 抖音</button>
+            <button class="trend-btn"        data-aplatform="xhs"  onclick="switchAnalysis('xhs')"  style="--c:#ff2442">📕 小红书</button>
+            <button class="trend-btn"        data-aplatform="sph"  onclick="switchAnalysis('sph')"  style="--c:#07c160">▶️ 视频号</button>
+            <button class="trend-btn"        data-aplatform="ks"   onclick="switchAnalysis('ks')"   style="--c:#ff6200">⚡ 快手</button>
+          </div>
+          <div id="analysis-editor-wrap"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" id="boom-card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#fa8c16,#ffd666)"></span>
+          <span class="editable-goal editable-name" onclick="boomEditTitle()" title="点击修改标题" id="boom-title-text">爆款内容</span>
+          <button class="collapse-btn" id="boom-collapse-btn" onclick="toggleCollapse('boom')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="boom-collapse-body">
+          <div style="overflow-x:auto">
+            <table class="boom-table">
+              <thead><tr>
+                <th class="boom-seq">#</th>
+                <th style="min-width:140px">内容标题</th>
+                <th style="min-width:130px">平台</th>
+                <th style="width:90px">截图</th>
+                <th style="min-width:80px">播放量</th>
+                <th style="min-width:180px">浅析</th>
+                <th style="width:30px"></th>
+              </tr></thead>
+              <tbody id="boom-tbody"></tbody>
+            </table>
+          </div>
+          <div class="boom-add-btn" onclick="boomAdd()">＋ 添加爆款</div>
+          <input type="file" id="boom-img-input" accept="image/*" style="display:none">
+        </div>
+      </div>
+
+      <div class="card" id="sec-todo">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#36cfc9,#0891b2)"></span>
+          <span>本周 TO DO</span>
+          <button class="collapse-btn" id="todo-collapse-btn" onclick="toggleCollapse('todo')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="todo-collapse-body">
+          <div class="todo-list" id="todo-list"></div>
+          <div class="todo-add-btn" onclick="todoAdd()">＋ 添加待办</div>
+        </div>
+      </div>
+
+      <div class="card" id="sec-cal">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#eb2f96,#ff85c2)"></span>
+          <span>营销日历</span>
+          <span style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px">（未来15天 · 右侧可编辑备注）</span>
+          <button class="collapse-btn" id="cal-collapse-btn" onclick="toggleCollapse('cal')" title="折叠/展开">▾</button>
+        </div>
+        <div class="collapsible-body" id="cal-collapse-body">
+          <div id="mkt-calendar"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 抖音 -->
+    <div class="page" id="page-1">
+      <div class="period-badge">当前周期：<span class="cur" id="dy-period">-</span></div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 抖音核心指标</div>
+        <div class="kpi-grid" id="dy-kpi"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 本期 vs 上期 详细对比</div>
+        <table class="compare-table"><thead><tr><th>指标</th><th id="dy-th-cur">本期</th><th id="dy-th-pre">上期</th><th>环比</th></tr></thead>
+        <tbody id="dy-table"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#1d7dfa,#59a5fa)"></span> 每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-douyin"></canvas></div>
+      </div>
+
+      <div class="card" id="hot-news-card">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="bar-icon" style="background:linear-gradient(135deg,#ff4d4f,#ff7a45)"></span>
+          <span>🔥 近期社会热点</span>
+          <span style="font-size:11px;color:#aaa;font-weight:400">（优先百科·科普·少儿相关）</span>
+          <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+            <span id="hot-update-time" style="font-size:11px;color:#bbb"></span>
+            <button onclick="fetchHotNews(true)" style="padding:3px 10px;border-radius:12px;border:1px solid #ffbb96;color:#fa541c;background:#fff2e8;font-size:11px;cursor:pointer;font-family:inherit">🔄 刷新</button>
+          </div>
+        </div>
+        <div id="hot-source-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="trend-btn active" data-hsource="weibo"  onclick="switchHotSource('weibo')"  style="--c:#e6162d">微博热搜</button>
+          <button class="trend-btn"        data-hsource="baidu"  onclick="switchHotSource('baidu')"  style="--c:#2932e1">百度热搜</button>
+          <button class="trend-btn"        data-hsource="zhihu"  onclick="switchHotSource('zhihu')"  style="--c:#0084ff">知乎热榜</button>
+        </div>
+        <div id="hot-news-list" style="min-height:80px">
+          <div style="color:#bbb;font-size:13px;padding:20px 0;text-align:center">加载中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 小红书 -->
+    <div class="page" id="page-2">
+      <div class="period-badge">当前周期：<span class="cur" id="xhs-period">-</span></div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff2442,#ff6b81)"></span> 小红书核心指标</div>
+        <div class="kpi-grid" id="xhs-kpi"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff2442,#ff6b81)"></span> 本期 vs 上期 详细对比</div>
+        <table class="compare-table"><thead><tr><th>指标</th><th id="xhs-th-cur">本期</th><th id="xhs-th-pre">上期</th><th>环比</th></tr></thead>
+        <tbody id="xhs-table"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff2442,#ff6b81)"></span> 每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-xhs"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 视频号 -->
+    <div class="page" id="page-3">
+      <div class="period-badge">当前周期：<span class="cur" id="sph-period">-</span></div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 视频号核心指标</div>
+        <div class="kpi-grid" id="sph-kpi"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 本期 vs 上期 详细对比</div>
+        <table class="compare-table"><thead><tr><th>指标</th><th id="sph-th-cur">本期</th><th id="sph-th-pre">上期</th><th>环比</th></tr></thead>
+        <tbody id="sph-table"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-sph"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 快手 -->
+    <div class="page" id="page-4">
+      <div class="period-badge">当前周期：<span class="cur" id="ks-period">-</span></div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff6200,#ff9500)"></span> 快手核心指标</div>
+        <div class="kpi-grid" id="ks-kpi"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff6200,#ff9500)"></span> 本期 vs 上期 详细对比</div>
+        <table class="compare-table"><thead><tr><th>指标</th><th id="ks-th-cur">本期</th><th id="ks-th-pre">上期</th><th>环比</th></tr></thead>
+        <tbody id="ks-table"></tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#ff6200,#ff9500)"></span> 每日播放量趋势</div>
+        <div class="chart-wrap"><canvas id="chart-ks"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 公众号 -->
+    <div class="page" id="page-5">
+      <div class="card"><div class="card-title"><span class="bar-icon" style="background:linear-gradient(135deg,#07c160,#34d27b)"></span> 公众号</div>
+      <p style="color:#aaa;font-size:13px;padding:20px 0">暂无数据，请在数据底稿中补充公众号数据后刷新。</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALL_DATA = [{"date":"2026-01-01","dy_play":90842,"dy_like":271,"dy_share":21,"dy_comment":11,"dy_fans":-36,"sph_play":5814,"sph_rec":5,"sph_like":14,"sph_comment":2,"sph_share":24,"sph_follow":21,"ks_play":12306,"ks_fans":10,"ks_comment":1,"ks_like":65,"ks_share":4,"xhs_play":11695,"xhs_collect":71,"xhs_like":104,"xhs_fans":41,"xhs_comment":1},{"date":"2026-01-02","dy_play":93611,"dy_like":311,"dy_share":28,"dy_comment":11,"dy_fans":4,"sph_play":8173,"sph_rec":8,"sph_like":21,"sph_comment":2,"sph_share":33,"sph_follow":26,"ks_play":13825,"ks_fans":12,"ks_comment":2,"ks_like":76,"ks_share":3,"xhs_play":16291,"xhs_collect":64,"xhs_like":124,"xhs_fans":40,"xhs_comment":10},{"date":"2026-01-03","dy_play":79024,"dy_like":494,"dy_share":38,"dy_comment":14,"dy_fans":-23,"sph_play":10627,"sph_rec":12,"sph_like":28,"sph_comment":3,"sph_share":17,"sph_follow":28,"ks_play":12994,"ks_fans":14,"ks_comment":1,"ks_like":113,"ks_share":3,"xhs_play":17581,"xhs_collect":107,"xhs_like":200,"xhs_fans":52,"xhs_comment":15},{"date":"2026-01-04","dy_play":56877,"dy_like":272,"dy_share":88,"dy_comment":13,"dy_fans":-56,"sph_play":8312,"sph_rec":12,"sph_like":14,"sph_comment":2,"sph_share":12,"sph_follow":30,"ks_play":8511,"ks_fans":-3,"ks_comment":2,"ks_like":42,"ks_share":2,"xhs_play":21706,"xhs_collect":111,"xhs_like":191,"xhs_fans":62,"xhs_comment":11},{"date":"2026-01-05","dy_play":50954,"dy_like":149,"dy_share":83,"dy_comment":11,"dy_fans":-62,"sph_play":11396,"sph_rec":12,"sph_like":39,"sph_comment":20,"sph_share":19,"sph_follow":25,"ks_play":9415,"ks_fans":9,"ks_comment":1,"ks_like":38,"ks_share":5,"xhs_play":20801,"xhs_collect":97,"xhs_like":205,"xhs_fans":65,"xhs_comment":13},{"date":"2026-01-06","dy_play":57422,"dy_like":485,"dy_share":47,"dy_comment":8,"dy_fans":-59,"sph_play":6115,"sph_rec":0,"sph_like":17,"sph_comment":7,"sph_share":26,"sph_follow":26,"ks_play":8433,"ks_fans":7,"ks_comment":1,"ks_like":45,"ks_share":5,"xhs_play":10815,"xhs_collect":42,"xhs_like":71,"xhs_fans":12,"xhs_comment":5},{"date":"2026-01-07","dy_play":45557,"dy_like":577,"dy_share":51,"dy_comment":16,"dy_fans":-13,"sph_play":8052,"sph_rec":15,"sph_like":40,"sph_comment":16,"sph_share":18,"sph_follow":20,"ks_play":9500,"ks_fans":9,"ks_comment":0,"ks_like":38,"ks_share":4,"xhs_play":8937,"xhs_collect":44,"xhs_like":88,"xhs_fans":31,"xhs_comment":2},{"date":"2026-01-08","dy_play":62482,"dy_like":734,"dy_share":55,"dy_comment":20,"dy_fans":-39,"sph_play":10264,"sph_rec":47,"sph_like":36,"sph_comment":12,"sph_share":17,"sph_follow":27,"ks_play":11310,"ks_fans":6,"ks_comment":2,"ks_like":71,"ks_share":3,"xhs_play":4170,"xhs_collect":29,"xhs_like":44,"xhs_fans":10,"xhs_comment":4},{"date":"2026-01-09","dy_play":62379,"dy_like":870,"dy_share":34,"dy_comment":16,"dy_fans":1,"sph_play":9977,"sph_rec":37,"sph_like":33,"sph_comment":22,"sph_share":25,"sph_follow":70,"ks_play":18831,"ks_fans":33,"ks_comment":7,"ks_like":98,"ks_share":11,"xhs_play":8713,"xhs_collect":32,"xhs_like":54,"xhs_fans":21,"xhs_comment":0},{"date":"2026-01-10","dy_play":115320,"dy_like":528,"dy_share":32,"dy_comment":25,"dy_fans":11,"sph_play":8640,"sph_rec":14,"sph_like":21,"sph_comment":4,"sph_share":18,"sph_follow":24,"ks_play":16358,"ks_fans":11,"ks_comment":4,"ks_like":100,"ks_share":9,"xhs_play":8514,"xhs_collect":37,"xhs_like":61,"xhs_fans":27,"xhs_comment":2},{"date":"2026-01-11","dy_play":65256,"dy_like":1248,"dy_share":59,"dy_comment":19,"dy_fans":-33,"sph_play":5800,"sph_rec":14,"sph_like":16,"sph_comment":0,"sph_share":24,"sph_follow":25,"ks_play":12228,"ks_fans":10,"ks_comment":1,"ks_like":74,"ks_share":4,"xhs_play":6592,"xhs_collect":39,"xhs_like":53,"xhs_fans":32,"xhs_comment":4},{"date":"2026-01-12","dy_play":69599,"dy_like":1730,"dy_share":40,"dy_comment":51,"dy_fans":-63,"sph_play":6490,"sph_rec":13,"sph_like":24,"sph_comment":11,"sph_share":13,"sph_follow":17,"ks_play":10443,"ks_fans":2,"ks_comment":2,"ks_like":49,"ks_share":2,"xhs_play":7582,"xhs_collect":54,"xhs_like":87,"xhs_fans":37,"xhs_comment":5},{"date":"2026-01-13","dy_play":43983,"dy_like":1730,"dy_share":40,"dy_comment":51,"dy_fans":-63,"sph_play":6049,"sph_rec":10,"sph_like":16,"sph_comment":1,"sph_share":44,"sph_follow":41,"ks_play":9913,"ks_fans":4,"ks_comment":7,"ks_like":57,"ks_share":0,"xhs_play":3111,"xhs_collect":16,"xhs_like":29,"xhs_fans":18,"xhs_comment":1},{"date":"2026-01-14","dy_play":62823,"dy_like":277,"dy_share":41,"dy_comment":11,"dy_fans":-57,"sph_play":10187,"sph_rec":7,"sph_like":25,"sph_comment":4,"sph_share":30,"sph_follow":34,"ks_play":10121,"ks_fans":13,"ks_comment":11,"ks_like":54,"ks_share":2,"xhs_play":4969,"xhs_collect":25,"xhs_like":59,"xhs_fans":35,"xhs_comment":1},{"date":"2026-01-15","dy_play":91810,"dy_like":386,"dy_share":70,"dy_comment":14,"dy_fans":-58,"sph_play":11241,"sph_rec":19,"sph_like":34,"sph_comment":4,"sph_share":37,"sph_follow":35,"ks_play":11166,"ks_fans":11,"ks_comment":5,"ks_like":57,"ks_share":5,"xhs_play":4202,"xhs_collect":34,"xhs_like":50,"xhs_fans":31,"xhs_comment":1},{"date":"2026-01-16","dy_play":105493,"dy_like":877,"dy_share":67,"dy_comment":29,"dy_fans":-51,"sph_play":9798,"sph_rec":9,"sph_like":30,"sph_comment":4,"sph_share":27,"sph_follow":39,"ks_play":10251,"ks_fans":6,"ks_comment":2,"ks_like":87,"ks_share":7,"xhs_play":2934,"xhs_collect":23,"xhs_like":32,"xhs_fans":17,"xhs_comment":6},{"date":"2026-01-17","dy_play":114754,"dy_like":1293,"dy_share":70,"dy_comment":33,"dy_fans":-18,"sph_play":8054,"sph_rec":16,"sph_like":22,"sph_comment":0,"sph_share":29,"sph_follow":38,"ks_play":15335,"ks_fans":14,"ks_comment":5,"ks_like":68,"ks_share":8,"xhs_play":3397,"xhs_collect":33,"xhs_like":45,"xhs_fans":15,"xhs_comment":1},{"date":"2026-01-18","dy_play":75772,"dy_like":1006,"dy_share":72,"dy_comment":30,"dy_fans":5,"sph_play":6499,"sph_rec":10,"sph_like":13,"sph_comment":5,"sph_share":32,"sph_follow":25,"ks_play":10711,"ks_fans":14,"ks_comment":5,"ks_like":68,"ks_share":4,"xhs_play":4288,"xhs_collect":28,"xhs_like":51,"xhs_fans":15,"xhs_comment":6},{"date":"2026-01-19","dy_play":30883,"dy_like":710,"dy_share":24,"dy_comment":21,"dy_fans":-36,"sph_play":5581,"sph_rec":6,"sph_like":11,"sph_comment":0,"sph_share":28,"sph_follow":30,"ks_play":8744,"ks_fans":3,"ks_comment":2,"ks_like":49,"ks_share":4,"xhs_play":4347,"xhs_collect":25,"xhs_like":38,"xhs_fans":20,"xhs_comment":4},{"date":"2026-01-20","dy_play":43804,"dy_like":179,"dy_share":44,"dy_comment":4,"dy_fans":-55,"sph_play":4964,"sph_rec":14,"sph_like":25,"sph_comment":2,"sph_share":19,"sph_follow":33,"ks_play":10236,"ks_fans":7,"ks_comment":1,"ks_like":52,"ks_share":2,"xhs_play":3043,"xhs_collect":17,"xhs_like":25,"xhs_fans":20,"xhs_comment":0},{"date":"2026-01-21","dy_play":50457,"dy_like":947,"dy_share":39,"dy_comment":16,"dy_fans":-60,"sph_play":9345,"sph_rec":17,"sph_like":20,"sph_comment":11,"sph_share":22,"sph_follow":30,"ks_play":10401,"ks_fans":12,"ks_comment":1,"ks_like":59,"ks_share":0,"xhs_play":5556,"xhs_collect":53,"xhs_like":113,"xhs_fans":29,"xhs_comment":0},{"date":"2026-01-22","dy_play":67634,"dy_like":851,"dy_share":43,"dy_comment":22,"dy_fans":-73,"sph_play":10162,"sph_rec":49,"sph_like":57,"sph_comment":13,"sph_share":26,"sph_follow":21,"ks_play":10435,"ks_fans":7,"ks_comment":2,"ks_like":62,"ks_share":3,"xhs_play":5512,"xhs_collect":65,"xhs_like":141,"xhs_fans":39,"xhs_comment":0},{"date":"2026-01-23","dy_play":83425,"dy_like":1248,"dy_share":101,"dy_comment":25,"dy_fans":-23,"sph_play":8511,"sph_rec":19,"sph_like":35,"sph_comment":1,"sph_share":31,"sph_follow":93,"ks_play":10928,"ks_fans":3,"ks_comment":4,"ks_like":74,"ks_share":3,"xhs_play":5237,"xhs_collect":78,"xhs_like":121,"xhs_fans":34,"xhs_comment":3},{"date":"2026-01-24","dy_play":83830,"dy_like":2312,"dy_share":131,"dy_comment":42,"dy_fans":-2,"sph_play":8229,"sph_rec":15,"sph_like":24,"sph_comment":2,"sph_share":30,"sph_follow":40,"ks_play":12197,"ks_fans":7,"ks_comment":4,"ks_like":77,"ks_share":4,"xhs_play":4667,"xhs_collect":58,"xhs_like":102,"xhs_fans":49,"xhs_comment":2},{"date":"2026-01-25","dy_play":141110,"dy_like":1623,"dy_share":141,"dy_comment":-185,"dy_fans":-11,"sph_play":7480,"sph_rec":23,"sph_like":37,"sph_comment":1,"sph_share":43,"sph_follow":33,"ks_play":13546,"ks_fans":17,"ks_comment":3,"ks_like":77,"ks_share":3,"xhs_play":4885,"xhs_collect":74,"xhs_like":117,"xhs_fans":32,"xhs_comment":4},{"date":"2026-01-26","dy_play":70630,"dy_like":1340,"dy_share":83,"dy_comment":24,"dy_fans":-34,"sph_play":7609,"sph_rec":13,"sph_like":25,"sph_comment":1,"sph_share":27,"sph_follow":40,"ks_play":11189,"ks_fans":8,"ks_comment":3,"ks_like":63,"ks_share":0,"xhs_play":4613,"xhs_collect":75,"xhs_like":101,"xhs_fans":39,"xhs_comment":0},{"date":"2026-01-27","dy_play":194688,"dy_like":1340,"dy_share":83,"dy_comment":24,"dy_fans":-34,"sph_play":6243,"sph_rec":22,"sph_like":49,"sph_comment":0,"sph_share":36,"sph_follow":46,"ks_play":12389,"ks_fans":5,"ks_comment":2,"ks_like":64,"ks_share":3,"xhs_play":2978,"xhs_collect":18,"xhs_like":32,"xhs_fans":17,"xhs_comment":1},{"date":"2026-01-28","dy_play":166070,"dy_like":6217,"dy_share":223,"dy_comment":120,"dy_fans":4,"sph_play":7171,"sph_rec":9,"sph_like":17,"sph_comment":6,"sph_share":9,"sph_follow":34,"ks_play":11199,"ks_fans":6,"ks_comment":3,"ks_like":51,"ks_share":2,"xhs_play":3527,"xhs_collect":11,"xhs_like":20,"xhs_fans":18,"xhs_comment":0},{"date":"2026-01-29","dy_play":81243,"dy_like":5318,"dy_share":280,"dy_comment":102,"dy_fans":10,"sph_play":8571,"sph_rec":14,"sph_like":12,"sph_comment":4,"sph_share":27,"sph_follow":27,"ks_play":12824,"ks_fans":10,"ks_comment":6,"ks_like":144,"ks_share":2,"xhs_play":3678,"xhs_collect":29,"xhs_like":36,"xhs_fans":19,"xhs_comment":0},{"date":"2026-01-30","dy_play":75558,"dy_like":1332,"dy_share":92,"dy_comment":24,"dy_fans":-23,"sph_play":8127,"sph_rec":4,"sph_like":19,"sph_comment":3,"sph_share":42,"sph_follow":35,"ks_play":11730,"ks_fans":-3,"ks_comment":2,"ks_like":61,"ks_share":4,"xhs_play":3641,"xhs_collect":27,"xhs_like":49,"xhs_fans":23,"xhs_comment":1},{"date":"2026-01-31","dy_play":95896,"dy_like":1138,"dy_share":76,"dy_comment":19,"dy_fans":-23,"sph_play":8647,"sph_rec":11,"sph_like":28,"sph_comment":1,"sph_share":39,"sph_follow":37,"ks_play":14352,"ks_fans":13,"ks_comment":3,"ks_like":98,"ks_share":12,"xhs_play":3199,"xhs_collect":16,"xhs_like":28,"xhs_fans":19,"xhs_comment":1},{"date":"2026-02-01","dy_play":75511,"dy_like":1401,"dy_share":88,"dy_comment":219,"dy_fans":-23,"sph_play":7662,"sph_rec":18,"sph_like":29,"sph_comment":3,"sph_share":41,"sph_follow":35,"ks_play":12500,"ks_fans":10,"ks_comment":2,"ks_like":68,"ks_share":6,"xhs_play":4016,"xhs_collect":71,"xhs_like":112,"xhs_fans":43,"xhs_comment":1},{"date":"2026-02-02","dy_play":83523,"dy_like":736,"dy_share":68,"dy_comment":32,"dy_fans":-1,"sph_play":7571,"sph_rec":14,"sph_like":28,"sph_comment":0,"sph_share":50,"sph_follow":52,"ks_play":10338,"ks_fans":22,"ks_comment":5,"ks_like":49,"ks_share":6,"xhs_play":4289,"xhs_collect":86,"xhs_like":104,"xhs_fans":43,"xhs_comment":0},{"date":"2026-02-03","dy_play":74505,"dy_like":874,"dy_share":118,"dy_comment":18,"dy_fans":41,"sph_play":7123,"sph_rec":7,"sph_like":23,"sph_comment":0,"sph_share":42,"sph_follow":17,"ks_play":12210,"ks_fans":12,"ks_comment":3,"ks_like":62,"ks_share":5,"xhs_play":2815,"xhs_collect":38,"xhs_like":37,"xhs_fans":6,"xhs_comment":2},{"date":"2026-02-04","dy_play":222836,"dy_like":4376,"dy_share":254,"dy_comment":48,"dy_fans":48,"sph_play":6512,"sph_rec":15,"sph_like":21,"sph_comment":1,"sph_share":15,"sph_follow":25,"ks_play":9999,"ks_fans":4,"ks_comment":2,"ks_like":67,"ks_share":2,"xhs_play":4490,"xhs_collect":14,"xhs_like":50,"xhs_fans":34,"xhs_comment":5},{"date":"2026-02-05","dy_play":163290,"dy_like":3791,"dy_share":161,"dy_comment":94,"dy_fans":36,"sph_play":7907,"sph_rec":21,"sph_like":29,"sph_comment":1,"sph_share":14,"sph_follow":22,"ks_play":10045,"ks_fans":10,"ks_comment":0,"ks_like":67,"ks_share":3,"xhs_play":4155,"xhs_collect":17,"xhs_like":50,"xhs_fans":11,"xhs_comment":1},{"date":"2026-02-06","dy_play":47988,"dy_like":741,"dy_share":22,"dy_comment":14,"dy_fans":6,"sph_play":8346,"sph_rec":8,"sph_like":33,"sph_comment":2,"sph_share":12,"sph_follow":23,"ks_play":12187,"ks_fans":13,"ks_comment":0,"ks_like":65,"ks_share":1,"xhs_play":4451,"xhs_collect":13,"xhs_like":41,"xhs_fans":12,"xhs_comment":1},{"date":"2026-02-07","dy_play":91289,"dy_like":906,"dy_share":21,"dy_comment":36,"dy_fans":17,"sph_play":8456,"sph_rec":14,"sph_like":21,"sph_comment":6,"sph_share":20,"sph_follow":19,"ks_play":14349,"ks_fans":11,"ks_comment":1,"ks_like":80,"ks_share":6,"xhs_play":5819,"xhs_collect":48,"xhs_like":122,"xhs_fans":28,"xhs_comment":3},{"date":"2026-02-08","dy_play":169050,"dy_like":699,"dy_share":24,"dy_comment":17,"dy_fans":75,"sph_play":7679,"sph_rec":37,"sph_like":45,"sph_comment":2,"sph_share":11,"sph_follow":25,"ks_play":14055,"ks_fans":4,"ks_comment":2,"ks_like":59,"ks_share":2,"xhs_play":5378,"xhs_collect":36,"xhs_like":123,"xhs_fans":50,"xhs_comment":2},{"date":"2026-02-09","dy_play":100404,"dy_like":821,"dy_share":49,"dy_comment":25,"dy_fans":34,"sph_play":7601,"sph_rec":10,"sph_like":29,"sph_comment":0,"sph_share":11,"sph_follow":23,"ks_play":15272,"ks_fans":7,"ks_comment":4,"ks_like":90,"ks_share":1,"xhs_play":6566,"xhs_collect":115,"xhs_like":303,"xhs_fans":82,"xhs_comment":8},{"date":"2026-02-10","dy_play":146195,"dy_like":1903,"dy_share":69,"dy_comment":91,"dy_fans":46,"sph_play":6715,"sph_rec":16,"sph_like":10,"sph_comment":2,"sph_share":6,"sph_follow":28,"ks_play":14602,"ks_fans":9,"ks_comment":2,"ks_like":73,"ks_share":9,"xhs_play":7005,"xhs_collect":120,"xhs_like":245,"xhs_fans":82,"xhs_comment":1},{"date":"2026-02-11","dy_play":56963,"dy_like":218,"dy_share":40,"dy_comment":11,"dy_fans":-6,"sph_play":6776,"sph_rec":5,"sph_like":16,"sph_comment":6,"sph_share":6,"sph_follow":33,"ks_play":13619,"ks_fans":7,"ks_comment":3,"ks_like":59,"ks_share":0,"xhs_play":5607,"xhs_collect":131,"xhs_like":227,"xhs_fans":88,"xhs_comment":9},{"date":"2026-02-12","dy_play":110166,"dy_like":212,"dy_share":33,"dy_comment":25,"dy_fans":-16,"sph_play":6371,"sph_rec":13,"sph_like":17,"sph_comment":4,"sph_share":6,"sph_follow":23,"ks_play":13379,"ks_fans":9,"ks_comment":6,"ks_like":87,"ks_share":5,"xhs_play":7502,"xhs_collect":102,"xhs_like":193,"xhs_fans":63,"xhs_comment":5},{"date":"2026-02-13","dy_play":67265,"dy_like":1690,"dy_share":16,"dy_comment":15,"dy_fans":-40,"sph_play":7266,"sph_rec":9,"sph_like":14,"sph_comment":15,"sph_share":18,"sph_follow":42,"ks_play":11509,"ks_fans":13,"ks_comment":4,"ks_like":80,"ks_share":9,"xhs_play":5835,"xhs_collect":123,"xhs_like":174,"xhs_fans":73,"xhs_comment":5},{"date":"2026-02-14","dy_play":82377,"dy_like":1910,"dy_share":22,"dy_comment":24,"dy_fans":9,"sph_play":6648,"sph_rec":9,"sph_like":26,"sph_comment":6,"sph_share":4,"sph_follow":29,"ks_play":12399,"ks_fans":3,"ks_comment":2,"ks_like":72,"ks_share":3,"xhs_play":3173,"xhs_collect":32,"xhs_like":35,"xhs_fans":9,"xhs_comment":0},{"date":"2026-02-15","dy_play":91917,"dy_like":1381,"dy_share":21,"dy_comment":25,"dy_fans":24,"sph_play":8454,"sph_rec":23,"sph_like":28,"sph_comment":1,"sph_share":29,"sph_follow":33,"ks_play":13053,"ks_fans":14,"ks_comment":3,"ks_like":64,"ks_share":2,"xhs_play":4302,"xhs_collect":18,"xhs_like":51,"xhs_fans":19,"xhs_comment":1},{"date":"2026-02-16","dy_play":345128,"dy_like":9672,"dy_share":192,"dy_comment":260,"dy_fans":308,"sph_play":7732,"sph_rec":12,"sph_like":21,"sph_comment":1,"sph_share":12,"sph_follow":48,"ks_play":14919,"ks_fans":8,"ks_comment":5,"ks_like":66,"ks_share":2,"xhs_play":8143,"xhs_collect":154,"xhs_like":182,"xhs_fans":94,"xhs_comment":2},{"date":"2026-02-17","dy_play":188055,"dy_like":7459,"dy_share":155,"dy_comment":194,"dy_fans":59,"sph_play":7943,"sph_rec":3,"sph_like":22,"sph_comment":4,"sph_share":15,"sph_follow":26,"ks_play":14700,"ks_fans":15,"ks_comment":6,"ks_like":90,"ks_share":1,"xhs_play":7249,"xhs_collect":161,"xhs_like":268,"xhs_fans":117,"xhs_comment":5},{"date":"2026-02-18","dy_play":134654,"dy_like":6008,"dy_share":85,"dy_comment":112,"dy_fans":80,"sph_play":7233,"sph_rec":17,"sph_like":14,"sph_comment":5,"sph_share":27,"sph_follow":47,"ks_play":15388,"ks_fans":14,"ks_comment":7,"ks_like":103,"ks_share":4,"xhs_play":3785,"xhs_collect":50,"xhs_like":137,"xhs_fans":36,"xhs_comment":2},{"date":"2026-02-19","dy_play":16875,"dy_like":813,"dy_share":20,"dy_comment":22,"dy_fans":22,"sph_play":9614,"sph_rec":17,"sph_like":31,"sph_comment":5,"sph_share":13,"sph_follow":21,"ks_play":12385,"ks_fans":14,"ks_comment":4,"ks_like":79,"ks_share":3,"xhs_play":4922,"xhs_collect":120,"xhs_like":186,"xhs_fans":69,"xhs_comment":7},{"date":"2026-02-20","dy_play":8632,"dy_like":257,"dy_share":17,"dy_comment":10,"dy_fans":10,"sph_play":9483,"sph_rec":11,"sph_like":21,"sph_comment":1,"sph_share":37,"sph_follow":62,"ks_play":12934,"ks_fans":4,"ks_comment":9,"ks_like":81,"ks_share":13,"xhs_play":5490,"xhs_collect":111,"xhs_like":176,"xhs_fans":65,"xhs_comment":3},{"date":"2026-02-21","dy_play":13731,"dy_like":734,"dy_share":16,"dy_comment":37,"dy_fans":21,"sph_play":6013,"sph_rec":5,"sph_like":9,"sph_comment":0,"sph_share":24,"sph_follow":32,"ks_play":16378,"ks_fans":10,"ks_comment":2,"ks_like":73,"ks_share":6,"xhs_play":3866,"xhs_collect":40,"xhs_like":95,"xhs_fans":35,"xhs_comment":2},{"date":"2026-02-22","dy_play":8141,"dy_like":247,"dy_share":26,"dy_comment":24,"dy_fans":-1,"sph_play":6032,"sph_rec":51,"sph_like":62,"sph_comment":5,"sph_share":16,"sph_follow":33,"ks_play":14052,"ks_fans":6,"ks_comment":45,"ks_like":70,"ks_share":2,"xhs_play":3384,"xhs_collect":41,"xhs_like":90,"xhs_fans":39,"xhs_comment":3},{"date":"2026-02-23","dy_play":111847,"dy_like":1650,"dy_share":30,"dy_comment":39,"dy_fans":-11,"sph_play":7437,"sph_rec":16,"sph_like":22,"sph_comment":4,"sph_share":36,"sph_follow":33,"ks_play":15950,"ks_fans":9,"ks_comment":7,"ks_like":77,"ks_share":7,"xhs_play":3680,"xhs_collect":58,"xhs_like":82,"xhs_fans":45,"xhs_comment":6},{"date":"2026-02-24","dy_play":56457,"dy_like":682,"dy_share":20,"dy_comment":18,"dy_fans":-45,"sph_play":7498,"sph_rec":7,"sph_like":21,"sph_comment":6,"sph_share":30,"sph_follow":18,"ks_play":15263,"ks_fans":17,"ks_comment":4,"ks_like":79,"ks_share":3,"xhs_play":2558,"xhs_collect":8,"xhs_like":28,"xhs_fans":13,"xhs_comment":3},{"date":"2026-02-25","dy_play":27334,"dy_like":236,"dy_share":22,"dy_comment":-21,"dy_fans":-48,"sph_play":7826,"sph_rec":9,"sph_like":32,"sph_comment":4,"sph_share":57,"sph_follow":34,"ks_play":12154,"ks_fans":14,"ks_comment":2,"ks_like":80,"ks_share":1,"xhs_play":2345,"xhs_collect":11,"xhs_like":20,"xhs_fans":12,"xhs_comment":0},{"date":"2026-02-26","dy_play":87333,"dy_like":193,"dy_share":47,"dy_comment":8,"dy_fans":-35,"sph_play":7376,"sph_rec":10,"sph_like":18,"sph_comment":1,"sph_share":31,"sph_follow":20,"ks_play":12766,"ks_fans":-1,"ks_comment":7,"ks_like":59,"ks_share":2,"xhs_play":2165,"xhs_collect":15,"xhs_like":15,"xhs_fans":3,"xhs_comment":1},{"date":"2026-02-27","dy_play":141217,"dy_like":159,"dy_share":66,"dy_comment":17,"dy_fans":-19,"sph_play":7495,"sph_rec":41,"sph_like":39,"sph_comment":3,"sph_share":45,"sph_follow":30,"ks_play":11638,"ks_fans":9,"ks_comment":6,"ks_like":63,"ks_share":7,"xhs_play":2151,"xhs_collect":8,"xhs_like":31,"xhs_fans":19,"xhs_comment":1},{"date":"2026-02-28","dy_play":9017,"dy_like":205,"dy_share":44,"dy_comment":10,"dy_fans":-36,"sph_play":7002,"sph_rec":10,"sph_like":10,"sph_comment":1,"sph_share":42,"sph_follow":32,"ks_play":14497,"ks_fans":13,"ks_comment":3,"ks_like":70,"ks_share":1,"xhs_play":2157,"xhs_collect":8,"xhs_like":40,"xhs_fans":19,"xhs_comment":16},{"date":"2026-03-01","dy_play":7895,"dy_like":259,"dy_share":38,"dy_comment":15,"dy_fans":29,"sph_play":8195,"sph_rec":11,"sph_like":30,"sph_comment":2,"sph_share":20,"sph_follow":30,"ks_play":12210,"ks_fans":2,"ks_comment":0,"ks_like":74,"ks_share":2,"xhs_play":2437,"xhs_collect":17,"xhs_like":20,"xhs_fans":17,"xhs_comment":0},{"date":"2026-03-02","dy_play":6595,"dy_like":138,"dy_share":98,"dy_comment":8,"dy_fans":-14,"sph_play":5883,"sph_rec":8,"sph_like":23,"sph_comment":6,"sph_share":25,"sph_follow":16,"ks_play":9560,"ks_fans":4,"ks_comment":3,"ks_like":45,"ks_share":2,"xhs_play":1456,"xhs_collect":9,"xhs_like":9,"xhs_fans":7,"xhs_comment":1},{"date":"2026-03-03","dy_play":6930,"dy_like":179,"dy_share":123,"dy_comment":21,"dy_fans":-3,"sph_play":7616,"sph_rec":9,"sph_like":6,"sph_comment":0,"sph_share":29,"sph_follow":26,"ks_play":11994,"ks_fans":4,"ks_comment":7,"ks_like":43,"ks_share":4,"xhs_play":1271,"xhs_collect":8,"xhs_like":9,"xhs_fans":12,"xhs_comment":0},{"date":"2026-03-04","dy_play":6520,"dy_like":131,"dy_share":69,"dy_comment":-6,"dy_fans":-5,"sph_play":6285,"sph_rec":5,"sph_like":13,"sph_comment":0,"sph_share":42,"sph_follow":16,"ks_play":8430,"ks_fans":7,"ks_comment":2,"ks_like":58,"ks_share":2,"xhs_play":1350,"xhs_collect":9,"xhs_like":13,"xhs_fans":13,"xhs_comment":0},{"date":"2026-03-05","dy_play":5417,"dy_like":144,"dy_share":80,"dy_comment":6,"dy_fans":-10,"sph_play":5321,"sph_rec":4,"sph_like":12,"sph_comment":1,"sph_share":24,"sph_follow":24,"ks_play":9219,"ks_fans":6,"ks_comment":2,"ks_like":57,"ks_share":4,"xhs_play":1246,"xhs_collect":15,"xhs_like":23,"xhs_fans":12,"xhs_comment":1},{"date":"2026-03-06","dy_play":6757,"dy_like":168,"dy_share":55,"dy_comment":12,"dy_fans":7,"sph_play":6852,"sph_rec":20,"sph_like":16,"sph_comment":3,"sph_share":21,"sph_follow":117,"ks_play":11038,"ks_fans":10,"ks_comment":3,"ks_like":47,"ks_share":5,"xhs_play":1352,"xhs_collect":16,"xhs_like":17,"xhs_fans":9,"xhs_comment":1},{"date":"2026-03-07","dy_play":14912,"dy_like":662,"dy_share":29,"dy_comment":25,"dy_fans":3,"sph_play":10687,"sph_rec":27,"sph_like":37,"sph_comment":12,"sph_share":30,"sph_follow":37,"ks_play":12092,"ks_fans":4,"ks_comment":3,"ks_like":70,"ks_share":5,"xhs_play":1902,"xhs_collect":14,"xhs_like":22,"xhs_fans":25,"xhs_comment":0},{"date":"2026-03-08","dy_play":11103,"dy_like":354,"dy_share":46,"dy_comment":15,"dy_fans":-35,"sph_play":10262,"sph_rec":9,"sph_like":28,"sph_comment":4,"sph_share":24,"sph_follow":19,"ks_play":11456,"ks_fans":8,"ks_comment":2,"ks_like":82,"ks_share":3,"xhs_play":2084,"xhs_collect":16,"xhs_like":21,"xhs_fans":22,"xhs_comment":1},{"date":"2026-03-09","dy_play":58810,"dy_like":2350,"dy_share":84,"dy_comment":36,"dy_fans":-28,"sph_play":4984,"sph_rec":7,"sph_like":12,"sph_comment":1,"sph_share":18,"sph_follow":22,"ks_play":9779,"ks_fans":5,"ks_comment":1,"ks_like":34,"ks_share":3,"xhs_play":1214,"xhs_collect":4,"xhs_like":16,"xhs_fans":10,"xhs_comment":0},{"date":"2026-03-10","dy_play":15149,"dy_like":298,"dy_share":86,"dy_comment":14,"dy_fans":-14,"sph_play":5049,"sph_rec":6,"sph_like":18,"sph_comment":0,"sph_share":46,"sph_follow":16,"ks_play":9551,"ks_fans":7,"ks_comment":10,"ks_like":38,"ks_share":2,"xhs_play":1406,"xhs_collect":16,"xhs_like":23,"xhs_fans":22,"xhs_comment":1},{"date":"2026-03-11","dy_play":7396,"dy_like":229,"dy_share":74,"dy_comment":7,"dy_fans":-38,"sph_play":7297,"sph_rec":16,"sph_like":61,"sph_comment":5,"sph_share":12,"sph_follow":26,"ks_play":8100,"ks_fans":1,"ks_comment":3,"ks_like":42,"ks_share":3,"xhs_play":1829,"xhs_collect":11,"xhs_like":23,"xhs_fans":15,"xhs_comment":2},{"date":"2026-03-12","dy_play":7834,"dy_like":327,"dy_share":99,"dy_comment":9,"dy_fans":-38,"sph_play":8248,"sph_rec":6,"sph_like":19,"sph_comment":9,"sph_share":24,"sph_follow":19,"ks_play":6871,"ks_fans":3,"ks_comment":0,"ks_like":36,"ks_share":3,"xhs_play":1608,"xhs_collect":6,"xhs_like":5,"xhs_fans":17,"xhs_comment":2},{"date":"2026-03-13","dy_play":7283,"dy_like":287,"dy_share":167,"dy_comment":17,"dy_fans":-8,"sph_play":5550,"sph_rec":6,"sph_like":14,"sph_comment":0,"sph_share":59,"sph_follow":43,"ks_play":8903,"ks_fans":5,"ks_comment":3,"ks_like":169,"ks_share":3,"xhs_play":2763,"xhs_collect":73,"xhs_like":136,"xhs_fans":48,"xhs_comment":5},{"date":"2026-03-14","dy_play":65200,"dy_like":246,"dy_share":51,"dy_comment":19,"dy_fans":-18,"sph_play":5017,"sph_rec":3,"sph_like":22,"sph_comment":0,"sph_share":38,"sph_follow":17,"ks_play":11931,"ks_fans":-2,"ks_comment":2,"ks_like":79,"ks_share":1,"xhs_play":1068,"xhs_collect":8,"xhs_like":9,"xhs_fans":14,"xhs_comment":0},{"date":"2026-03-15","dy_play":65595,"dy_like":92,"dy_share":45,"dy_comment":14,"dy_fans":-19,"sph_play":5041,"sph_rec":4,"sph_like":7,"sph_comment":4,"sph_share":49,"sph_follow":21,"ks_play":11090,"ks_fans":3,"ks_comment":1,"ks_like":92,"ks_share":11,"xhs_play":1003,"xhs_collect":13,"xhs_like":16,"xhs_fans":12,"xhs_comment":0},{"date":"2026-03-16","dy_play":51662,"dy_like":205,"dy_share":106,"dy_comment":11,"dy_fans":-67,"sph_play":5046,"sph_rec":14,"sph_like":18,"sph_comment":0,"sph_share":56,"sph_follow":17,"ks_play":6117,"ks_fans":-2,"ks_comment":1,"ks_like":35,"ks_share":4,"xhs_play":1209,"xhs_collect":4,"xhs_like":23,"xhs_fans":7,"xhs_comment":2},{"date":"2026-03-17","dy_play":48453,"dy_like":72,"dy_share":88,"dy_comment":5,"dy_fans":-77,"sph_play":4914,"sph_rec":9,"sph_like":13,"sph_comment":0,"sph_share":28,"sph_follow":18,"ks_play":7347,"ks_fans":5,"ks_comment":3,"ks_like":26,"ks_share":5,"xhs_play":1321,"xhs_collect":14,"xhs_like":13,"xhs_fans":14,"xhs_comment":0},{"date":"2026-03-18","dy_play":60461,"dy_like":124,"dy_share":97,"dy_comment":9,"dy_fans":-49,"sph_play":7678,"sph_rec":22,"sph_like":37,"sph_comment":0,"sph_share":61,"sph_follow":25,"ks_play":8017,"ks_fans":10,"ks_comment":0,"ks_like":56,"ks_share":2,"xhs_play":4614,"xhs_collect":88,"xhs_like":235,"xhs_fans":54,"xhs_comment":0},{"date":"2026-03-19","dy_play":46533,"dy_like":330,"dy_share":109,"dy_comment":15,"dy_fans":-68,"sph_play":9859,"sph_rec":8,"sph_like":27,"sph_comment":2,"sph_share":52,"sph_follow":25,"ks_play":7225,"ks_fans":0,"ks_comment":3,"ks_like":43,"ks_share":3,"xhs_play":4688,"xhs_collect":105,"xhs_like":302,"xhs_fans":81,"xhs_comment":1},{"date":"2026-03-20","dy_play":66328,"dy_like":285,"dy_share":57,"dy_comment":11,"dy_fans":-50,"sph_play":7150,"sph_rec":13,"sph_like":28,"sph_comment":3,"sph_share":87,"sph_follow":62,"ks_play":6303,"ks_fans":-4,"ks_comment":5,"ks_like":39,"ks_share":4,"xhs_play":3052,"xhs_collect":87,"xhs_like":178,"xhs_fans":49,"xhs_comment":1},{"date":"2026-03-21","dy_play":155791,"dy_like":274,"dy_share":56,"dy_comment":39,"dy_fans":35,"sph_play":5447,"sph_rec":16,"sph_like":49,"sph_comment":2,"sph_share":55,"sph_follow":23,"ks_play":9276,"ks_fans":5,"ks_comment":7,"ks_like":78,"ks_share":4,"xhs_play":1762,"xhs_collect":19,"xhs_like":17,"xhs_fans":13,"xhs_comment":0},{"date":"2026-03-22","dy_play":151505,"dy_like":2178,"dy_share":72,"dy_comment":36,"dy_fans":-28,"sph_play":5090,"sph_rec":10,"sph_like":18,"sph_comment":2,"sph_share":19,"sph_follow":25,"ks_play":8337,"ks_fans":11,"ks_comment":3,"ks_like":49,"ks_share":2,"xhs_play":1335,"xhs_collect":8,"xhs_like":9,"xhs_fans":16,"xhs_comment":4},{"date":"2026-03-23","dy_play":99206,"dy_like":4839,"dy_share":112,"dy_comment":109,"dy_fans":0,"sph_play":5892,"sph_rec":5,"sph_like":16,"sph_comment":6,"sph_share":27,"sph_follow":20,"ks_play":5163,"ks_fans":-2,"ks_comment":1,"ks_like":45,"ks_share":0,"xhs_play":1200,"xhs_collect":21,"xhs_like":18,"xhs_fans":15,"xhs_comment":0},{"date":"2026-03-24","dy_play":135495,"dy_like":2598,"dy_share":129,"dy_comment":68,"dy_fans":65,"sph_play":5729,"sph_rec":6,"sph_like":18,"sph_comment":0,"sph_share":33,"sph_follow":18,"ks_play":6387,"ks_fans":4,"ks_comment":2,"ks_like":36,"ks_share":29,"xhs_play":82187,"xhs_collect":510,"xhs_like":1108,"xhs_fans":380,"xhs_comment":10},{"date":"2026-03-25","dy_play":83187,"dy_like":1286,"dy_share":123,"dy_comment":17,"dy_fans":0,"sph_play":8762,"sph_rec":13,"sph_like":29,"sph_comment":3,"sph_share":20,"sph_follow":29,"ks_play":7722,"ks_fans":6,"ks_comment":6,"ks_like":30,"ks_share":3,"xhs_play":185682,"xhs_collect":1075,"xhs_like":2772,"xhs_fans":1083,"xhs_comment":26},{"date":"2026-03-26","dy_play":68902,"dy_like":135,"dy_share":84,"dy_comment":7,"dy_fans":18,"sph_play":8656,"sph_rec":31,"sph_like":36,"sph_comment":2,"sph_share":22,"sph_follow":26,"ks_play":8608,"ks_fans":6,"ks_comment":3,"ks_like":43,"ks_share":3,"xhs_play":280384,"xhs_collect":1686,"xhs_like":4327,"xhs_fans":1824,"xhs_comment":60},{"date":"2026-03-27","dy_play":60749,"dy_like":247,"dy_share":80,"dy_comment":1,"dy_fans":3,"sph_play":6333,"sph_rec":9,"sph_like":19,"sph_comment":0,"sph_share":36,"sph_follow":14,"ks_play":9395,"ks_fans":5,"ks_comment":6,"ks_like":53,"ks_share":4,"xhs_play":273136,"xhs_collect":2253,"xhs_like":4049,"xhs_fans":1910,"xhs_comment":60},{"date":"2026-03-28","dy_play":103434,"dy_like":287,"dy_share":55,"dy_comment":18,"dy_fans":20,"sph_play":5571,"sph_rec":15,"sph_like":28,"sph_comment":1,"sph_share":58,"sph_follow":15,"ks_play":11304,"ks_fans":6,"ks_comment":2,"ks_like":100,"ks_share":6,"xhs_play":285895,"xhs_collect":2217,"xhs_like":3766,"xhs_fans":1805,"xhs_comment":84},{"date":"2026-03-29","dy_play":239916,"dy_like":227,"dy_share":43,"dy_comment":19,"dy_fans":-38,"sph_play":5872,"sph_rec":11,"sph_like":22,"sph_comment":1,"sph_share":72,"sph_follow":18,"ks_play":9332,"ks_fans":8,"ks_comment":5,"ks_like":45,"ks_share":2,"xhs_play":235832,"xhs_collect":2212,"xhs_like":3465,"xhs_fans":1789,"xhs_comment":45},{"date":"2026-03-30","dy_play":68532,"dy_like":113,"dy_share":61,"dy_comment":7,"dy_fans":-24,"sph_play":6566,"sph_rec":13,"sph_like":35,"sph_comment":0,"sph_share":117,"sph_follow":19,"ks_play":6515,"ks_fans":0,"ks_comment":1,"ks_like":44,"ks_share":4,"xhs_play":3957,"xhs_collect":104,"xhs_like":56,"xhs_fans":56,"xhs_comment":0},{"date":"2026-03-31","dy_play":37597,"dy_like":186,"dy_share":109,"dy_comment":17,"dy_fans":-33,"sph_play":10769,"sph_rec":25,"sph_like":65,"sph_comment":24,"sph_share":32,"sph_follow":11,"ks_play":6372,"ks_fans":1,"ks_comment":1,"ks_like":29,"ks_share":4,"xhs_play":62544,"xhs_collect":17,"xhs_like":36,"xhs_fans":6,"xhs_comment":1},{"date":"2026-04-01","dy_play":32109,"dy_like":200,"dy_share":74,"dy_comment":5,"dy_fans":-64,"sph_play":10866,"sph_rec":6,"sph_like":28,"sph_comment":5,"sph_share":23,"sph_follow":25,"ks_play":8527,"ks_fans":7,"ks_comment":6,"ks_like":39,"ks_share":8,"xhs_play":27643,"xhs_collect":22,"xhs_like":62,"xhs_fans":3,"xhs_comment":3},{"date":"2026-04-02","dy_play":32175,"dy_like":166,"dy_share":73,"dy_comment":10,"dy_fans":-38,"sph_play":13636,"sph_rec":31,"sph_like":63,"sph_comment":5,"sph_share":32,"sph_follow":31,"ks_play":7266,"ks_fans":3,"ks_comment":5,"ks_like":33,"ks_share":6,"xhs_play":17775,"xhs_collect":38,"xhs_like":66,"xhs_fans":14,"xhs_comment":3},{"date":"2026-04-03","dy_play":37098,"dy_like":162,"dy_share":55,"dy_comment":12,"dy_fans":-44,"sph_play":9594,"sph_rec":19,"sph_like":42,"sph_comment":7,"sph_share":48,"sph_follow":57,"ks_play":7362,"ks_fans":4,"ks_comment":5,"ks_like":58,"ks_share":1,"xhs_play":16135,"xhs_collect":37,"xhs_like":78,"xhs_fans":6,"xhs_comment":2},{"date":"2026-04-04","dy_play":57312,"dy_like":358,"dy_share":40,"dy_comment":28,"dy_fans":19,"sph_play":6069,"sph_rec":11,"sph_like":20,"sph_comment":9,"sph_share":33,"sph_follow":13,"ks_play":12973,"ks_fans":6,"ks_comment":7,"ks_like":92,"ks_share":4,"xhs_play":23306,"xhs_collect":31,"xhs_like":65,"xhs_fans":4,"xhs_comment":3},{"date":"2026-04-05","dy_play":51602,"dy_like":272,"dy_share":42,"dy_comment":24,"dy_fans":-43,"sph_play":9738,"sph_rec":21,"sph_like":45,"sph_comment":2,"sph_share":309,"sph_follow":70,"ks_play":11168,"ks_fans":9,"ks_comment":6,"ks_like":57,"ks_share":55,"xhs_play":16020,"xhs_collect":102,"xhs_like":221,"xhs_fans":65,"xhs_comment":1},{"date":"2026-04-06","dy_play":48024,"dy_like":263,"dy_share":42,"dy_comment":22,"dy_fans":-46,"sph_play":5059,"sph_rec":7,"sph_like":20,"sph_comment":1,"sph_share":26,"sph_follow":14,"ks_play":8891,"ks_fans":9,"ks_comment":5,"ks_like":66,"ks_share":6,"xhs_play":11431,"xhs_collect":750,"xhs_like":1882,"xhs_fans":464,"xhs_comment":15},{"date":"2026-04-07","dy_play":32195,"dy_like":281,"dy_share":82,"dy_comment":8,"dy_fans":-36,"sph_play":7227,"sph_rec":14,"sph_like":23,"sph_comment":3,"sph_share":24,"sph_follow":11,"ks_play":8196,"ks_fans":5,"ks_comment":2,"ks_like":44,"ks_share":2,"xhs_play":1534,"xhs_collect":48,"xhs_like":62,"xhs_fans":6,"xhs_comment":12},{"date":"2026-04-08","dy_play":31409,"dy_like":145,"dy_share":88,"dy_comment":8,"dy_fans":-49,"sph_play":8155,"sph_rec":12,"sph_like":26,"sph_comment":4,"sph_share":21,"sph_follow":23,"ks_play":7901,"ks_fans":4,"ks_comment":2,"ks_like":47,"ks_share":2,"xhs_play":2816,"xhs_collect":21,"xhs_like":30,"xhs_fans":-1,"xhs_comment":3},{"date":"2026-04-09","dy_play":39014,"dy_like":492,"dy_share":98,"dy_comment":10,"dy_fans":-53,"sph_play":10001,"sph_rec":13,"sph_like":26,"sph_comment":16,"sph_share":31,"sph_follow":31,"ks_play":7338,"ks_fans":7,"ks_comment":1,"ks_like":42,"ks_share":1,"xhs_play":2386,"xhs_collect":22,"xhs_like":38,"xhs_fans":8,"xhs_comment":0},{"date":"2026-04-10","dy_play":35988,"dy_like":145,"dy_share":86,"dy_comment":7,"dy_fans":1,"sph_play":6283,"sph_rec":12,"sph_like":28,"sph_comment":2,"sph_share":33,"sph_follow":15,"ks_play":7695,"ks_fans":0,"ks_comment":4,"ks_like":37,"ks_share":4,"xhs_play":1972,"xhs_collect":17,"xhs_like":20,"xhs_fans":2,"xhs_comment":1},{"date":"2026-04-11","dy_play":52367,"dy_like":354,"dy_share":55,"dy_comment":18,"dy_fans":-8,"sph_play":6963,"sph_rec":8,"sph_like":29,"sph_comment":4,"sph_share":23,"sph_follow":14,"ks_play":11999,"ks_fans":9,"ks_comment":1,"ks_like":104,"ks_share":5,"xhs_play":1762,"xhs_collect":12,"xhs_like":31,"xhs_fans":-1,"xhs_comment":2},{"date":"2026-04-12","dy_play":45891,"dy_like":246,"dy_share":46,"dy_comment":16,"dy_fans":-32,"sph_play":5848,"sph_rec":13,"sph_like":13,"sph_comment":0,"sph_share":35,"sph_follow":13,"ks_play":9829,"ks_fans":8,"ks_comment":3,"ks_like":56,"ks_share":2,"xhs_play":1836,"xhs_collect":28,"xhs_like":38,"xhs_fans":13,"xhs_comment":5},{"date":"2026-04-13","dy_play":25268,"dy_like":122,"dy_share":78,"dy_comment":9,"dy_fans":-55,"sph_play":6496,"sph_rec":19,"sph_like":43,"sph_comment":4,"sph_share":30,"sph_follow":8,"ks_play":6324,"ks_fans":4,"ks_comment":0,"ks_like":35,"ks_share":4,"xhs_play":1753,"xhs_collect":20,"xhs_like":30,"xhs_fans":3,"xhs_comment":1},{"date":"2026-04-14","dy_play":33042,"dy_like":410,"dy_share":80,"dy_comment":4,"dy_fans":-27,"sph_play":4978,"sph_rec":3,"sph_like":9,"sph_comment":0,"sph_share":35,"sph_follow":24,"ks_play":7533,"ks_fans":6,"ks_comment":25,"ks_like":33,"ks_share":2,"xhs_play":5304,"xhs_collect":42,"xhs_like":71,"xhs_fans":17,"xhs_comment":5},{"date":"2026-04-15","dy_play":25548,"dy_like":167,"dy_share":82,"dy_comment":7,"dy_fans":-20,"sph_play":9335,"sph_rec":4,"sph_like":32,"sph_comment":0,"sph_share":29,"sph_follow":23,"ks_play":9408,"ks_fans":7,"ks_comment":16,"ks_like":51,"ks_share":4,"xhs_play":8167,"xhs_collect":44,"xhs_like":78,"xhs_fans":12,"xhs_comment":3},{"date":"2026-04-16","dy_play":31574,"dy_like":99,"dy_share":87,"dy_comment":6,"dy_fans":-8,"sph_play":11287,"sph_rec":19,"sph_like":23,"sph_comment":0,"sph_share":35,"sph_follow":15,"ks_play":9827,"ks_fans":8,"ks_comment":18,"ks_like":59,"ks_share":2,"xhs_play":13669,"xhs_collect":71,"xhs_like":173,"xhs_fans":37,"xhs_comment":5},{"date":"2026-04-17","dy_play":76947,"dy_like":2260,"dy_share":70,"dy_comment":28,"dy_fans":63,"sph_play":10083,"sph_rec":17,"sph_like":29,"sph_comment":6,"sph_share":36,"sph_follow":60,"ks_play":9807,"ks_fans":11,"ks_comment":31,"ks_like":88,"ks_share":3,"xhs_play":15346,"xhs_collect":78,"xhs_like":217,"xhs_fans":44,"xhs_comment":6},{"date":"2026-04-18","dy_play":72668,"dy_like":1536,"dy_share":76,"dy_comment":37,"dy_fans":90,"sph_play":7354,"sph_rec":5,"sph_like":20,"sph_comment":2,"sph_share":42,"sph_follow":17,"ks_play":10758,"ks_fans":8,"ks_comment":2,"ks_like":62,"ks_share":2,"xhs_play":10025,"xhs_collect":33,"xhs_like":102,"xhs_fans":16,"xhs_comment":6},{"date":"2026-04-19","dy_play":45636,"dy_like":269,"dy_share":46,"dy_comment":16,"dy_fans":1,"sph_play":6208,"sph_rec":4,"sph_like":16,"sph_comment":1,"sph_share":35,"sph_follow":14,"ks_play":10375,"ks_fans":8,"ks_comment":0,"ks_like":54,"ks_share":1,"xhs_play":8733,"xhs_collect":51,"xhs_like":99,"xhs_fans":30,"xhs_comment":4},{"date":"2026-04-20","dy_play":90763,"dy_like":2214,"dy_share":136,"dy_comment":24,"dy_fans":-20,"sph_play":6580,"sph_rec":53,"sph_like":55,"sph_comment":4,"sph_share":32,"sph_follow":10,"ks_play":6960,"ks_fans":7,"ks_comment":4,"ks_like":37,"ks_share":2,"xhs_play":1547,"xhs_collect":9,"xhs_like":14,"xhs_fans":-5,"xhs_comment":1},{"date":"2026-04-21","dy_play":70055,"dy_like":1941,"dy_share":145,"dy_comment":40,"dy_fans":-24,"sph_play":5016,"sph_rec":1,"sph_like":14,"sph_comment":0,"sph_share":29,"sph_follow":10,"ks_play":5986,"ks_fans":-3,"ks_comment":3,"ks_like":30,"ks_share":3,"xhs_play":4358,"xhs_collect":37,"xhs_like":83,"xhs_fans":17,"xhs_comment":3},{"date":"2026-04-22","dy_play":27461,"dy_like":173,"dy_share":118,"dy_comment":8,"dy_fans":-2,"sph_play":7282,"sph_rec":11,"sph_like":21,"sph_comment":2,"sph_share":26,"sph_follow":14,"ks_play":5534,"ks_fans":4,"ks_comment":3,"ks_like":42,"ks_share":6,"xhs_play":6407,"xhs_collect":68,"xhs_like":237,"xhs_fans":41,"xhs_comment":5},{"date":"2026-04-23","dy_play":67745,"dy_like":1976,"dy_share":123,"dy_comment":27,"dy_fans":-33,"sph_play":9018,"sph_rec":7,"sph_like":27,"sph_comment":2,"sph_share":24,"sph_follow":18,"ks_play":7243,"ks_fans":11,"ks_comment":1,"ks_like":40,"ks_share":0,"xhs_play":2864,"xhs_collect":25,"xhs_like":53,"xhs_fans":12,"xhs_comment":1},{"date":"2026-04-24","dy_play":90686,"dy_like":3787,"dy_share":117,"dy_comment":44,"dy_fans":52,"sph_play":5449,"sph_rec":11,"sph_like":24,"sph_comment":0,"sph_share":19,"sph_follow":17,"ks_play":6835,"ks_fans":-1,"ks_comment":1,"ks_like":40,"ks_share":3,"xhs_play":3437,"xhs_collect":30,"xhs_like":63,"xhs_fans":21,"xhs_comment":1},{"date":"2026-04-25","dy_play":58532,"dy_like":1322,"dy_share":66,"dy_comment":24,"dy_fans":25,"sph_play":6197,"sph_rec":14,"sph_like":26,"sph_comment":2,"sph_share":36,"sph_follow":13,"ks_play":8551,"ks_fans":-5,"ks_comment":20,"ks_like":60,"ks_share":5,"xhs_play":2643,"xhs_collect":31,"xhs_like":72,"xhs_fans":24,"xhs_comment":5},{"date":"2026-04-26","dy_play":41756,"dy_like":239,"dy_share":39,"dy_comment":12,"dy_fans":-31,"sph_play":5787,"sph_rec":5,"sph_like":25,"sph_comment":5,"sph_share":30,"sph_follow":17,"ks_play":10046,"ks_fans":3,"ks_comment":0,"ks_like":54,"ks_share":7,"xhs_play":4910,"xhs_collect":42,"xhs_like":127,"xhs_fans":24,"xhs_comment":6},{"date":"2026-04-27","dy_play":236295,"dy_like":10907,"dy_share":307,"dy_comment":68,"dy_fans":203,"sph_play":7639,"sph_rec":11,"sph_like":27,"sph_comment":0,"sph_share":58,"sph_follow":15,"ks_play":4482,"ks_fans":0,"ks_comment":2,"ks_like":36,"ks_share":1,"xhs_play":7574,"xhs_collect":50,"xhs_like":155,"xhs_fans":44,"xhs_comment":8},{"date":"2026-04-28","dy_play":263496,"dy_like":10421,"dy_share":367,"dy_comment":66,"dy_fans":122,"sph_play":4602,"sph_rec":4,"sph_like":14,"sph_comment":0,"sph_share":27,"sph_follow":14,"ks_play":6210,"ks_fans":-2,"ks_comment":1,"ks_like":38,"ks_share":2,"xhs_play":1018,"xhs_collect":11,"xhs_like":13,"xhs_fans":1,"xhs_comment":0},{"date":"2026-04-29","dy_play":27862,"dy_like":243,"dy_share":72,"dy_comment":15,"dy_fans":-30,"sph_play":7966,"sph_rec":16,"sph_like":20,"sph_comment":0,"sph_share":28,"sph_follow":13,"ks_play":5579,"ks_fans":-3,"ks_comment":2,"ks_like":31,"ks_share":2,"xhs_play":1529,"xhs_collect":9,"xhs_like":12,"xhs_fans":16,"xhs_comment":0},{"date":"2026-04-30","dy_play":50298,"dy_like":2154,"dy_share":113,"dy_comment":11,"dy_fans":-10,"sph_play":6863,"sph_rec":8,"sph_like":9,"sph_comment":1,"sph_share":25,"sph_follow":17,"ks_play":6695,"ks_fans":6,"ks_comment":2,"ks_like":50,"ks_share":0,"xhs_play":1181,"xhs_collect":7,"xhs_like":18,"xhs_fans":7,"xhs_comment":1},{"date":"2026-05-01","dy_play":78813,"dy_like":2912,"dy_share":135,"dy_comment":35,"dy_fans":21,"sph_play":5527,"sph_rec":4,"sph_like":19,"sph_comment":1,"sph_share":29,"sph_follow":7,"ks_play":9815,"ks_fans":6,"ks_comment":0,"ks_like":59,"ks_share":5,"xhs_play":2905,"xhs_collect":23,"xhs_like":34,"xhs_fans":-7,"xhs_comment":3},{"date":"2026-05-02","dy_play":85567,"dy_like":3708,"dy_share":93,"dy_comment":54,"dy_fans":-23,"sph_play":7163,"sph_rec":19,"sph_like":30,"sph_comment":2,"sph_share":44,"sph_follow":9,"ks_play":11331,"ks_fans":4,"ks_comment":1,"ks_like":85,"ks_share":2,"xhs_play":3084,"xhs_collect":16,"xhs_like":37,"xhs_fans":8,"xhs_comment":4},{"date":"2026-05-03","dy_play":76363,"dy_like":2844,"dy_share":120,"dy_comment":62,"dy_fans":48,"sph_play":6210,"sph_rec":7,"sph_like":10,"sph_comment":1,"sph_share":39,"sph_follow":4,"ks_play":9728,"ks_fans":2,"ks_comment":54,"ks_like":47,"ks_share":0,"xhs_play":2152,"xhs_collect":18,"xhs_like":33,"xhs_fans":7,"xhs_comment":3},{"date":"2026-05-04","dy_play":72927,"dy_like":2832,"dy_share":95,"dy_comment":77,"dy_fans":-7,"sph_play":9181,"sph_rec":13,"sph_like":37,"sph_comment":2,"sph_share":32,"sph_follow":18,"ks_play":8034,"ks_fans":7,"ks_comment":15,"ks_like":40,"ks_share":4,"xhs_play":2102,"xhs_collect":17,"xhs_like":22,"xhs_fans":-2,"xhs_comment":1},{"date":"2026-05-05","dy_play":69193,"dy_like":2664,"dy_share":126,"dy_comment":51,"dy_fans":18,"sph_play":7226,"sph_rec":15,"sph_like":19,"sph_comment":3,"sph_share":11,"sph_follow":13,"ks_play":6544,"ks_fans":2,"ks_comment":2,"ks_like":47,"ks_share":2,"xhs_play":1924,"xhs_collect":6,"xhs_like":21,"xhs_fans":8,"xhs_comment":0},{"date":"2026-05-06","dy_play":45814,"dy_like":1620,"dy_share":89,"dy_comment":21,"dy_fans":3,"sph_play":8902,"sph_rec":23,"sph_like":16,"sph_comment":7,"sph_share":8,"sph_follow":15,"ks_play":4647,"ks_fans":2,"ks_comment":2,"ks_like":29,"ks_share":0,"xhs_play":2555,"xhs_collect":13,"xhs_like":30,"xhs_fans":12,"xhs_comment":2},{"date":"2026-05-07","dy_play":61233,"dy_like":1837,"dy_share":131,"dy_comment":33,"dy_fans":-6,"sph_play":8792,"sph_rec":11,"sph_like":21,"sph_comment":1,"sph_share":17,"sph_follow":10,"ks_play":4682,"ks_fans":1,"ks_comment":2,"ks_like":25,"ks_share":3,"xhs_play":2468,"xhs_collect":17,"xhs_like":25,"xhs_fans":1,"xhs_comment":0},{"date":"2026-05-08","dy_play":26408,"dy_like":230,"dy_share":81,"dy_comment":9,"dy_fans":-23,"sph_play":9331,"sph_rec":14,"sph_like":24,"sph_comment":0,"sph_share":22,"sph_follow":5,"ks_play":4711,"ks_fans":1,"ks_comment":1,"ks_like":28,"ks_share":3,"xhs_play":2222,"xhs_collect":32,"xhs_like":22,"xhs_fans":7,"xhs_comment":0},{"date":"2026-05-09","dy_play":31193,"dy_like":198,"dy_share":70,"dy_comment":22,"dy_fans":-68,"sph_play":5510,"sph_rec":5,"sph_like":17,"sph_comment":3,"sph_share":19,"sph_follow":8,"ks_play":5947,"ks_fans":4,"ks_comment":1,"ks_like":31,"ks_share":8,"xhs_play":1732,"xhs_collect":9,"xhs_like":15,"xhs_fans":-3,"xhs_comment":3},{"date":"2026-05-10","dy_play":57737,"dy_like":347,"dy_share":53,"dy_comment":25,"dy_fans":33,"sph_play":7881,"sph_rec":15,"sph_like":27,"sph_comment":2,"sph_share":33,"sph_follow":26,"ks_play":8790,"ks_fans":5,"ks_comment":1,"ks_like":44,"ks_share":4,"xhs_play":2940,"xhs_collect":18,"xhs_like":28,"xhs_fans":2,"xhs_comment":2},{"date":"2026-05-11","dy_play":30299,"dy_like":150,"dy_share":82,"dy_comment":9,"dy_fans":-40,"sph_play":6414,"sph_rec":6,"sph_like":18,"sph_comment":2,"sph_share":44,"sph_follow":13,"ks_play":5047,"ks_fans":2,"ks_comment":2,"ks_like":26,"ks_share":4,"xhs_play":7001,"xhs_collect":49,"xhs_like":102,"xhs_fans":40,"xhs_comment":4},{"date":"2026-05-12","dy_play":31083,"dy_like":181,"dy_share":91,"dy_comment":14,"dy_fans":-38,"sph_play":4472,"sph_rec":4,"sph_like":9,"sph_comment":2,"sph_share":20,"sph_follow":11,"ks_play":5175,"ks_fans":-1,"ks_comment":1,"ks_like":26,"ks_share":2,"xhs_play":1124,"xhs_collect":3,"xhs_like":16,"xhs_fans":-3,"xhs_comment":0},{"date":"2026-05-13","dy_play":75559,"dy_like":232,"dy_share":65,"dy_comment":9,"dy_fans":-19,"sph_play":7804,"sph_rec":5,"sph_like":20,"sph_comment":4,"sph_share":16,"sph_follow":20,"ks_play":5664,"ks_fans":9,"ks_comment":0,"ks_like":32,"ks_share":2,"xhs_play":2357,"xhs_collect":15,"xhs_like":18,"xhs_fans":5,"xhs_comment":1},{"date":"2026-05-14","dy_play":71089,"dy_like":1953,"dy_share":82,"dy_comment":24,"dy_fans":-48,"sph_play":8568,"sph_rec":16,"sph_like":19,"sph_comment":3,"sph_share":15,"sph_follow":18,"ks_play":5625,"ks_fans":5,"ks_comment":1,"ks_like":46,"ks_share":3,"xhs_play":9103,"xhs_collect":48,"xhs_like":125,"xhs_fans":27,"xhs_comment":6},{"date":"2026-05-15","dy_play":120725,"dy_like":3286,"dy_share":84,"dy_comment":75,"dy_fans":82,"sph_play":8311,"sph_rec":27,"sph_like":49,"sph_comment":5,"sph_share":60,"sph_follow":80,"ks_play":7349,"ks_fans":11,"ks_comment":5,"ks_like":49,"ks_share":4,"xhs_play":3357,"xhs_collect":21,"xhs_like":41,"xhs_fans":21,"xhs_comment":1},{"date":"2026-05-16","dy_play":66740,"dy_like":276,"dy_share":40,"dy_comment":30,"dy_fans":48,"sph_play":7204,"sph_rec":14,"sph_like":35,"sph_comment":2,"sph_share":56,"sph_follow":35,"ks_play":10252,"ks_fans":12,"ks_comment":3,"ks_like":57,"ks_share":7,"xhs_play":1245,"xhs_collect":11,"xhs_like":17,"xhs_fans":6,"xhs_comment":1},{"date":"2026-05-17","dy_play":65662,"dy_like":281,"dy_share":54,"dy_comment":20,"dy_fans":32,"sph_play":4600,"sph_rec":6,"sph_like":17,"sph_comment":7,"sph_share":30,"sph_follow":12,"ks_play":8748,"ks_fans":9,"ks_comment":3,"ks_like":57,"ks_share":13,"xhs_play":907,"xhs_collect":5,"xhs_like":16,"xhs_fans":5,"xhs_comment":0},{"date":"2026-05-18","dy_play":36011,"dy_like":153,"dy_share":75,"dy_comment":10,"dy_fans":-33,"sph_play":7092,"sph_rec":10,"sph_like":34,"sph_comment":12,"sph_share":15,"sph_follow":27,"ks_play":5875,"ks_fans":4,"ks_comment":1,"ks_like":27,"ks_share":7,"xhs_play":1473,"xhs_collect":10,"xhs_like":19,"xhs_fans":4,"xhs_comment":4},{"date":"2026-05-19","dy_play":38587,"dy_like":150,"dy_share":65,"dy_comment":17,"dy_fans":-30,"sph_play":7146,"sph_rec":20,"sph_like":28,"sph_comment":1,"sph_share":28,"sph_follow":31,"ks_play":5958,"ks_fans":1,"ks_comment":2,"ks_like":44,"ks_share":6,"xhs_play":1990,"xhs_collect":14,"xhs_like":20,"xhs_fans":13,"xhs_comment":2},{"date":"2026-05-20","dy_play":124524,"dy_like":2649,"dy_share":91,"dy_comment":29,"dy_fans":-13,"sph_play":5763,"sph_rec":13,"sph_like":21,"sph_comment":1,"sph_share":25,"sph_follow":30,"ks_play":5680,"ks_fans":-2,"ks_comment":1,"ks_like":10,"ks_share":2,"xhs_play":1034,"xhs_collect":9,"xhs_like":14,"xhs_fans":11,"xhs_comment":0},{"date":"2026-05-21","dy_play":224167,"dy_like":10395,"dy_share":240,"dy_comment":108,"dy_fans":20,"sph_play":4301,"sph_rec":2,"sph_like":15,"sph_comment":1,"sph_share":13,"sph_follow":2,"ks_play":5213,"ks_fans":-5,"ks_comment":1,"ks_like":30,"ks_share":9,"xhs_play":973,"xhs_collect":5,"xhs_like":10,"xhs_fans":-8,"xhs_comment":0},{"date":"2026-05-22","dy_play":168833,"dy_like":8768,"dy_share":360,"dy_comment":104,"dy_fans":122,"sph_play":5277,"sph_rec":6,"sph_like":14,"sph_comment":5,"sph_share":30,"sph_follow":16,"ks_play":6010,"ks_fans":0,"ks_comment":4,"ks_like":43,"ks_share":2,"xhs_play":1367,"xhs_collect":10,"xhs_like":16,"xhs_fans":3,"xhs_comment":1},{"date":"2026-05-23","dy_play":236878,"dy_like":7473,"dy_share":346,"dy_comment":243,"dy_fans":141,"sph_play":4401,"sph_rec":3,"sph_like":16,"sph_comment":2,"sph_share":99,"sph_follow":20,"ks_play":9408,"ks_fans":2,"ks_comment":2,"ks_like":41,"ks_share":0,"xhs_play":973,"xhs_collect":4,"xhs_like":14,"xhs_fans":4,"xhs_comment":0},{"date":"2026-05-24","dy_play":226202,"dy_like":6390,"dy_share":287,"dy_comment":160,"dy_fans":75,"sph_play":4472,"sph_rec":4,"sph_like":9,"sph_comment":2,"sph_share":20,"sph_follow":11,"ks_play":8337,"ks_fans":12,"ks_comment":4,"ks_like":62,"ks_share":1,"xhs_play":1124,"xhs_collect":3,"xhs_like":16,"xhs_fans":-3,"xhs_comment":0},{"date":"2026-05-25","dy_play":150169,"dy_like":5153,"dy_share":249,"dy_comment":110,"dy_fans":41,"sph_play":7619,"sph_rec":16,"sph_like":26,"sph_comment":11,"sph_share":26,"sph_follow":24,"ks_play":5082,"ks_fans":0,"ks_comment":1,"ks_like":24,"ks_share":1,"xhs_play":6654,"xhs_collect":25,"xhs_like":79,"xhs_fans":7,"xhs_comment":2},{"date":"2026-05-26","dy_play":35553,"dy_like":166,"dy_share":90,"dy_comment":13,"dy_fans":-16,"sph_play":8104,"sph_rec":24,"sph_like":57,"sph_comment":2,"sph_share":24,"sph_follow":19,"ks_play":5356,"ks_fans":3,"ks_comment":0,"ks_like":26,"ks_share":2,"xhs_play":7798,"xhs_collect":42,"xhs_like":121,"xhs_fans":7,"xhs_comment":2},{"date":"2026-05-27","dy_play":38924,"dy_like":165,"dy_share":79,"dy_comment":14,"dy_fans":-23,"sph_play":6865,"sph_rec":11,"sph_like":63,"sph_comment":7,"sph_share":50,"sph_follow":43,"ks_play":4403,"ks_fans":2,"ks_comment":3,"ks_like":43,"ks_share":4,"xhs_play":8244,"xhs_collect":31,"xhs_like":106,"xhs_fans":10,"xhs_comment":2},{"date":"2026-05-28","dy_play":107373,"dy_like":401,"dy_share":73,"dy_comment":18,"dy_fans":-22,"sph_play":5495,"sph_rec":9,"sph_like":23,"sph_comment":0,"sph_share":28,"sph_follow":17,"ks_play":4541,"ks_fans":5,"ks_comment":1,"ks_like":33,"ks_share":3,"xhs_play":5346,"xhs_collect":32,"xhs_like":62,"xhs_fans":0,"xhs_comment":1},{"date":"2026-05-29","dy_play":120890,"dy_like":1419,"dy_share":86,"dy_comment":21,"dy_fans":-25,"sph_play":6029,"sph_rec":40,"sph_like":47,"sph_comment":2,"sph_share":39,"sph_follow":17,"ks_play":7162,"ks_fans":-2,"ks_comment":4,"ks_like":34,"ks_share":6,"xhs_play":5866,"xhs_collect":28,"xhs_like":76,"xhs_fans":13,"xhs_comment":3},{"date":"2026-05-30","dy_play":135462,"dy_like":1503,"dy_share":99,"dy_comment":23,"dy_fans":51,"sph_play":6014,"sph_rec":18,"sph_like":21,"sph_comment":1,"sph_share":36,"sph_follow":13,"ks_play":7000,"ks_fans":7,"ks_comment":5,"ks_like":40,"ks_share":5,"xhs_play":2807,"xhs_collect":13,"xhs_like":31,"xhs_fans":2,"xhs_comment":4},{"date":"2026-05-31","dy_play":140212,"dy_like":1560,"dy_share":104,"dy_comment":23,"dy_fans":66,"sph_play":5513,"sph_rec":11,"sph_like":22,"sph_comment":0,"sph_share":20,"sph_follow":24,"ks_play":7928,"ks_fans":5,"ks_comment":3,"ks_like":47,"ks_share":4,"xhs_play":976,"xhs_collect":6,"xhs_like":11,"xhs_fans":0,"xhs_comment":1},{"date":"2026-06-01","dy_play":138873,"dy_like":1907,"dy_share":90,"dy_comment":18,"dy_fans":54,"sph_play":7920,"sph_rec":7,"sph_like":64,"sph_comment":11,"sph_share":15,"sph_follow":25,"ks_play":5936,"ks_fans":2,"ks_comment":0,"ks_like":24,"ks_share":4,"xhs_play":31240,"xhs_collect":44,"xhs_like":217,"xhs_fans":15,"xhs_comment":7},{"date":"2026-06-02","dy_play":34157,"dy_like":169,"dy_share":83,"dy_comment":0,"dy_fans":-29,"sph_play":7459,"sph_rec":10,"sph_like":19,"sph_comment":1,"sph_share":15,"sph_follow":24,"ks_play":6427,"ks_fans":9,"ks_comment":3,"ks_like":20,"ks_share":3,"xhs_play":25202,"xhs_collect":37,"xhs_like":64,"xhs_fans":9,"xhs_comment":6},{"date":"2026-06-03","dy_play":36778,"dy_like":193,"dy_share":75,"dy_comment":12,"dy_fans":-24,"sph_play":4640,"sph_rec":8,"sph_like":13,"sph_comment":0,"sph_share":21,"sph_follow":10,"ks_play":5062,"ks_fans":6,"ks_comment":5,"ks_like":24,"ks_share":4,"xhs_play":33079,"xhs_collect":15,"xhs_like":60,"xhs_fans":14,"xhs_comment":8},{"date":"2026-06-04","dy_play":37960,"dy_like":135,"dy_share":85,"dy_comment":6,"dy_fans":-17,"sph_play":5598,"sph_rec":8,"sph_like":12,"sph_comment":0,"sph_share":34,"sph_follow":8,"ks_play":4909,"ks_fans":7,"ks_comment":8,"ks_like":23,"ks_share":1,"xhs_play":12014,"xhs_collect":10,"xhs_like":24,"xhs_fans":-3,"xhs_comment":1},{"date":"2026-06-05","dy_play":39982,"dy_like":138,"dy_share":63,"dy_comment":8,"dy_fans":-8,"sph_play":4597,"sph_rec":9,"sph_like":23,"sph_comment":0,"sph_share":17,"sph_follow":10,"ks_play":5306,"ks_fans":1,"ks_comment":4,"ks_like":35,"ks_share":10,"xhs_play":6518,"xhs_collect":3,"xhs_like":6,"xhs_fans":2,"xhs_comment":0},{"date":"2026-06-06","dy_play":68246,"dy_like":320,"dy_share":49,"dy_comment":8,"dy_fans":38,"sph_play":5138,"sph_rec":7,"sph_like":16,"sph_comment":1,"sph_share":15,"sph_follow":10,"ks_play":9293,"ks_fans":15,"ks_comment":5,"ks_like":82,"ks_share":6,"xhs_play":7559,"xhs_collect":10,"xhs_like":21,"xhs_fans":-1,"xhs_comment":0},{"date":"2026-06-07","dy_play":68131,"dy_like":291,"dy_share":49,"dy_comment":19,"dy_fans":-10,"sph_play":5235,"sph_rec":16,"sph_like":17,"sph_comment":0,"sph_share":20,"sph_follow":7,"ks_play":8232,"ks_fans":4,"ks_comment":6,"ks_like":40,"ks_share":6,"xhs_play":13572,"xhs_collect":18,"xhs_like":37,"xhs_fans":9,"xhs_comment":1},{"date":"2026-06-08","dy_play":39318,"dy_like":145,"dy_share":58,"dy_comment":10,"dy_fans":-7,"sph_play":7059,"sph_rec":9,"sph_like":12,"sph_comment":0,"sph_share":25,"sph_follow":20,"ks_play":5858,"ks_fans":6,"ks_comment":0,"ks_like":43,"ks_share":7,"xhs_play":1039,"xhs_collect":5,"xhs_like":11,"xhs_fans":16,"xhs_comment":0},{"date":"2026-06-09","dy_play":39177,"dy_like":251,"dy_share":59,"dy_comment":16,"dy_fans":-71,"sph_play":8018,"sph_rec":10,"sph_like":26,"sph_comment":3,"sph_share":23,"sph_follow":27,"ks_play":5774,"ks_fans":1,"ks_comment":1,"ks_like":22,"ks_share":3,"xhs_play":1185,"xhs_collect":10,"xhs_like":17,"xhs_fans":20,"xhs_comment":0},{"date":"2026-06-10","dy_play":80322,"dy_like":2771,"dy_share":78,"dy_comment":56,"dy_fans":0,"sph_play":5316,"sph_rec":21,"sph_like":28,"sph_comment":8,"sph_share":19,"sph_follow":40,"ks_play":4900,"ks_fans":1,"ks_comment":3,"ks_like":38,"ks_share":4,"xhs_play":958,"xhs_collect":11,"xhs_like":13,"xhs_fans":8,"xhs_comment":0},{"date":"2026-06-11","dy_play":79913,"dy_like":1196,"dy_share":91,"dy_comment":61,"dy_fans":47,"sph_play":4391,"sph_rec":5,"sph_like":9,"sph_comment":1,"sph_share":22,"sph_follow":7,"ks_play":4722,"ks_fans":5,"ks_comment":2,"ks_like":24,"ks_share":1,"xhs_play":800,"xhs_collect":8,"xhs_like":13,"xhs_fans":11,"xhs_comment":0},{"date":"2026-06-12","dy_play":66461,"dy_like":236,"dy_share":58,"dy_comment":10,"dy_fans":51,"sph_play":5153,"sph_rec":0,"sph_like":8,"sph_comment":1,"sph_share":43,"sph_follow":12,"ks_play":6404,"ks_fans":4,"ks_comment":6,"ks_like":44,"ks_share":8,"xhs_play":2123,"xhs_collect":4,"xhs_like":27,"xhs_fans":5,"xhs_comment":0},{"date":"2026-06-13","dy_play":74942,"dy_like":284,"dy_share":73,"dy_comment":18,"dy_fans":67,"sph_play":4746,"sph_rec":3,"sph_like":19,"sph_comment":5,"sph_share":12,"sph_follow":16,"ks_play":9930,"ks_fans":3,"ks_comment":13,"ks_like":73,"ks_share":11,"xhs_play":1979,"xhs_collect":6,"xhs_like":20,"xhs_fans":2,"xhs_comment":1},{"date":"2026-06-14","dy_play":73505,"dy_like":239,"dy_share":47,"dy_comment":13,"dy_fans":18,"sph_play":3687,"sph_rec":4,"sph_like":7,"sph_comment":13,"sph_share":26,"sph_follow":17,"ks_play":8196,"ks_fans":9,"ks_comment":2,"ks_like":43,"ks_share":1,"xhs_play":3035,"xhs_collect":20,"xhs_like":68,"xhs_fans":2,"xhs_comment":3},
+{"date":"2026-06-15","dy_play":71899,"dy_like":187,"dy_share":47,"dy_comment":12,"dy_fans":68,"sph_play":5672,"sph_rec":2,"sph_like":11,"sph_comment":14,"sph_share":20,"sph_follow":23,"ks_play":5234,"ks_fans":0,"ks_comment":0,"ks_like":31,"ks_share":3,"xhs_play":1246,"xhs_collect":4,"xhs_like":11,"xhs_fans":13,"xhs_comment":0},
+{"date":"2026-06-16","dy_play":66445,"dy_like":194,"dy_share":44,"dy_comment":10,"dy_fans":31,"sph_play":7196,"sph_rec":15,"sph_like":19,"sph_comment":4,"sph_share":33,"sph_follow":17,"ks_play":7015,"ks_fans":5,"ks_comment":2,"ks_like":28,"ks_share":2,"xhs_play":1169,"xhs_collect":9,"xhs_like":17,"xhs_fans":7,"xhs_comment":1},
+{"date":"2026-06-17","dy_play":75806,"dy_like":187,"dy_share":57,"dy_comment":14,"dy_fans":36,"sph_play":8076,"sph_rec":34,"sph_like":35,"sph_comment":0,"sph_share":32,"sph_follow":19,"ks_play":7879,"ks_fans":0,"ks_comment":3,"ks_like":40,"ks_share":3,"xhs_play":1311,"xhs_collect":14,"xhs_like":20,"xhs_fans":7,"xhs_comment":0},
+{"date":"2026-06-18","dy_play":82520,"dy_like":297,"dy_share":67,"dy_comment":16,"dy_fans":122,"sph_play":4478,"sph_rec":4,"sph_like":6,"sph_comment":3,"sph_share":25,"sph_follow":17,"ks_play":7752,"ks_fans":12,"ks_comment":7,"ks_like":49,"ks_share":2,"xhs_play":696,"xhs_collect":7,"xhs_like":9,"xhs_fans":11,"xhs_comment":0},
+{"date":"2026-06-19","dy_play":112837,"dy_like":1651,"dy_share":51,"dy_comment":40,"dy_fans":89,"sph_play":4526,"sph_rec":3,"sph_like":18,"sph_comment":2,"sph_share":12,"sph_follow":10,"ks_play":11307,"ks_fans":7,"ks_comment":3,"ks_like":61,"ks_share":7,"xhs_play":761,"xhs_collect":2,"xhs_like":7,"xhs_fans":2,"xhs_comment":0},
+{"date":"2026-06-20","dy_play":90811,"dy_like":400,"dy_share":51,"dy_comment":17,"dy_fans":37,"sph_play":4465,"sph_rec":9,"sph_like":15,"sph_comment":1,"sph_share":9,"sph_follow":20,"ks_play":8607,"ks_fans":6,"ks_comment":0,"ks_like":58,"ks_share":4,"xhs_play":590,"xhs_collect":7,"xhs_like":13,"xhs_fans":2,"xhs_comment":1},
+{"date":"2026-06-21","dy_play":105606,"dy_like":349,"dy_share":48,"dy_comment":21,"dy_fans":58,"sph_play":4412,"sph_rec":6,"sph_like":20,"sph_comment":1,"sph_share":14,"sph_follow":17,"ks_play":8346,"ks_fans":7,"ks_comment":1,"ks_like":37,"ks_share":1,"xhs_play":766,"xhs_collect":8,"xhs_like":9,"xhs_fans":8,"xhs_comment":0}];
+
+// ---- 工具函数 ----
+const W = n => (n/10000).toFixed(1) + 'W';
+const N = n => n.toLocaleString();
+const pct = (cur, pre) => {
+  if(!pre) return {txt:'N/A', cls:'neutral'};
+  const p = (cur - pre) / Math.abs(pre) * 100;
+  if(p >= 0) return {txt: `↑ +${p.toFixed(1)}%`, cls:'up'};
+  return {txt: `↓ ${p.toFixed(1)}%`, cls:'down'};
+};
+const fmt = n => n >= 10000 ? W(n) : N(n);
+
+function filterData(start, end) {
+  return ALL_DATA.filter(d => d.date >= start && d.date <= end);
+}
+function sumField(rows, field) {
+  return rows.reduce((s,r) => s + (r[field]||0), 0);
+}
+
+// ---- 日期处理 ----
+function dateStr(d) { return d.toISOString().slice(0,10); }
+function addDays(s, n) {
+  const d = new Date(s); d.setDate(d.getDate()+n); return dateStr(d);
+}
+
+const DATA_MAX = ALL_DATA[ALL_DATA.length-1].date;
+const DATA_MIN = ALL_DATA[0].date;
+
+// 预设
+function applyPreset(btn, mode) {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const max = DATA_MAX;
+  let s, e;
+  if(mode === 'last-week') {
+    // 上周：以今天实际日期为基准，上周一~上周日
+    const today = new Date();
+    const dow = today.getDay(); // 0=周日,1=周一...6=周六
+    const daysToThisMon = dow === 0 ? 6 : dow - 1;
+    const thisMonDate = new Date(today);
+    thisMonDate.setDate(today.getDate() - daysToThisMon);
+    const lastMon = new Date(thisMonDate);
+    lastMon.setDate(thisMonDate.getDate() - 7);
+    const lastSun = new Date(lastMon);
+    lastSun.setDate(lastMon.getDate() + 6);
+    s = dateStr(lastMon);
+    e = dateStr(lastSun);
+  } else if(mode === 'this-week') {
+    // 占位（按钮已移除，保留逻辑不报错）
+    s = DATA_MIN; e = DATA_MAX;
+  } else if(mode === 'last-30') {
+    e = max; s = addDays(e, -29);
+  } else if(mode === 'q2') {
+    s = '2026-04-01'; e = max;
+  } else {
+    s = DATA_MIN; e = max;
+  }
+  document.getElementById('date-start').value = s;
+  document.getElementById('date-end').value   = e;
+  applyDateRange();
+}
+
+// ---- Chart 实例管理 ----
+const chartInst = {};
+function makeChart(id, labels, curData, preData, color) {
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  if(chartInst[id]) { chartInst[id].destroy(); }
+  chartInst[id] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'本期',data:curData,borderColor:color,backgroundColor:color+'18',borderWidth:2,pointRadius:3,tension:.4,fill:true},
+        {label:'上期',data:preData,borderColor:'#ccc',backgroundColor:'transparent',borderWidth:1.5,pointRadius:2,borderDash:[4,3],tension:.4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:11},boxWidth:12}}},
+      scales:{
+        y:{grid:{color:'#f0f0f0'},ticks:{font:{size:11}}},
+        x:{grid:{display:false},ticks:{font:{size:11},maxTicksLimit:10}}
+      }
+    }
+  });
+}
+
+
+// ====== 数据总览趋势图 ======
+let _curTrendPlatform = 'all';
+
+const TREND_CFG = {
+  all: { title:'全平台播放量',  color:'#722ed1',
+    getData: d => (d.dy_play||0)+(d.xhs_play||0)+(d.sph_play||0)+(d.ks_play||0) },
+  dy:  { title:'抖音播放量',    color:'#1d7dfa', getData: d => d.dy_play  || 0 },
+  xhs: { title:'小红书播放量',  color:'#ff2442', getData: d => d.xhs_play || 0 },
+  sph: { title:'视频号播放量',  color:'#07c160', getData: d => d.sph_play || 0 },
+  ks:  { title:'快手播放量',    color:'#ff6200', getData: d => d.ks_play  || 0 },
+};
+
+function switchTrend(platform) {
+  _curTrendPlatform = platform;
+  // 更新趋势图按钮
+  document.querySelectorAll('[data-platform]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.platform === platform);
+  });
+  renderOverviewTrend();
+  // 同步切换流量分析面板
+  switchAnalysis(platform);
+}
+
+
+function renderOverviewTrend() {
+  const s = document.getElementById('date-start')?.value;
+  const e = document.getElementById('date-end')?.value;
+  if(!s || !e) return;
+  const rows = filterData(s, e);
+  if(!rows.length) return;
+
+  const cfg = TREND_CFG[_curTrendPlatform] || TREND_CFG.all;
+  document.getElementById('trend-title').textContent = cfg.title;
+
+  // 用完整日期范围内每天的数据
+  const labels   = rows.map(d => d.date.slice(5)); // MM-DD
+  const curData  = rows.map(d => cfg.getData(d));
+
+  // 同等长度的前一期对比
+  const dayCount = rows.length;
+  const preStart = addDays(s, -dayCount);
+  const preEnd   = addDays(s, -1);
+  const preRows  = filterData(preStart, preEnd);
+  const preData  = preRows.map(d => cfg.getData(d));
+  // 补齐或截断到相同长度
+  while(preData.length < curData.length) preData.push(null);
+
+  const ctx = document.getElementById('chart-overview-trend');
+  if(!ctx) return;
+  if(chartInst['chart-overview-trend']) chartInst['chart-overview-trend'].destroy();
+  chartInst['chart-overview-trend'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '本期',
+          data: curData,
+          borderColor: cfg.color,
+          backgroundColor: cfg.color + '22',
+          borderWidth: 2.5,
+          pointRadius: curData.length > 30 ? 0 : 3,
+          tension: .4,
+          fill: true,
+        },
+        {
+          label: '上期',
+          data: preData.slice(0, curData.length),
+          borderColor: '#ccc',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          borderDash: [4,3],
+          tension: .4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:true, position:'top', labels:{ font:{size:11}, boxWidth:12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${(ctx.parsed.y/10000).toFixed(1)}W`
+          }
+        }
+      },
+      scales: {
+        y: {
+          grid: { color:'#f5f5f5' },
+          ticks: { font:{size:11}, callback: v => (v/10000).toFixed(0)+'W' }
+        },
+        x: { grid:{ display:false }, ticks:{ font:{size:11}, maxTicksLimit:14 } }
+      }
+    }
+  });
+}
+
+function kpiCard(label, curVal, preVal, color, trendPlatform, big) {
+  const p = pct(curVal, preVal);
+  const numColor = color || '#4f6ef7';
+  const clickable = trendPlatform ? `style="cursor:pointer" onclick="switchTrend('${trendPlatform}')" title="点击查看${label}趋势"` : '';
+  const hoverStyle = trendPlatform ? `onmouseenter="this.style.boxShadow='0 2px 12px ${numColor}33'" onmouseleave="this.style.boxShadow=''"` : '';
+  const bigStyle = big ? 'padding:22px 20px;' : '';
+  const numSize  = big ? 'font-size:32px;' : '';
+  const lblSize  = big ? 'font-size:13px;margin-bottom:10px;' : '';
+  return `<div class="kpi-card" ${clickable} ${hoverStyle} style="${bigStyle}">
+    <div class="kpi-label" style="${lblSize}">${label}${trendPlatform ? ' <span style=\'font-size:10px;color:#bbb\'>📈</span>' : ''}</div>
+    <div class="kpi-number" style="color:${numColor};${numSize}">${fmt(curVal)}</div>
+    <div class="kpi-compare"><span class="${p.cls}">${p.txt}</span><span class="neutral">上期 ${fmt(preVal)}</span></div>
+  </div>`;
+}
+
+function tableRow(metric, cur, pre) {
+  const p = pct(cur, pre);
+  return `<tr><td>${metric}</td><td class="this-val">${fmt(cur)}</td><td class="last-val">${fmt(pre)}</td><td class="change-${p.cls==='up'?'up':'down'}">${p.txt}</td></tr>`;
+}
+
+// ---- 主刷新函数 ----
+function applyDateRange() {
+  const s = document.getElementById('date-start').value;
+  const e = document.getElementById('date-end').value;
+  if(!s || !e || s > e) return;
+
+  // 计算等长上期
+  const days = Math.round((new Date(e)-new Date(s))/(86400000)) + 1;
+  const preE = addDays(s, -1);
+  const preS = addDays(preE, -(days-1));
+
+  const cur = filterData(s, e);
+  const pre = filterData(preS, preE);
+
+  const periodTxt = `${s} ~ ${e}（${days}天）`;
+  const tipTxt = `对比上期：${preS} ~ ${preE}`;
+  document.getElementById('period-tip').textContent = tipTxt;
+  ['overview-period','dy-period','xhs-period','sph-period','ks-period'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=periodTxt;
+  });
+  ['dy-th-cur','xhs-th-cur','sph-th-cur','ks-th-cur'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=`本期（${s.slice(5)}~${e.slice(5)}）`;
+  });
+  ['dy-th-pre','xhs-th-pre','sph-th-pre','ks-th-pre'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=`上期（${preS.slice(5)}~${preE.slice(5)}）`;
+  });
+
+  // 汇总
+  const S = (rows, f) => sumField(rows, f);
+
+  // 目标完成情况 —— 固定统计当前季度
+  const latestDate = new Date(DATA_MAX);
+  const latestMonth = latestDate.getMonth() + 1;
+  const latestYear  = latestDate.getFullYear();
+  const qStartMonth = Math.floor((latestMonth - 1) / 3) * 3 + 1;
+  const qStart = `${latestYear}-${String(qStartMonth).padStart(2,'0')}-01`;
+  const qEnd   = DATA_MAX;
+  const qRows  = filterData(qStart, qEnd);
+  renderGoalRows(qRows);
+
+  // 总览 KPI
+  document.getElementById('overview-kpi').innerHTML = [
+    kpiCard('🎵 抖音播放量',    S(cur,'dy_play'),  S(pre,'dy_play'),  '#4f6ef7', 'dy'),
+    kpiCard('📕 小红书播放量',   S(cur,'xhs_play'), S(pre,'xhs_play'), '#ff2442', 'xhs'),
+    kpiCard('▶️ 视频号播放量',  S(cur,'sph_play'), S(pre,'sph_play'), '#07c160', 'sph'),
+    kpiCard('⚡ 快手播放量',    S(cur,'ks_play'),  S(pre,'ks_play'),  '#ff6200', 'ks'),
+
+  ].join('');
+
+  // 抖音
+  document.getElementById('dy-kpi').innerHTML = [
+    kpiCard('播放量', S(cur,'dy_play'), S(pre,'dy_play')),
+    kpiCard('点赞数', S(cur,'dy_like'), S(pre,'dy_like')),
+    kpiCard('分享数', S(cur,'dy_share'), S(pre,'dy_share')),
+    kpiCard('评论数', S(cur,'dy_comment'), S(pre,'dy_comment')),
+    kpiCard('净增粉丝', S(cur,'dy_fans'), S(pre,'dy_fans')),
+  ].join('');
+  document.getElementById('dy-table').innerHTML = [
+    tableRow('播放量',S(cur,'dy_play'),S(pre,'dy_play')),
+    tableRow('点赞数',S(cur,'dy_like'),S(pre,'dy_like')),
+    tableRow('分享数',S(cur,'dy_share'),S(pre,'dy_share')),
+    tableRow('评论数',S(cur,'dy_comment'),S(pre,'dy_comment')),
+    tableRow('净增粉丝',S(cur,'dy_fans'),S(pre,'dy_fans')),
+  ].join('');
+
+  // 小红书
+  document.getElementById('xhs-kpi').innerHTML = [
+    kpiCard('播放量', S(cur,'xhs_play'), S(pre,'xhs_play'), '#ff2442'),
+    kpiCard('收藏数', S(cur,'xhs_collect'), S(pre,'xhs_collect'), '#ff2442'),
+    kpiCard('点赞数', S(cur,'xhs_like'), S(pre,'xhs_like'), '#ff2442'),
+    kpiCard('粉丝增长', S(cur,'xhs_fans'), S(pre,'xhs_fans'), '#ff2442'),
+    kpiCard('评论数', S(cur,'xhs_comment'), S(pre,'xhs_comment'), '#ff2442'),
+  ].join('');
+  document.getElementById('xhs-table').innerHTML = [
+    tableRow('播放量',S(cur,'xhs_play'),S(pre,'xhs_play')),
+    tableRow('收藏数',S(cur,'xhs_collect'),S(pre,'xhs_collect')),
+    tableRow('点赞数',S(cur,'xhs_like'),S(pre,'xhs_like')),
+    tableRow('粉丝增长',S(cur,'xhs_fans'),S(pre,'xhs_fans')),
+    tableRow('评论数',S(cur,'xhs_comment'),S(pre,'xhs_comment')),
+  ].join('');
+
+  // 视频号
+  document.getElementById('sph-kpi').innerHTML = [
+    kpiCard('播放量', S(cur,'sph_play'), S(pre,'sph_play'), '#07c160'),
+    kpiCard('推荐数', S(cur,'sph_rec'), S(pre,'sph_rec'), '#07c160'),
+    kpiCard('点赞数', S(cur,'sph_like'), S(pre,'sph_like'), '#07c160'),
+    kpiCard('评论数', S(cur,'sph_comment'), S(pre,'sph_comment'), '#07c160'),
+    kpiCard('分享数', S(cur,'sph_share'), S(pre,'sph_share'), '#07c160'),
+    kpiCard('净增关注', S(cur,'sph_follow'), S(pre,'sph_follow'), '#07c160'),
+  ].join('');
+  document.getElementById('sph-table').innerHTML = [
+    tableRow('播放量',S(cur,'sph_play'),S(pre,'sph_play')),
+    tableRow('推荐数',S(cur,'sph_rec'),S(pre,'sph_rec')),
+    tableRow('点赞数',S(cur,'sph_like'),S(pre,'sph_like')),
+    tableRow('评论数',S(cur,'sph_comment'),S(pre,'sph_comment')),
+    tableRow('分享数',S(cur,'sph_share'),S(pre,'sph_share')),
+    tableRow('净增关注',S(cur,'sph_follow'),S(pre,'sph_follow')),
+  ].join('');
+
+  // 快手
+  document.getElementById('ks-kpi').innerHTML = [
+    kpiCard('播放量', S(cur,'ks_play'), S(pre,'ks_play'), '#ff6200'),
+    kpiCard('净增粉丝', S(cur,'ks_fans'), S(pre,'ks_fans'), '#ff6200'),
+    kpiCard('评论数', S(cur,'ks_comment'), S(pre,'ks_comment'), '#ff6200'),
+    kpiCard('点赞数', S(cur,'ks_like'), S(pre,'ks_like'), '#ff6200'),
+    kpiCard('分享数', S(cur,'ks_share'), S(pre,'ks_share'), '#ff6200'),
+  ].join('');
+  document.getElementById('ks-table').innerHTML = [
+    tableRow('播放量',S(cur,'ks_play'),S(pre,'ks_play')),
+    tableRow('净增粉丝',S(cur,'ks_fans'),S(pre,'ks_fans')),
+    tableRow('评论数',S(cur,'ks_comment'),S(pre,'ks_comment')),
+    tableRow('点赞数',S(cur,'ks_like'),S(pre,'ks_like')),
+    tableRow('分享数',S(cur,'ks_share'),S(pre,'ks_share')),
+  ].join('');
+
+  // 折线图
+  const chartLabels = cur.map(d => d.date.slice(5));
+  const preLabels   = pre.map(d => d.date.slice(5));
+  const allLabels   = [...new Set([...chartLabels,...preLabels])].sort().slice(0, Math.max(chartLabels.length, preLabels.length));
+
+  makeChart('chart-douyin', chartLabels, cur.map(d=>d.dy_play),  pre.map(d=>d.dy_play),  '#4f6ef7');
+  makeChart('chart-xhs',    chartLabels, cur.map(d=>d.xhs_play), pre.map(d=>d.xhs_play), '#ff2442');
+  makeChart('chart-sph',    chartLabels, cur.map(d=>d.sph_play), pre.map(d=>d.sph_play), '#07c160');
+  makeChart('chart-ks',     chartLabels, cur.map(d=>d.ks_play),  pre.map(d=>d.ks_play),  '#ff6200');
+  renderOverviewTrend();
+}
+
+
+
+// ====== 爆款内容表格 ======
+const BOOM_KEY    = 'dashen_boom_rows';
+const BOOM_TITLE_KEY = 'dashen_boom_title';
+const BOOM_PLATFORMS = [
+  {key:'dy',  label:'抖音',  cls:'dy'},
+  {key:'xhs', label:'小红书',cls:'xhs'},
+  {key:'sph', label:'视频号',cls:'sph'},
+  {key:'ks',  label:'快手',  cls:'ks'},
+];
+
+function boomLoad() {
+  try { return JSON.parse(localStorage.getItem(BOOM_KEY)) || boomDefaults(); }
+  catch(e) { return boomDefaults(); }
+}
+function boomDefaults() {
+  return [
+    {id:1, title:'鼻炎怎么来的',     platforms:['dy'], img:'', views:'132W', analysis:'短平快科普，引发共鸣，完播率高'},
+    {id:2, title:'水泡是在保护你',    platforms:['dy','xhs'], img:'', views:'44.2W', analysis:'反认知标题，互动率强'},
+    {id:3, title:'蛀牙怎么来的',      platforms:['dy'], img:'', views:'5.6W', analysis:''},
+    {id:4, title:'荨麻疹怎么来的',    platforms:['xhs'], img:'', views:'4.4W', analysis:''},
+    {id:5, title:'口腔溃疡怎么来的',  platforms:['dy'], img:'', views:'2.1W', analysis:''},
+    {id:6, title:'为什么小孩更容易得中耳炎', platforms:['dy'], img:'', views:'1.5W', analysis:''},
+    {id:7, title:'黄鼻涕是怎么来的',  platforms:['dy'], img:'', views:'1W', analysis:''},
+  ];
+}
+function boomSave(rows) { localStorage.setItem(BOOM_KEY, JSON.stringify(rows)); }
+
+let _boomImgTarget = null; // 当前待上传图片的行id
+
+function boomRender() {
+  const rows  = boomLoad();
+  const tbody = document.getElementById('boom-tbody');
+  const titleEl = document.getElementById('boom-title-text');
+  if(titleEl) titleEl.textContent = localStorage.getItem(BOOM_TITLE_KEY) || '爆款内容';
+  if(!tbody) return;
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const platforms = BOOM_PLATFORMS.map(p => {
+      const active = r.platforms.includes(p.key);
+      return `<span class="boom-tag ${p.cls}${active?'':' inactive'}" onclick="boomTogglePlatform(${r.id},'${p.key}')">${p.label}</span>`;
+    }).join('');
+
+    const imgHtml = r.img
+      ? `<img src="${r.img}" alt="截图">`
+      : `<div class="upload-hint">📷<br>点击上传</div>`;
+
+    return `<tr>
+      <td class="boom-seq">${i+1}</td>
+      <td><input class="boom-input" value="${r.title.replace(/"/g,'&quot;')}"
+           onblur="boomEdit(${r.id},'title',this.value)"
+           onkeydown="if(event.key==='Enter')this.blur()"
+           title="点击编辑标题"></td>
+      <td><div class="boom-platform-tags">${platforms}</div></td>
+      <td class="boom-img-cell">
+        <div class="boom-img-wrap" onclick="boomUploadImg(${r.id})" title="点击上传截图">${imgHtml}</div>
+      </td>
+      <td><input class="boom-input views" value="${r.views.replace(/"/g,'&quot;')}"
+           onblur="boomEdit(${r.id},'views',this.value)"
+           onkeydown="if(event.key==='Enter')this.blur()"
+           title="点击编辑播放量"></td>
+      <td><input class="boom-input analysis" value="${r.analysis.replace(/"/g,'&quot;')}"
+           onblur="boomEdit(${r.id},'analysis',this.value)"
+           onkeydown="if(event.key==='Enter')this.blur()"
+           placeholder="输入浅析..."
+           title="点击编辑浅析"></td>
+      <td><button class="boom-del-btn" onclick="boomDel(${r.id})" title="删除">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function boomEdit(id, field, val) {
+  const rows = boomLoad();
+  const r = rows.find(x=>x.id===id);
+  if(r) { r[field] = val.trim(); boomSave(rows); }
+}
+function boomTogglePlatform(id, pkey) {
+  const rows = boomLoad();
+  const r = rows.find(x=>x.id===id);
+  if(!r) return;
+  const idx = r.platforms.indexOf(pkey);
+  if(idx >= 0) r.platforms.splice(idx,1);
+  else r.platforms.push(pkey);
+  boomSave(rows); boomRender();
+}
+function boomDel(id) {
+  boomSave(boomLoad().filter(x=>x.id!==id)); boomRender();
+}
+function boomAdd() {
+  const rows = boomLoad();
+  rows.push({id:Date.now(), title:'新内容', platforms:['dy'], img:'', views:'', analysis:''});
+  boomSave(rows); boomRender();
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#boom-tbody .boom-input');
+    if(inputs.length) inputs[inputs.length-5]?.focus();
+  },50);
+}
+function boomUploadImg(id) {
+  _boomImgTarget = id;
+  document.getElementById('boom-img-input').click();
+}
+
+
+// ====== 营销日历（横向表格）======
+const CAL_KEY = 'dashen_mkt_cal';
+const CAL_DAYS   = 15;
+const CAL_ROWS_KEY = 'dashen_cal_rows';
+function calGetRows() { return parseInt(localStorage.getItem(CAL_ROWS_KEY) || '5'); }
+function calSetRows(n) { localStorage.setItem(CAL_ROWS_KEY, n); }
+const CAL_LABELS_KEY = 'dashen_cal_labels';
+function calLoadLabels() {
+  try { return JSON.parse(localStorage.getItem(CAL_LABELS_KEY) || '[]'); } catch(e) { return []; }
+}
+function calSaveLabel(ri, val) {
+  const labels = calLoadLabels();
+  while(labels.length <= ri) labels.push('');
+  labels[ri] = val;
+  localStorage.setItem(CAL_LABELS_KEY, JSON.stringify(labels));
+}
+const WEEKDAYS_SHORT = ['周日','周一','周二','周三','周四','周五','周六'];
+
+function calLoad() {
+  try { return JSON.parse(localStorage.getItem(CAL_KEY) || '{}'); } catch(e) { return {}; }
+}
+function calSave(data) { localStorage.setItem(CAL_KEY, JSON.stringify(data)); }
+
+function calGetDays() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Array.from({length: CAL_DAYS}, (_, i) => {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    return { d, key: d.toISOString().slice(0,10), isToday: i===0, dow: d.getDay() };
+  });
+}
+
+function calRender() {
+  const el = document.getElementById('mkt-calendar');
+  if(!el) return;
+  const data  = calLoad();
+  const days  = calGetDays();
+
+  // ── 读取合并&颜色持久化状态 ──
+  let calMerge, calColors;
+  try { calMerge  = JSON.parse(localStorage.getItem('dashen_cal_merge')  || '{}'); } catch(e){ calMerge={}; }
+  try { calColors = JSON.parse(localStorage.getItem('dashen_cal_colors') || '{}'); } catch(e){ calColors={}; }
+
+  // ── 表头行：日期 ──
+  const dateHeaders = days.map(({d, isToday, dow}) => {
+    const isWeekend = dow===0||dow===6;
+    const cls = [isToday?'today':'',(isWeekend&&!isToday)?'weekend-col':''].filter(Boolean).join(' ');
+    return `<th class="date-header ${cls}">
+      <div class="date-num">${d.getMonth()+1}月${d.getDate()}日</div>
+    </th>`;
+  }).join('');
+
+  // ── 星期行 ──
+  const weekCells = days.map(({isToday, dow}) => {
+    const isWeekend = dow===0||dow===6;
+    const cls = [isToday?'today-col':'',(isWeekend&&!isToday)?'weekend-col':''].filter(Boolean).join(' ');
+    return `<td class="${cls}">${WEEKDAYS_SHORT[dow]}</td>`;
+  }).join('');
+
+  // ── 事项行（支持合并/颜色恢复）──
+  const rowCount  = calGetRows();
+  const noteRows = Array.from({length: rowCount}, (_, ri) => {
+    // 收集被合并掉（隐藏）的单元格 key 集合
+    const hiddenKeys = new Set();
+    Object.entries(calMerge).forEach(([mk, mv]) => {
+      if(mv && mv.row === ri && Array.isArray(mv.keys)) {
+        mv.keys.slice(1).forEach(k => hiddenKeys.add(k));
+      }
+    });
+
+    const cells = days.map(({key, isToday}) => {
+      const cellId = `cal-cell-${ri}-${key}`;
+      if(hiddenKeys.has(key)) return ''; // 被合并掉，跳过
+
+      // 检查是否是合并主单元格
+      const mergeInfo = calMerge[cellId];
+      const colspan   = mergeInfo ? mergeInfo.keys.length : 1;
+
+      // 颜色：手动色 > 自动色（有内容时） > 今天底色
+      let bgColor = calColors[cellId];
+      if(!bgColor) {
+        const noteVal = (data[key] || [])[ri] || '';
+        if(noteVal.trim()) bgColor = CAL_ROW_AUTO_COLORS[ri % CAL_ROW_AUTO_COLORS.length];
+        else if(isToday) bgColor = '#fff9fc';
+      }
+      const styleStr = bgColor ? `background:${bgColor}` : '';
+
+      const notes = data[key] || [];
+      const val   = (notes[ri] || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const colspanAttr = colspan > 1 ? ` colspan="${colspan}"` : '';
+
+      return `<td id="${cellId}" class="note-cell" data-row="${ri}" data-key="${key}"${colspanAttr} style="${styleStr}">
+        <textarea class="cal-note-input" rows="1"
+          onblur="calEditNote('${key}',${ri},this.value)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          placeholder="">${val}</textarea>
+
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td class="row-label" title="点击修改名称">
+        <input class="cal-label-input"
+          value="${(calLoadLabels()[ri]||('事项'+(ri+1))).replace(/"/g,'&quot;')}"
+          onblur="calSaveLabel(${ri},this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()"
+          title="点击修改行名称">
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<div class="cal-wrap">
+    <table class="cal-htable">
+      <thead>
+        <tr>
+          <th class="row-label" style="background:#fafafa">日期</th>
+          ${dateHeaders}
+        </tr>
+        <tr class="week-row">
+          <td class="row-label">星期</td>
+          ${weekCells}
+        </tr>
+      </thead>
+      <tbody>
+        ${noteRows}
+      </tbody>
+    </table>
+  </div>`;
+
+  // 按钮行（DOM 插入，避免模板嵌套问题）
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'padding:8px 0 2px;display:flex;align-items:center;gap:8px';
+  const addBtn = document.createElement('button');
+  addBtn.textContent = '＋ 添加事项行';
+  addBtn.style.cssText = 'display:flex;align-items:center;gap:5px;padding:5px 14px;color:#eb2f96;background:#fff0f6;border:1px dashed #ffadd2;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s';
+  addBtn.onmouseover = () => addBtn.style.background = '#ffd6e7';
+  addBtn.onmouseout  = () => addBtn.style.background = '#fff0f6';
+  addBtn.onclick = calAddRow;
+  btnRow.appendChild(addBtn);
+  if(calGetRows() > 1) {
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '－ 删除末行';
+    delBtn.style.cssText = 'display:flex;align-items:center;gap:5px;padding:5px 14px;color:#aaa;background:#fafafa;border:1px dashed #eee;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s';
+    delBtn.onmouseover = () => delBtn.style.background = '#f0f0f0';
+    delBtn.onmouseout  = () => delBtn.style.background = '#fafafa';
+    delBtn.onclick = calRemoveRow;
+    btnRow.appendChild(delBtn);
+  }
+  el.appendChild(btnRow);
+
+  // 重新绑定交互
+  calBindCellEvents();
+}
+
+
+function calAddRow() {
+  calSetRows(calGetRows() + 1);
+  calRender();
+}
+function calRemoveRow() {
+  const n = calGetRows();
+  if(n <= 1) return;
+  calSetRows(n - 1);
+  calRender();
+}
+
+function calEditNote(dateKey, rowIdx, val) {
+  const data = calLoad();
+  if(!data[dateKey]) data[dateKey] = [];
+  while(data[dateKey].length <= rowIdx) data[dateKey].push('');
+  data[dateKey][rowIdx] = val;
+  calSave(data);
+
+  // 自动上色：有文字 → 预设行色；清空 → 移除自动色
+  const cellId = `cal-cell-${rowIdx}-${dateKey}`;
+  const colors = calLoadColors();
+  const isManual = colors[cellId] && !colors[cellId + '__auto']; // 手动上色过
+  if(!isManual) {
+    if(val.trim()) {
+      const autoColor = CAL_ROW_AUTO_COLORS[rowIdx % CAL_ROW_AUTO_COLORS.length];
+      colors[cellId] = autoColor;
+      colors[cellId + '__auto'] = '1'; // 标记为自动色
+    } else {
+      delete colors[cellId];
+      delete colors[cellId + '__auto'];
+    }
+    calSaveColors(colors);
+  }
+
+  // 实时更新 DOM，无需重新渲染整个日历
+  const td = document.getElementById(cellId);
+  if(td) {
+    const finalColor = colors[cellId];
+    td.style.background = finalColor || '';
+  }
+}
+
+// ============================================================
+// 营销日历 — 单元格合并 & 颜色编辑
+// ============================================================
+
+// 有内容时自动上色的预设（按行索引，可被手动颜色覆盖）
+const CAL_ROW_AUTO_COLORS = [
+  '#fff7e6',  // 事项1 - 浅橙
+  '#f6ffed',  // 事项2 - 浅绿
+  '#e6f4ff',  // 事项3 - 浅蓝
+  '#fff0f6',  // 事项4 - 浅粉
+  '#f9f0ff',  // 事项5 - 浅紫
+];
+const CAL_MERGE_KEY  = 'dashen_cal_merge';
+const CAL_COLORS_KEY = 'dashen_cal_colors';
+
+function calLoadMerge()  { try { return JSON.parse(localStorage.getItem(CAL_MERGE_KEY)  || '{}'); } catch(e){ return {}; } }
+function calLoadColors() { try { return JSON.parse(localStorage.getItem(CAL_COLORS_KEY) || '{}'); } catch(e){ return {}; } }
+function calSaveMerge(d)  { localStorage.setItem(CAL_MERGE_KEY,  JSON.stringify(d)); }
+function calSaveColors(d) { localStorage.setItem(CAL_COLORS_KEY, JSON.stringify(d)); }
+
+// 当前选中的单元格 Set（存 td 元素）
+let _calSelected = new Set();
+let _calDragStart = null;   // 拖拽起始 td
+let _calDragging  = false;
+
+// 工具栏颜色列表
+const CAL_SWATCHES = [
+  {color:'#ffffff', label:'白'},
+  {color:'#fffbe6', label:'浅黄'},
+  {color:'#f6ffed', label:'浅绿'},
+  {color:'#e6f7ff', label:'浅蓝'},
+  {color:'#fff0f6', label:'浅粉'},
+  {color:'#f9f0ff', label:'浅紫'},
+  {color:'#fff7e6', label:'浅橙'},
+  {color:'#f5f5f5', label:'浅灰'},
+];
+
+function calGetOrCreateToolbar() {
+  let tb = document.getElementById('cal-toolbar');
+  if(!tb) {
+    tb = document.createElement('div');
+    tb.id = 'cal-toolbar';
+    tb.style.display = 'none';
+    // 颜色格子
+    const swatchWrap = document.createElement('div');
+    swatchWrap.style.cssText = 'display:flex;align-items:center;gap:4px;flex-shrink:0';
+    CAL_SWATCHES.forEach(({color, label}) => {
+      const s = document.createElement('span');
+      s.className = 'cal-tb-swatch';
+      s.title = label;
+      s.style.background = color;
+      s.dataset.color = color;
+      s.addEventListener('click', e => { e.stopPropagation(); calApplyColor(color); });
+      swatchWrap.appendChild(s);
+    });
+    // 自定义取色器
+    const pickLabel = document.createElement('label');
+    pickLabel.className = 'cal-tb-color-pick';
+    pickLabel.title = '自定义颜色';
+    const pickInput = document.createElement('input');
+    pickInput.type = 'color';
+    pickInput.value = '#ffd6e7';
+    pickInput.id = 'cal-tb-colorpick';
+    pickInput.addEventListener('input', e => { e.stopPropagation(); calApplyColor(e.target.value); });
+    pickLabel.appendChild(pickInput);
+    swatchWrap.appendChild(pickLabel);
+
+    tb.appendChild(swatchWrap);
+
+    // 分隔
+    const sep = document.createElement('span');
+    sep.style.cssText = 'width:1px;height:20px;background:#eee;flex-shrink:0';
+    tb.appendChild(sep);
+
+    // 合并按钮
+    const mergeBtn = document.createElement('button');
+    mergeBtn.className = 'cal-tb-btn';
+    mergeBtn.id = 'cal-tb-merge';
+    mergeBtn.textContent = '合并';
+    mergeBtn.addEventListener('click', e => { e.stopPropagation(); calDoMerge(); });
+    tb.appendChild(mergeBtn);
+
+    // 拆分按钮
+    const splitBtn = document.createElement('button');
+    splitBtn.className = 'cal-tb-btn';
+    splitBtn.id = 'cal-tb-split';
+    splitBtn.textContent = '拆分';
+    splitBtn.addEventListener('click', e => { e.stopPropagation(); calDoSplit(); });
+    tb.appendChild(splitBtn);
+
+    // 关闭
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'cal-tb-close';
+    closeBtn.innerHTML = '✕';
+    closeBtn.title = '关闭';
+    closeBtn.addEventListener('click', e => { e.stopPropagation(); calClearSelection(); });
+    tb.appendChild(closeBtn);
+
+    document.body.appendChild(tb);
+
+    // 点击外部关闭
+    document.addEventListener('mousedown', e => {
+      // 点击颜色按钮、工具栏本身、单元格内部都不关闭
+      if(tb.contains(e.target)) return;
+      if(e.target.closest('.cal-paint-btn')) return;
+      if(e.target.closest('.note-cell')) return;
+      calClearSelection();
+    });
+  }
+  return tb;
+}
+
+
+// 快速上色：点击单元格内 🎨 按钮
+function calQuickColor(cellId, e) {
+  e.stopPropagation();
+  e.preventDefault();
+  const td = document.getElementById(cellId);
+  if(!td) return;
+  // 如果已选中该单元格且工具栏可见，直接返回（防止重复弹）
+  const tb = document.getElementById('cal-toolbar');
+  if(_calSelected.has(td) && tb && tb.style.display !== 'none') return;
+  // 清除其他选中，选中本格
+  calClearSelection();
+  td.classList.add('cal-selected');
+  _calSelected.add(td);
+  // 用 setTimeout 让 mousedown 的冒泡事件先结束，再显示工具栏
+  setTimeout(() => calShowToolbar(), 0);
+}
+function calShowToolbar() {
+  const tb = calGetOrCreateToolbar();
+  if(_calSelected.size === 0) { tb.style.display = 'none'; return; }
+
+  // 位置：取第一个选中单元格的 rect
+  const first = Array.from(_calSelected)[0];
+  const rect  = first.getBoundingClientRect();
+  const tbH   = 48;
+  let top  = rect.top - tbH - 8 + window.scrollY;
+  if(top < 8) top = rect.bottom + 8 + window.scrollY;
+  let left = rect.left + window.scrollX;
+  const maxLeft = window.innerWidth - 350;
+  if(left > maxLeft) left = maxLeft;
+  if(left < 8) left = 8;
+
+  tb.style.display   = 'flex';
+  tb.style.top       = top + 'px';
+  tb.style.left      = left + 'px';
+
+  // 更新按钮可用状态
+  const allSameRow = calSelectedSameRow();
+  const hasMerged  = Array.from(_calSelected).some(td => {
+    const merge = calLoadMerge();
+    return !!merge[td.id];
+  });
+  document.getElementById('cal-tb-merge').disabled = !allSameRow || _calSelected.size < 2;
+  document.getElementById('cal-tb-split').disabled = !hasMerged;
+}
+
+function calSelectedSameRow() {
+  if(_calSelected.size < 2) return false;
+  const rows = new Set(Array.from(_calSelected).map(td => td.dataset.row));
+  return rows.size === 1;
+}
+
+function calClearSelection() {
+  _calSelected.forEach(td => td.classList.remove('cal-selected'));
+  _calSelected.clear();
+  const tb = document.getElementById('cal-toolbar');
+  if(tb) tb.style.display = 'none';
+}
+
+function calApplyColor(color) {
+  if(_calSelected.size === 0) return;
+  const colors = calLoadColors();
+  _calSelected.forEach(td => {
+    td.style.background = color;
+    delete colors[td.id + '__auto']; // 标记为手动色
+    colors[td.id] = color;
+  });
+  calSaveColors(colors);
+}
+
+function calDoMerge() {
+  if(!calSelectedSameRow() || _calSelected.size < 2) return;
+  // 按 DOM 顺序排列选中的 td（通过在 tr 中的 cellIndex 排序）
+  const tds = Array.from(_calSelected).sort((a, b) => {
+    // 用单元格在 tr 中的位置排序
+    const cells = Array.from(a.parentElement.cells);
+    return cells.indexOf(a) - cells.indexOf(b);
+  });
+  const mainTd = tds[0];
+  const mainId = mainTd.id;
+  const keys   = tds.map(td => td.dataset.key);
+
+  const merge  = calLoadMerge();
+  const colors = calLoadColors();
+
+  // 存合并信息：主单元格 id → { row, keys }
+  merge[mainId] = { row: parseInt(mainTd.dataset.row), keys };
+  calSaveMerge(merge);
+
+  // 保留主单元格颜色（如有）
+  if(mainTd.style.background) colors[mainId] = mainTd.style.background;
+  calSaveColors(colors);
+
+  calClearSelection();
+  calRender();
+}
+
+function calDoSplit() {
+  const merge = calLoadMerge();
+  let changed = false;
+  _calSelected.forEach(td => {
+    if(merge[td.id]) {
+      delete merge[td.id];
+      changed = true;
+    }
+  });
+  if(changed) {
+    calSaveMerge(merge);
+    calClearSelection();
+    calRender();
+  }
+}
+
+// 右键菜单：拆分
+function calContextMenu(e, tdId) {
+  e.preventDefault();
+  const td = document.getElementById(tdId);
+  if(!td) return;
+  const merge = calLoadMerge();
+  if(!merge[tdId]) return; // 只对合并单元格显示拆分菜单
+
+  // 选中该单元格，触发工具栏拆分
+  calClearSelection();
+  td.classList.add('cal-selected');
+  _calSelected.add(td);
+  calShowToolbar();
+}
+
+// 绑定事件（calRender 结束后调用）
+function calBindCellEvents() {
+  const table = document.querySelector('#mkt-calendar .cal-htable');
+  if(!table) return;
+
+  // 利用事件委托绑定在 tbody 上
+  const tbody = table.querySelector('tbody');
+  if(!tbody) return;
+
+  tbody.addEventListener('mousedown', calOnCellMousedown);
+  tbody.addEventListener('mouseover', calOnCellMouseover);
+  tbody.addEventListener('mouseup',   calOnCellMouseup);
+  tbody.addEventListener('contextmenu', calOnCellContext);
+}
+
+function calGetNoteTd(e) {
+  return e.target.closest('td.note-cell');
+}
+
+function calOnCellMousedown(e) {
+  const td = calGetNoteTd(e);
+  if(!td) return;
+
+  if(e.shiftKey && _calSelected.size > 0) {
+    // Shift+点击：扩展选区（同行）
+    const anchor = Array.from(_calSelected)[0];
+    if(anchor && anchor.parentElement === td.parentElement) {
+      const cells = Array.from(td.parentElement.querySelectorAll('td.note-cell'));
+      const ai = cells.indexOf(anchor), bi = cells.indexOf(td);
+      const [lo, hi] = [Math.min(ai,bi), Math.max(ai,bi)];
+      calClearSelection();
+      cells.slice(lo, hi+1).forEach(c => { c.classList.add('cal-selected'); _calSelected.add(c); });
+      calShowToolbar();
+      e.preventDefault();
+      return;
+    }
+  }
+
+  // 普通点击：开始拖拽选择
+  _calDragStart = td;
+  _calDragging  = true;
+  calClearSelection();
+  td.classList.add('cal-selected');
+  _calSelected.add(td);
+  // 不 preventDefault 以允许 textarea focus
+}
+
+function calOnCellMouseover(e) {
+  if(!_calDragging || !_calDragStart) return;
+  const td = calGetNoteTd(e);
+  if(!td) return;
+  if(td.parentElement !== _calDragStart.parentElement) return; // 只同行
+
+  // 重新计算从 start 到当前的范围
+  const cells = Array.from(td.parentElement.querySelectorAll('td.note-cell'));
+  const ai = cells.indexOf(_calDragStart), bi = cells.indexOf(td);
+  const [lo, hi] = [Math.min(ai,bi), Math.max(ai,bi)];
+
+  _calSelected.forEach(c => c.classList.remove('cal-selected'));
+  _calSelected.clear();
+  cells.slice(lo, hi+1).forEach(c => { c.classList.add('cal-selected'); _calSelected.add(c); });
+}
+
+function calOnCellMouseup(e) {
+  if(!_calDragging) return;
+  _calDragging  = false;
+  _calDragStart = null;
+  if(_calSelected.size > 0) calShowToolbar();
+}
+
+function calOnCellContext(e) {
+  const td = calGetNoteTd(e);
+  if(!td) return;
+  const merge = calLoadMerge();
+  if(merge[td.id]) {
+    e.preventDefault();
+    calClearSelection();
+    td.classList.add('cal-selected');
+    _calSelected.add(td);
+    calShowToolbar();
+  }
+}
+
+// mouseup 结束拖拽（即使移出 tbody）
+document.addEventListener('mouseup', () => {
+  if(_calDragging) {
+    _calDragging = false;
+    _calDragStart = null;
+    if(_calSelected.size > 0) calShowToolbar();
+  }
+});
+
+
+// ====== 流量分析 ======
+const ANALYSIS_KEY = 'dashen_analysis';
+const ANALYSIS_LABELS = {
+  all: '全平台', dy: '抖音', xhs: '小红书', sph: '视频号', ks: '快手'
+};
+const ANALYSIS_COLORS = {
+  all: '#722ed1', dy: '#1d7dfa', xhs: '#ff2442', sph: '#07c160', ks: '#ff6200'
+};
+let _curAnalysisPlatform = 'all';
+
+function analysisLoad() {
+  try { return JSON.parse(localStorage.getItem(ANALYSIS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function analysisSave(data) { localStorage.setItem(ANALYSIS_KEY, JSON.stringify(data)); }
+
+function analysisRender() {
+  const wrap = document.getElementById('analysis-editor-wrap');
+  if(!wrap) return;
+  const data = analysisLoad();
+  const platforms = ['all','dy','xhs','sph','ks'];
+  wrap.innerHTML = platforms.map(p => {
+    const color = ANALYSIS_COLORS[p];
+    const saved = data[p] || '';
+    return `<div class="analysis-pane" id="apane-${p}" style="display:${p===_curAnalysisPlatform?'block':'none'}">
+      <textarea class="analysis-editor" id="aeditor-${p}"
+        placeholder="在此记录${ANALYSIS_LABELS[p]}流量分析、归因总结、优化建议..."
+        onblur="analysisSaveText('${p}', this.value)"
+        style="border-color:${color}22"
+      >${saved}</textarea>
+      <div class="analysis-meta" id="ameta-${p}">${saved ? `已保存 · ${saved.length} 字` : '内容自动保存'}</div>
+    </div>`;
+  }).join('');
+}
+
+function switchAnalysis(platform) {
+  _curAnalysisPlatform = platform;
+  // 更新按钮
+  document.querySelectorAll('[data-aplatform]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.aplatform === platform);
+  });
+  // 更新标题
+  const titleEl = document.getElementById('analysis-platform-title');
+  if(titleEl) titleEl.textContent = ANALYSIS_LABELS[platform] || platform;
+  // 切换面板
+  ['all','dy','xhs','sph','ks'].forEach(p => {
+    const pane = document.getElementById('apane-' + p);
+    if(pane) pane.style.display = p === platform ? 'block' : 'none';
+  });
+}
+
+function analysisSaveText(platform, val) {
+  const data = analysisLoad();
+  data[platform] = val;
+  analysisSave(data);
+  const meta = document.getElementById('ameta-' + platform);
+  if(meta) meta.textContent = val ? `已保存 · ${val.length} 字` : '内容自动保存';
+}
+
+
+// ====== 热点新闻 ======
+const HOT_CACHE_KEY   = 'dashen_hot_cache';
+const HOT_SCIENCE_KWS = ['百科','科普','知识','生物','物理','化学','天文','地理','历史','医学',
+  '动物','植物','宇宙','科学','发现','研究','技术','自然','人体','疾病','健康',
+  '少儿','儿童','孩子','教育','学习','小学','幼儿','亲子','育儿'];
+
+let _curHotSource = 'weibo';
+
+// 多源 API（使用聚合热搜 API，CORS friendly）
+const HOT_APIS = {
+  weibo: 'https://api.vvhan.com/api/hotlist/wbHot',
+  baidu: 'https://api.vvhan.com/api/hotlist/baiduRD',
+  zhihu: 'https://api.vvhan.com/api/hotlist/zhihuHot',
+};
+
+function hotScoreItem(title) {
+  let score = 0;
+  const t = title || '';
+  HOT_SCIENCE_KWS.forEach(kw => { if(t.includes(kw)) score++; });
+  return score;
+}
+
+function hotBadges(title) {
+  const t = title || '';
+  let badges = '';
+  if(['百科','科普','知识','生物','物理','化学','天文','地理','历史','医学',
+      '动物','植物','宇宙','科学','自然','人体','疾病'].some(k=>t.includes(k)))
+    badges += '<span class="hot-badge wiki">百科</span>';
+  if(['少儿','儿童','孩子','小学','幼儿','亲子','育儿','宝宝'].some(k=>t.includes(k)))
+    badges += '<span class="hot-badge kids">少儿</span>';
+  if(['研究','发现','技术','科学','实验','数据'].some(k=>t.includes(k)))
+    badges += '<span class="hot-badge science">科研</span>';
+  return badges;
+}
+
+function switchHotSource(source) {
+  _curHotSource = source;
+  document.querySelectorAll('[data-hsource]').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.hsource === source));
+  fetchHotNews(false);
+}
+
+async function fetchHotNews(forceRefresh) {
+  const el = document.getElementById('hot-news-list');
+  if(!el) return;
+
+  // 检查缓存（10分钟内不重复请求）
+  const cacheKey = HOT_CACHE_KEY + '_' + _curHotSource;
+  if(!forceRefresh) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+      if(cached && Date.now() - cached.ts < 10 * 60 * 1000) {
+        renderHotNews(cached.data);
+        return;
+      }
+    } catch(e) {}
+  }
+
+  el.innerHTML = '<div style="color:#bbb;font-size:13px;padding:20px 0;text-align:center">🔄 获取热点中...</div>';
+
+  try {
+    const url = HOT_APIS[_curHotSource];
+    const resp = await fetch(url, {signal: AbortSignal.timeout(8000)});
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+
+    // 统一格式：[{title, url, hot}]
+    let items = [];
+    if(Array.isArray(json.data)) {
+      items = json.data.slice(0, 50).map(d => ({
+        title: d.title || d.name || d.word || '',
+        url:   d.url  || d.link || '',
+        hot:   d.hot  || d.desc || '',
+      }));
+    } else if(Array.isArray(json)) {
+      items = json.slice(0,50).map(d => ({
+        title: d.title||d.name||d.word||'', url: d.url||d.link||'', hot: d.hot||d.desc||''
+      }));
+    }
+
+    // 把有科普/百科/少儿标签的排前面
+    items.sort((a,b) => hotScoreItem(b.title) - hotScoreItem(a.title));
+
+    // 缓存
+    localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), data: items}));
+    const timeEl = document.getElementById('hot-update-time');
+    if(timeEl) timeEl.textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    renderHotNews(items);
+  } catch(e) {
+    el.innerHTML = `<div class="hot-error">
+      ⚠️ 获取热点失败（${e.message}）<br>
+      可能是网络限制或跨域问题。<br>
+      <a href="https://weibo.com/hot/search" target="_blank" style="color:#1d7dfa">→ 点此前往微博热搜查看</a>
+    </div>`;
+  }
+}
+
+function renderHotNews(items) {
+  const el = document.getElementById('hot-news-list');
+  if(!el || !items.length) return;
+  const top30 = items.slice(0, 30);
+  el.innerHTML = top30.map((item, i) => {
+    const rankCls = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    const badges  = hotBadges(item.title);
+    const heatStr = item.hot ? `<span class="hot-heat">${item.hot}</span>` : '';
+    const titleHtml = item.url
+      ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>`
+      : item.title;
+    return `<div class="hot-item">
+      <div class="hot-rank ${rankCls}">${i+1}</div>
+      <div class="hot-title">${titleHtml}${badges}</div>
+      ${heatStr}
+    </div>`;
+  }).join('');
+}
+
+// ====== 折叠功能 ======
+const COLLAPSE_KEY = 'dashen_collapse';
+function toggleCollapse(name) {
+  const body = document.getElementById(name + '-collapse-body');
+  const btn  = document.getElementById(name + '-collapse-btn');
+  if(!body) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  if(btn) btn.classList.toggle('collapsed', isCollapsed);
+  // 持久化
+  const state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}');
+  state[name] = isCollapsed;
+  localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
+}
+function restoreCollapse() {
+  const state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}');
+  Object.entries(state).forEach(([name, isCollapsed]) => {
+    if(!isCollapsed) return;
+    const body = document.getElementById(name + '-collapse-body');
+    const btn  = document.getElementById(name + '-collapse-btn');
+    if(body) body.classList.add('collapsed');
+    if(btn)  btn.classList.add('collapsed');
+  });
+}
+
+function boomEditTitle() {
+  const cur = localStorage.getItem(BOOM_TITLE_KEY) || '爆款内容';
+  const v = prompt('修改模块标题', cur);
+  if(v !== null && v.trim()) {
+    localStorage.setItem(BOOM_TITLE_KEY, v.trim());
+    boomRender();
+  }
+}
+
+// 图片上传处理
+document.addEventListener('DOMContentLoaded', () => {
+  const imgInput = document.getElementById('boom-img-input');
+  if(imgInput) {
+    imgInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if(!file || !_boomImgTarget) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const rows = boomLoad();
+        const r = rows.find(x=>x.id===_boomImgTarget);
+        if(r) { r.img = e.target.result; boomSave(rows); boomRender(); }
+        _boomImgTarget = null;
+        this.value = '';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+
+// ====== TODO 列表 ======
+const TODO_KEY = 'dashen_todos';
+const TODO_EMOJIS = ['📌','🎬','🏛️','🗺️','🎥','💰','📊','✍️','📢','🔥','🎯','💡','📝','🚀','⚡'];
+
+function todoLoad() {
+  try { return JSON.parse(localStorage.getItem(TODO_KEY)) || todoDefaults(); }
+  catch(e) { return todoDefaults(); }
+}
+function todoDefaults() {
+  return [
+    {id:1, emoji:'🎬', text:'本周剪辑《火星》主题宣传片一条', done:false},
+    {id:2, emoji:'🏛️', text:'5月18日博物馆日，推送《带你认识唐三彩》', done:false},
+    {id:3, emoji:'🗺️', text:'5月19日中国旅游日，推送《斑马百科景点推荐》', done:false},
+    {id:4, emoji:'🎥', text:'开始《三国演义》拉片', done:false},
+    {id:5, emoji:'💰', text:'完成第一季度所有投放还票', done:false},
+  ];
+}
+function todoSave(todos) { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }
+
+function todoRender() {
+  const todos = todoLoad();
+  const el = document.getElementById('todo-list');
+  if(!el) return;
+  el.innerHTML = todos.map(t => `
+    <div class="todo-item${t.done?' done':''}" data-id="${t.id}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="todoToggle(${t.id})">
+      <span class="todo-emoji" onclick="todoChangeEmoji(${t.id})" title="点击换表情">${t.emoji}</span>
+      <input class="todo-text" value="${t.text.replace(/"/g,'&quot;')}" 
+             onblur="todoEdit(${t.id}, this.value)"
+             onkeydown="if(event.key==='Enter'){this.blur();todoAddAfter(${t.id})}"
+             title="点击编辑，Enter 新增下一条">
+      <span class="todo-del" onclick="todoDel(${t.id})" title="删除">×</span>
+    </div>`).join('');
+}
+
+function todoToggle(id) {
+  const todos = todoLoad();
+  const t = todos.find(x=>x.id===id);
+  if(t) { t.done = !t.done; todoSave(todos); todoRender(); }
+}
+function todoEdit(id, val) {
+  const todos = todoLoad();
+  const t = todos.find(x=>x.id===id);
+  if(t && val.trim()) { t.text = val.trim(); todoSave(todos); }
+  else if(t && !val.trim()) { todoRender(); } // 恢复
+}
+function todoDel(id) {
+  const todos = todoLoad().filter(x=>x.id!==id);
+  todoSave(todos); todoRender();
+}
+function todoAdd() {
+  const todos = todoLoad();
+  const newId = Date.now();
+  todos.push({id:newId, emoji:'📌', text:'新建待办', done:false});
+  todoSave(todos); todoRender();
+  // 聚焦新输入框
+  setTimeout(()=>{
+    const inputs = document.querySelectorAll('#todo-list .todo-text');
+    const last = inputs[inputs.length-1];
+    if(last){ last.select(); last.focus(); }
+  }, 50);
+}
+function todoAddAfter(id) {
+  const todos = todoLoad();
+  const idx = todos.findIndex(x=>x.id===id);
+  const newId = Date.now();
+  todos.splice(idx+1, 0, {id:newId, emoji:'📌', text:'', done:false});
+  todoSave(todos); todoRender();
+  setTimeout(()=>{
+    const items = document.querySelectorAll('#todo-list .todo-text');
+    if(items[idx+1]){ items[idx+1].focus(); }
+  }, 50);
+}
+function todoChangeEmoji(id) {
+  const todos = todoLoad();
+  const t = todos.find(x=>x.id===id);
+  if(!t) return;
+  const cur = TODO_EMOJIS.indexOf(t.emoji);
+  t.emoji = TODO_EMOJIS[(cur+1) % TODO_EMOJIS.length];
+  todoSave(todos); todoRender();
+}
+
+// 目标配置：默认值
+const GOAL_DEFAULTS = [
+  { key:'goal_total', name:'抖音+快手+视频号播放量', type:'play', unit:'W', goal:500,  curFn: q => sumField(q,'dy_play')+sumField(q,'ks_play')+sumField(q,'sph_play'), barColor:'bar-orange' },
+  { key:'goal_xhs',   name:'小红书平台播放量',       type:'play', unit:'W', goal:50,   curFn: q => sumField(q,'xhs_play'), barColor:'bar-orange' },
+  { key:'goal_boom1', name:'抖音50W+爆款',           type:'count',unit:'条',goal:2,    curVal:0, barColor:'bar-red' },
+  { key:'goal_boom2', name:'抖音30W+爆款',           type:'count',unit:'条',goal:6,    curVal:2, barColor:'bar-red' },
+  { key:'goal_boom3', name:'小红书1W+爆款',          type:'count',unit:'条',goal:8,    curVal:2, barColor:'bar-red' },
+  { key:'goal_boom4', name:'小红书3W+爆款',          type:'count',unit:'条',goal:2,    curVal:1, barColor:'bar-orange' },
+];
+
+function loadGoals() {
+  return GOAL_DEFAULTS.map(g => ({
+    ...g,
+    name: localStorage.getItem(g.key + '_name') || g.name,
+    goal: parseFloat(localStorage.getItem(g.key + '_goal') || g.goal),
+    curVal: g.curVal !== undefined ? parseInt(localStorage.getItem(g.key + '_cur') || g.curVal) : undefined,
+  }));
+}
+
+function renderGoalRows(qRows) {
+  const goals = loadGoals();
+  const el = document.getElementById('goal-rows');
+  if(!el) return;
+
+  // 分组：播放量(前2) / 爆款(后4)
+  const playGoals = goals.slice(0, 2);
+  const boomGoals = goals.slice(2);
+
+  function goalCard(g, i) {
+    const realIdx = goals.indexOf(g);
+    const _p = parseFloat(g._pct); const pctColor = _p >= 70 ? '#eb2f96' : _p >= 49 ? '#fa8c16' : '#aaaaaa';
+    const barBg    = parseFloat(g._pct) < 30 ? 'linear-gradient(90deg,#ff7875,#ff4d4f)'
+                   : parseFloat(g._pct) < 70 ? 'linear-gradient(90deg,#ffa940,#ffca00)'
+                   : 'linear-gradient(90deg,#95de64,#52c41a)';
+    const accentColor = g.type==='play'
+      ? (realIdx===0?'#4f6ef7':'#ff2442')
+      : (['#1d7dfa','#1d7dfa','#ff2442','#ff2442'][realIdx-2]||'#4f6ef7');
+
+    if(g.type === 'play') {
+      const curW  = (g._cur/10000).toFixed(1);
+      const goalW = g.goal;
+      return `<div class="goal-card">
+        <div class="gc-accent" style="background:${accentColor}"></div>
+        <div class="gc-label">
+          <span class="editable-goal editable-name" onclick="editGoalItem(${realIdx},'name')" title="点击修改名称">${g.name}</span>
+        </div>
+        <div class="gc-pct" style="color:${pctColor}">${g._pct}<span style="font-size:20px;font-weight:600">%</span></div>
+        <div class="gc-bar-wrap"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
+        <div class="gc-cur" style="color:${accentColor}">
+          ${curW}W
+          <span style="color:#bbb;font-weight:400;font-size:11px;margin-left:4px">/ 目标 <span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${goalW}W</span></span>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="goal-card">
+        <div class="gc-accent" style="background:${accentColor}"></div>
+        <div class="gc-label">
+          <span class="editable-goal editable-name" onclick="editGoalItem(${realIdx},'name')" title="点击修改名称">${g.name}</span>
+        </div>
+        <div class="gc-pct" style="color:${pctColor}">${g._pct}<span style="font-size:20px;font-weight:600">%</span></div>
+        <div class="gc-bar-wrap"><div class="gc-bar" style="width:${g._pct}%;background:${barBg}"></div></div>
+        <div class="gc-boom-cur" style="color:${accentColor}">
+          <span class="editable-goal" onclick="editGoalItem(${realIdx},'cur')" title="点击修改完成数">${g._cur}</span>
+          <span style="color:#bbb;font-weight:400;font-size:11px;margin-left:4px">/ <span class="editable-goal editable-val" onclick="editGoalItem(${realIdx},'goal')" title="点击修改目标">${g.goal}</span>${g.unit}</span>
+        </div>
+      </div>`;
+    }
+  }
+
+  // 预计算
+  goals.forEach((g, i) => {
+    if(g.type === 'play') {
+      g._cur = g.curFn(qRows);
+      g._pct = Math.min(g._cur / (g.goal * 10000) * 100, 100).toFixed(1);
+    } else {
+      g._cur = g.curVal;
+      g._pct = Math.min(g._cur / g.goal * 100, 100).toFixed(1);
+    }
+  });
+
+  el.innerHTML = `
+    <div class="goal-layout">
+      <div style="display:flex;align-items:center;justify-content:center">
+        <img src="http://upload.zhenguanyu.com/uploads/fccad6a9_05.png" style="width:110px;height:auto;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.12))" alt="大圣IP">
+      </div>
+      <div class="goal-col">
+        <p class="goal-section-label">📹 播放量目标</p>
+        ${playGoals.map(g=>goalCard(g,0)).join('')}
+      </div>
+      <div></div>
+      <div style="display:flex;align-items:center;justify-content:center">
+        <img src="http://upload.zhenguanyu.com/uploads/698dc1fd_10.png" style="width:110px;height:auto;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.12))" alt="琵琶IP">
+      </div>
+      <div class="goal-col">
+        <p class="goal-section-label">🔥 爆款目标</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          ${boomGoals.map(g=>goalCard(g,0)).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function editGoalItem(idx, field) {
+  const goals = loadGoals();
+  const g = goals[idx];
+  let prompt_text, cur_val, new_val;
+
+  if(field === 'name') {
+    prompt_text = `修改指标名称\n当前：${g.name}`;
+    new_val = prompt(prompt_text, g.name);
+    if(new_val === null || !new_val.trim()) return;
+    localStorage.setItem(g.key + '_name', new_val.trim());
+  } else if(field === 'goal') {
+    if(g.type === 'play') {
+      prompt_text = `修改目标播放量（万W）\n当前：${g.goal}W`;
+      new_val = prompt(prompt_text, g.goal);
+      if(new_val === null) return;
+      const v = parseFloat(new_val);
+      if(isNaN(v) || v <= 0) { alert('请输入有效的正数'); return; }
+      localStorage.setItem(g.key + '_goal', v);
+    } else {
+      prompt_text = `修改目标数量（${g.unit}）\n当前：${g.goal}${g.unit}`;
+      new_val = prompt(prompt_text, g.goal);
+      if(new_val === null) return;
+      const v = parseInt(new_val);
+      if(isNaN(v) || v <= 0) { alert('请输入有效的正整数'); return; }
+      localStorage.setItem(g.key + '_goal', v);
+    }
+  } else if(field === 'cur') {
+    prompt_text = `修改当前完成数（${g.unit}）\n当前：${g.curVal}${g.unit}`;
+    new_val = prompt(prompt_text, g.curVal);
+    if(new_val === null) return;
+    const v = parseInt(new_val);
+    if(isNaN(v) || v < 0) { alert('请输入有效的非负整数'); return; }
+    localStorage.setItem(g.key + '_cur', v);
+  }
+  applyDateRange();
+}
+
+// 目标值编辑（旧函数保留兼容）
+function editGoal(type) {
+  const idx = type === 'total' ? 0 : 1;
+  editGoalItem(idx, 'goal');
+}
+
+
+function scrollToSection(id, btn) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  document.querySelectorAll('#sidebar-overview-nav .sidebar-item').forEach(item => item.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function switchTab(idx) {
+  document.querySelectorAll('.tab-item').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===idx));
+  // 侧边栏：总览时显示导航，其他 tab 隐藏
+  const overviewNav = document.getElementById('sidebar-overview-nav');
+  if(overviewNav) overviewNav.style.display = idx === 0 ? 'block' : 'none';
+  // 切到抖音时懒加载热点新闻
+  if(idx === 1) fetchHotNews(false);
+}
+
+
+// ============================================================
+// 同步用户数据到看板
+// ============================================================
+function collectUserData() {
+  const KEYS = [
+    'dashen_todos','dashen_boom_rows','dashen_boom_title','BOOM_TITLE_KEY',
+    'dashen_analysis','dashen_mkt_cal','dashen_cal_labels','dashen_cal_merge',
+    'dashen_cal_colors','dashen_cal_rows','dashen_collapse',
+  ];
+  for(let i = 0; i < 10; i++) {
+    ['_name','_goal','_cur'].forEach(s => KEYS.push('goal_' + i + s));
+  }
+  const data = {};
+  KEYS.forEach(k => { const v = localStorage.getItem(k); if(v !== null) data[k] = v; });
+  return data;
+}
+
+
+// ====== 新媒体周报 ======
+const WR_Q2_GOAL_KEY = 'wr_q2_goal';
+
+function getLastNaturalWeek(baseDate) {
+  // baseDate: Date 对象，以它所在周的上一个完整自然周为"本周"
+  // 自然周：周一 ~ 周日
+  const d = new Date(baseDate);
+  const dow = d.getDay(); // 0=周日
+  // 本周一（本周起点）
+  const daysToMon = dow === 0 ? -6 : 1 - dow;
+  const thisMon = new Date(d);
+  thisMon.setDate(d.getDate() + daysToMon);
+  // 上周一 ~ 上周日
+  const lastMon = new Date(thisMon);
+  lastMon.setDate(thisMon.getDate() - 7);
+  const lastSun = new Date(lastMon);
+  lastSun.setDate(lastMon.getDate() + 6);
+  return { start: dateStr(lastMon), end: dateStr(lastSun) };
+}
+
+function calcAllPlatformPlay(rows) {
+  return rows.reduce((s, r) => s + (r.dy_play||0) + (r.xhs_play||0) + (r.ks_play||0) + (r.sph_play||0), 0);
+}
+
+function renderWeeklyReport() {
+  const tbody = document.getElementById('wr-tbody');
+  const wlabel = document.getElementById('wr-week-label');
+  if(!tbody) return;
+
+  // 与数据看板「上周（自然周）」维度保持一致：以今天实际日期为基准
+  const today = new Date();
+  const thisWeek = getLastNaturalWeek(today);   // 本周 = 今天所在周的上一完整自然周（即上周一~上周日）
+  const lastWeekStart = addDays(thisWeek.start, -7);  // 上周 = 再往前一周
+  const lastWeekEnd   = addDays(thisWeek.start, -1);
+
+  const thisRows = filterData(thisWeek.start, thisWeek.end);
+  const lastRows = filterData(lastWeekStart, lastWeekEnd);
+
+  const thisVal = calcAllPlatformPlay(thisRows);
+  const lastVal = calcAllPlatformPlay(lastRows);
+
+  // 环比
+  let chainTxt = 'N/A', chainCls = 'wr-neutral';
+  if(lastVal > 0) {
+    const ratio = (thisVal - lastVal) / lastVal * 100;
+    if(ratio >= 0) { chainTxt = `↑ +${ratio.toFixed(1)}%`; chainCls = 'wr-up'; }
+    else           { chainTxt = `↓ ${ratio.toFixed(1)}%`;  chainCls = 'wr-down'; }
+  }
+
+  // Q2 至今四平台总量
+  const latestDate = new Date(DATA_MAX);
+  const latestMonth = latestDate.getMonth() + 1;
+  const latestYear  = latestDate.getFullYear();
+  const qStartMonth = Math.floor((latestMonth - 1) / 3) * 3 + 1;
+  const qStart = `${latestYear}-${String(qStartMonth).padStart(2,'0')}-01`;
+  const qRows  = filterData(qStart, DATA_MAX);
+  const q2Total = calcAllPlatformPlay(qRows);
+
+  // Q2 目标（万，默认550）
+  const q2GoalW = parseFloat(localStorage.getItem(WR_Q2_GOAL_KEY) || '550');
+  const q2GoalRaw = q2GoalW * 10000;
+
+  // 完成率
+  const completionPct = q2GoalRaw > 0 ? Math.min(q2Total / q2GoalRaw * 100, 200) : 0;
+  const completionPctShow = completionPct.toFixed(1);
+  const barColor = completionPct >= 100 ? 'linear-gradient(90deg,#52c41a,#95de64)'
+                 : completionPct >= 70  ? 'linear-gradient(90deg,#4f6ef7,#a78bfa)'
+                 : completionPct >= 40  ? 'linear-gradient(90deg,#ffa940,#ffca00)'
+                 :                        'linear-gradient(90deg,#ff7875,#ff4d4f)';
+  const completionColor = completionPct >= 100 ? '#52c41a' : completionPct >= 70 ? '#4f6ef7' : completionPct >= 40 ? '#fa8c16' : '#ff4d4f';
+
+  // 更新周标签
+  if(wlabel) wlabel.textContent = `本周：${thisWeek.start} ~ ${thisWeek.end}`;
+
+  const fmtW = n => (n/10000).toFixed(1) + ' 万';
+
+  tbody.innerHTML = `<tr>
+    <td>
+      <div class="wr-metric">
+        <div class="wr-metric-icon" style="background:linear-gradient(135deg,#e8f4ff,#d0e8ff)">📱</div>
+        <span>短视频平台数据</span>
+      </div>
+      <span style="font-size:11px;color:#bbb;display:block;margin-top:4px;padding-left:36px">抖音 + 小红书 + 快手 + 视频号</span>
+    </td>
+    <td>
+      <div class="wr-val">${fmtW(thisVal)}</div>
+      <span class="wr-week-range">${thisWeek.start.slice(5)} ~ ${thisWeek.end.slice(5)}</span>
+    </td>
+    <td>
+      <div class="wr-last-val">${fmtW(lastVal)}</div>
+      <span class="wr-week-range">${lastWeekStart.slice(5)} ~ ${lastWeekEnd.slice(5)}</span>
+    </td>
+    <td><span class="${chainCls}">${chainTxt}</span></td>
+    <td>
+      <span class="wr-goal" onclick="editWrQ2Goal()" title="点击修改Q2目标">${q2GoalW} 万</span>
+      <span style="font-size:11px;color:#bbb;display:block;margin-top:2px">（点击修改）</span>
+    </td>
+    <td>
+      <div class="wr-completion">
+        <span class="wr-completion-pct" style="color:${completionColor}">${completionPctShow}%</span>
+        <div style="flex:1;min-width:80px">
+          <div class="wr-completion-bar">
+            <div class="wr-completion-fill" style="width:${Math.min(completionPct,100)}%;background:${barColor}"></div>
+          </div>
+          <span style="font-size:11px;color:#bbb;display:block;margin-top:3px">${fmtW(q2Total)} / ${q2GoalW} 万</span>
+        </div>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function editWrQ2Goal() {
+  const cur = parseFloat(localStorage.getItem(WR_Q2_GOAL_KEY) || '550');
+  const v = prompt('修改Q2目标（万次播放）', cur);
+  if(v === null) return;
+  const n = parseFloat(v);
+  if(isNaN(n) || n <= 0) { alert('请输入有效的正数'); return; }
+  localStorage.setItem(WR_Q2_GOAL_KEY, n);
+  renderWeeklyReport();
+}
+
+
+// 初始化
+window.addEventListener('load', () => {
+  
+  todoRender();
+  boomRender();
+  calRender();
+  analysisRender();
+  renderWeeklyReport();
+  // 默认显示上周（自然周）
+  applyPreset(document.querySelector('.preset-btn.active[onclick*="last-week"]') || document.querySelectorAll('.preset-btn')[0], 'last-week');
+  restoreCollapse();
+  document.querySelectorAll('.progress-bar').forEach(bar=>{
+    const w=bar.style.width; bar.style.width='0';
+    setTimeout(()=>{bar.style.width=w;},300);
+  });
+});
+</script>
+</body>
+</html>
