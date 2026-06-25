@@ -2023,7 +2023,7 @@ function replayRender(){
   var _factionColor = {'平民':'#4f6ef7','狼人':'#ef4444','神职':'#a855f7','三方':'#f59e0b','':''};
   var _wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
   var _thirdRoles = ['丘比特','炸弹人','盗贼'];
-  var _shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
+  var _shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴'];
 
   // 座位行（带身份按钮）
   var seatsHtml = '<div style="display:flex;flex-wrap:wrap;gap:7px;padding-bottom:14px">';
@@ -2262,7 +2262,7 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
   var cycle = ['', '平民', '狼人', '神职', '三方'];
   var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
-  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
+  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴'];
   var thirdRoles = ['丘比特','炸弹人','盗贼'];
   var idx = cycle.indexOf(seat.faction || '');
   var next = cycle[(idx + 1) % cycle.length];
@@ -2279,7 +2279,7 @@ function replaySeatNextFaction(tabIdx, seatIdx){
 function replaySeatNextRole(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
   var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
-  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','白痴'];
+  var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴'];
   var thirdRoles = ['丘比特','炸弹人','盗贼'];
   if(seat.faction === '狼人'){
     var idx = wolfRoles.indexOf(seat.role);
