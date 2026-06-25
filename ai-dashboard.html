@@ -1090,11 +1090,12 @@ function mvpLoad(){
     var raw2 = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
     var data2 = JSON.parse(raw2);
     // GitHub cards 有数据时才覆盖（防止空数组清掉本地数据）
-    if(data2.cards && data2.cards.length > 0){
+    // 且 GitHub 数据比本地多时强制覆盖，确保本地缓存不会遮盖 GitHub 的历史数据
+    if(data2.cards && data2.cards.length > 0 && data2.cards.length >= _mvpCards.length){
       _mvpCards = data2.cards;
       _mvpIdCounter = data2.counter || 0;
+      // 强制覆盖 localStorage，清掉可能残留的旧空数据
       try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
-      if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
       renderMvpCards();
       try{ renderScoreBoard(); }catch(e){}
     }
@@ -1202,7 +1203,8 @@ function clearMvpCards(){
   if(!confirm('确定清空所有MVP记录？')) return;
   _mvpCards = [];
   renderMvpCards();
-  mvpSave();
+  // 清空后不立即写 GitHub，需手动保存
+  try{ localStorage.removeItem(_MVP_KEY); }catch(e){}
   SFX.reset();
 }
 
