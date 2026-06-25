@@ -90,6 +90,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:3px}
 @media(max-width:768px){.sidebar{width:60px}.sidebar-item span{display:none}.main{padding:12px}.timer-text{font-size:40px}}
+
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.collab-info{background:rgba(0,240,255,0.05);border:1px solid rgba(0,240,255,0.1);border-radius:6px;padding:6px 12px;font-size:10px;color:#888;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -251,7 +254,7 @@ function cn(camp){var m={wolf:'狼人',god:'神职',villager:'平民',third:'第
 function toggleR(id){
   var i=ST.roles.indexOf(id);
   if(i>=0)ST.roles.splice(i,1);else ST.roles.push(id);
-  filterR(rf);
+  filterR(rf);saveAndSync();
 }
 
 function updateSR(){
@@ -304,9 +307,9 @@ function renderSheriff(m){
   ST.ps.forEach(function(p){sc.innerHTML+='<button class="btn btn-sm btn-purple" onclick="esf('+p.id+')">#'+p.id+' '+p.name+'</button>';});
 }
 
-function esf(id){var p=ST.ps.find(function(x){return x.id===id;});if(!p)return;ST.sf=p.name;toast('⭐ 警长：'+p.name);renderPage();}
-function rsv(){var a=ST.ps.filter(function(p){return p.alive;});if(!a.length)return;var w=a[Math.floor(Math.random()*a.length)];ST.sf=w.name;toast('🎲 警长：'+w.name);renderPage();}
-function clsf(){ST.sf='';toast('❌ 已清除');renderPage();}
+function esf(id){var p=ST.ps.find(function(x){return x.id===id;});if(!p)return;ST.sf=p.name;saveAndSync();toast('⭐ 警长：'+p.name);renderPage();}
+function rsv(){var a=ST.ps.filter(function(p){return p.alive;});if(!a.length)return;var w=a[Math.floor(Math.random()*a.length)];ST.sf=w.name;saveAndSync();toast('🎲 警长：'+w.name);renderPage();}
+function clsf(){ST.sf='';saveAndSync();toast('❌ 已清除');renderPage();}
 
 // DICE
 function renderDice(m){
@@ -355,7 +358,7 @@ function renderNightBtns(){
 }
 
 function ns(type,pid){var p=ST.ps.find(function(x){return x.id===pid;});if(!p)return;var a={wk:'被狼人击杀',sc:'被预言家查验',ws:'被女巫关注',gp:'被守卫守护'};toast('🌙 '+a[type]+'：#'+pid+' '+p.name);}
-function advN(){ST.deaths.forEach(function(d){var p=ST.ps.find(function(x){return x.id===d;});if(p)p.alive=false;});toast('☀️ 天亮了！');go('battle');}
+function advN(){ST.deaths.forEach(function(d){var p=ST.ps.find(function(x){return x.id===d;});if(p)p.alive=false;});toast('☀️ 天亮了！');saveAndSync();go('battle');}
 
 // DEATH
 function renderDeath(m){
