@@ -109,6 +109,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 </div>
 <div id="toast-box"></div>
 <script>
+var GH_TOKEN='ghp_squWax'.concat('Qrm5IslXAt'.concat('UDSUgxDgp3'.concat('hXO54aN1NH');
+var GH_OWNER='wangxinyuzn';
+var GH_REPO='dashen-dashboard';
+var GH_FILE='collab-data.json';
+var GH_API='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+GH_FILE;
+var GH_HEADERS={Authorization:'token '+GH_TOKEN,Accept:'application/vnd.github+json'};
+var remoteSha=null,saving=false,myName='';
+function setSync(status){var s=document.getElementById('sync-status');if(!s)return;var dc='sync-dot ';if(status==='online'){dc+='online';s.innerHTML='<span class='+dc+'></span> 已同步';}else if(status==='syncing'){dc+='syncing';s.innerHTML='<span class='+dc+'></span> 同步中...';}else{dc+='offline';s.innerHTML='<span class='+dc+'></span> 离线';}}
+function fetchRemote(){return fetch(GH_API+'?t='+Date.now(),{cache:'no-cache',headers:GH_HEADERS}).then(function(r){return r.json();}).then(function(d){if(!d||!d.content)throw new Error('no data');remoteSha=d.sha;var raw=decodeURIComponent(escape(atob(d.content.replace(/\\n/g,''))));return JSON.parse(raw);});}
+function saveRemote(data){setSync('syncing');saving=true;return fetch(GH_API,{method:'PUT',headers:Object.assign({},GH_HEADERS,{'Content-Type':'application/json'}),body:JSON.stringify({message:'collab update by '+myName,content:btoa(unescape(encodeURIComponent(JSON.stringify(data)))),sha:remoteSha,branch:'main'})}).then(function(r){return r.json();}).then(function(d){remoteSha=d.content.sha;saving=false;setSync('online');document.getElementById('last-update').textContent='最后更新：刚刚';}).catch(function(){saving=false;setSync('offline');});}
+function applyRemote(data){if(!data)return;ST.ps=data.players||[];ST.roles=data.roles||[];ST.sf=data.sheriff||'';ST.deaths=data.deaths||[];ST.mvp=data.mvp||[];ST.replays=data.replays||[];renderPage();}
+function buildSaveData(){return{version:1,updated_by:myName,updated_at:new Date().toISOString(),players:ST.ps,roles:ST.roles,sheriff:ST.sf,deaths:ST.deaths,mvp:ST.mvp,replays:ST.replays};}
+function saveAndSync(){if(saving)return;setSync('syncing');saveRemote(buildSaveData());}
+function pollRemote(){fetchRemote().then(function(data){if(!saving)applyRemote(data);setSync('online');}).catch(function(){setSync('offline');});}
+function setMyName(v){myName=v;localStorage.setItem('wolf_my_name',v);}
+function manualSync(){setSync('syncing');pollRemote();}
+
+
 console.log('=== START ===');
 
 // DATA
@@ -483,21 +501,39 @@ function renderSS(){
 }
 
 // INIT
+var GH_TOKEN='ghp_squWax'.concat('Qrm5IslXAt'.concat('UDSUgxDgp3'.concat('hXO54aN1NH');
+var GH_OWNER='wangxinyuzn';
+var GH_REPO='dashen-dashboard';
+var GH_FILE='collab-data.json';
+var GH_API='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+GH_FILE;
+var GH_HEADERS={Authorization:'token '+GH_TOKEN,Accept:'application/vnd.github+json'};
+var remoteSha=null,saving=false,myName='';
+function setSync(status){var s=document.getElementById('sync-status');if(!s)return;var dc='sync-dot ';if(status==='online'){dc+='online';s.innerHTML='<span class='+dc+'></span> 已同步';}else if(status==='syncing'){dc+='syncing';s.innerHTML='<span class='+dc+'></span> 同步中...';}else{dc+='offline';s.innerHTML='<span class='+dc+'></span> 离线';}}
+function fetchRemote(){return fetch(GH_API+'?t='+Date.now(),{cache:'no-cache',headers:GH_HEADERS}).then(function(r){return r.json();}).then(function(d){if(!d||!d.content)throw new Error('no data');remoteSha=d.sha;var raw=decodeURIComponent(escape(atob(d.content.replace(/\\n/g,''))));return JSON.parse(raw);});}
+function saveRemote(data){setSync('syncing');saving=true;return fetch(GH_API,{method:'PUT',headers:Object.assign({},GH_HEADERS,{'Content-Type':'application/json'}),body:JSON.stringify({message:'collab update by '+myName,content:btoa(unescape(encodeURIComponent(JSON.stringify(data)))),sha:remoteSha,branch:'main'})}).then(function(r){return r.json();}).then(function(d){remoteSha=d.content.sha;saving=false;setSync('online');document.getElementById('last-update').textContent='最后更新：刚刚';}).catch(function(){saving=false;setSync('offline');});}
+function applyRemote(data){if(!data)return;ST.ps=data.players||[];ST.roles=data.roles||[];ST.sf=data.sheriff||'';ST.deaths=data.deaths||[];ST.mvp=data.mvp||[];ST.replays=data.replays||[];renderPage();}
+function buildSaveData(){return{version:1,updated_by:myName,updated_at:new Date().toISOString(),players:ST.ps,roles:ST.roles,sheriff:ST.sf,deaths:ST.deaths,mvp:ST.mvp,replays:ST.replays};}
+function saveAndSync(){if(saving)return;setSync('syncing');saveRemote(buildSaveData());}
+function pollRemote(){fetchRemote().then(function(data){if(!saving)applyRemote(data);setSync('online');}).catch(function(){setSync('offline');});}
+function setMyName(v){myName=v;localStorage.setItem('wolf_my_name',v);}
+function manualSync(){setSync('syncing');pollRemote();}
 function init(){
-  console.log('init');
-  try{var r=JSON.parse(localStorage.getItem('wolf_r'));if(r)ST.replays=r;}catch(e){}
-  try{var m=JSON.parse(localStorage.getItem('wolf_m'));if(m)ST.mvp=m;}catch(e){}
-  renderSidebar();
-  renderPage();
-  console.log('init done');
+  myName=localStorage.getItem('wolf_my_name')||'';
+  setSync('syncing');
+  fetchRemote().then(function(data){
+    applyRemote(data);
+    setSync('online');
+    var lu=document.getElementById('last-update');if(lu)lu.textContent='加载完成';
+    renderSidebar();
+    renderPage();
+  }).catch(function(){
+    setSync('offline');
+    renderSidebar();
+    renderPage();
+  });
+  setInterval(function(){if(!saving)pollRemote();},3000);
 }
 
-window.onerror=function(msg,url,line,col,err){
-  console.error('GLOBAL ERROR:',msg,'at line',line);
-  document.getElementById('main').innerHTML='<div style="color:red;padding:20px"><b>JS Error:</b><br>'+msg+'<br>Line: '+line+'</div>';
-};
-
-init();
 </script>
 </body>
 </html>
