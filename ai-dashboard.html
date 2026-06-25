@@ -1036,6 +1036,8 @@ var _mvpGhSha = null; // 当前文件的SHA，更新时需要
 function mvpSave(){
   // 同时存localStorage（本地备份）+ GitHub（共享）
   try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
+  // 无卡片时不写 GitHub，防止空数据覆盖历史
+  if(!_mvpCards || !_mvpCards.length) return;
   // 先从 GitHub 读取最新数据，再合并写回，防止覆盖 replay_data 等其他字段
   fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
     cache: 'no-cache',
@@ -1083,15 +1085,19 @@ function mvpLoad(){
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     _mvpGhSha = d.sha;
+    // 文件内容为空时，不覆盖本地数据，防止空数据清掉历史记录
+    if(!d.content || d.content.replace(/\n/g,'').length === 0) return;
     var raw2 = decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))));
     var data2 = JSON.parse(raw2);
-    // 用GitHub数据覆盖（以GitHub为主）
-    _mvpCards = data2.cards || [];
-    _mvpIdCounter = data2.counter || 0;
-    try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
-    if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
-    renderMvpCards();
-    try{ renderScoreBoard(); }catch(e){}
+    // GitHub cards 有数据时才覆盖（防止空数组清掉本地数据）
+    if(data2.cards && data2.cards.length > 0){
+      _mvpCards = data2.cards;
+      _mvpIdCounter = data2.counter || 0;
+      try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
+      if(!_mvpCards.length) _mvpCards.push({id:++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
+      renderMvpCards();
+      try{ renderScoreBoard(); }catch(e){}
+    }
   }).catch(function(){}); // GitHub失败就保持localStorage的数据
 }
 
@@ -2357,6 +2363,12 @@ function replaySave(){
   var saveBtn = document.getElementById('manual-save-btn');
   if(saveBtn){ saveBtn.textContent='⏳ 保存中...'; saveBtn.style.opacity='0.7'; saveBtn.disabled=true; }
 
+  // 无数据时不写 GitHub，防止覆盖历史
+  if(!_replayData || !_replayData.length){
+    if(saveBtn){ saveBtn.textContent='❌ 无数据'; saveBtn.style.opacity='1'; saveBtn.disabled=false; }
+    return;
+  }
+
   try{ localStorage.setItem(_REPLAY_LS_KEY, JSON.stringify(_replayData)); }catch(e){}
 
   fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
@@ -2412,6 +2424,8 @@ function replayLoad(){
     headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
   }).then(function(r){ return r.json(); }).then(function(d){
     var data = {};
+    // 文件内容为空时不处理，防止空数据覆盖本地历史
+    if(!d.content || d.content.replace(/\n/g,'').length === 0) return;
     try{ data = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
     if(data.replay_data && data.replay_data.length){
       _replayData = _replaySortDesc(data.replay_data);
