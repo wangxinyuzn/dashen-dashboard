@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>狼人杀角色卡片</title>
+<title>Wolf Killer Cards</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0a12;color:#e0e0e0;padding:20px}
@@ -13,9 +13,8 @@ h1{color:#00f0ff;text-align:center;margin-bottom:20px;font-size:24px}
 .tab:hover{color:#fff}
 .tab.on{background:rgba(0,240,255,0.1);border-color:#00f0ff;color:#00f0ff}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1000px;margin:0 auto}
-.card{background:#12121e;border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.card{background:#12121e;border:1px solid rgba(255,255,255,0.05);border-radius:12px;padding:16px 12px;text-align:center;transition:all .2s}
 .card:hover{border-color:rgba(0,240,255,0.3);transform:translateY(-2px)}
-.card.sel{border-color:#00f0ff;box-shadow:0 0 20px rgba(0,240,255,0.2);background:rgba(0,240,255,0.05)}
 .card .icon{font-size:48px;margin-bottom:8px}
 .card .name{font-size:14px;color:#ccc;font-weight:700;margin-bottom:4px}
 .card .desc{font-size:11px;color:#666;line-height:1.5;margin-top:6px}
@@ -24,105 +23,37 @@ h1{color:#00f0ff;text-align:center;margin-bottom:20px;font-size:24px}
 .tag-god{background:rgba(0,240,255,0.08);color:#00f0ff;border:1px solid rgba(0,240,255,0.2)}
 .tag-vil{background:rgba(74,222,128,0.08);color:#4ade80;border:1px solid rgba(74,222,128,0.2)}
 .tag-3rd{background:rgba(255,140,0,0.08);color:#ff8c00;border:1px solid rgba(255,140,0,0.2)}
-.info{text-align:center;margin-top:20px;color:#888;font-size:13px}
 @media(max-width:768px){.grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<h1>🐺 狼人杀角色卡片</h1>
-<div class="tabs" id="tabs"></div>
-<div class="grid" id="grid"></div>
-<div class="info" id="info"></div>
-
-<script>
-var roles = [
-  {id:'wolf',name:'狼人',icon:'🐺',camp:'wolf',desc:'每晚可击杀一名玩家'},
-  {id:'wolfking',name:'狼王',icon:'👑',camp:'wolf',desc:'出局时可开枪带走一人'},
-  {id:'wolfwhite',name:'白狼王',icon:'🦊',camp:'wolf',desc:'自爆直接进入天黑'},
-  {id:'wolfbeauty',name:'狼美人',icon:'💄',camp:'wolf',desc:'魅惑一人，出局带走'},
-  {id:'stonewolf',name:'石像鬼',icon:'🗿',camp:'wolf',desc:'查验身份，不见面'},
-  {id:'bigwolf',name:'大野狼',icon:'🐗',camp:'wolf',desc:'普通狼死后可刀人'},
-  {id:'seer',name:'预言家',icon:'🔮',camp:'god',desc:'每晚查验一人身份'},
-  {id:'witch',name:'女巫',icon:'🧪',camp:'god',desc:'一瓶解药一瓶毒药'},
-  {id:'hunter',name:'猎人',icon:'🔫',camp:'god',desc:'出局时可开枪带人'},
-  {id:'guard',name:'守卫',icon:'🛡️',camp:'god',desc:'每晚守护一人免死'},
-  {id:'idiot',name:'白痴',icon:'🤡',camp:'god',desc:'票出翻牌免死失权'},
-  {id:'knight',name:'骑士',icon:'⚔️',camp:'god',desc:'白天决斗狼死己死'},
-  {id:'elder',name:'长老',icon:'👴',camp:'god',desc:'有两条命首刀不死'},
-  {id:'magician',name:'魔术师',icon:'🎩',camp:'god',desc:'每晚交换两人号码'},
-  {id:'bear',name:'熊',icon:'🐻',camp:'god',desc:'相邻有狼则咆哮'},
-  {id:'fox',name:'子狐',icon:'🦊',camp:'god',desc:'可查验一人阵营'},
-  {id:'crow',name:'乌鸦',icon:'🐦',camp:'god',desc:'每晚诅咒一人+1票'},
-  {id:'villager',name:'平民',icon:'👥',camp:'villager',desc:'无特殊技能，投票'},
-  {id:'ghost',name:'替罪羊',icon:'🐑',camp:'villager',desc:'平票时代替出局'},
-  {id:'wild',name:'野孩子',icon:'🧒',camp:'villager',desc:'偶像死后变狼人'},
-  {id:'cupid',name:'丘比特',icon:'💘',camp:'third',desc:'首夜连两人为情侣'},
-  {id:'bomber',name:'炸弹人',icon:'💣',camp:'third',desc:'被票出局带死投票者'},
-  {id:'thief',name:'盗贼',icon:'🧟',camp:'third',desc:'额外两张牌选一张'},
-  {id:'flute',name:'吹笛者',icon:'🎵',camp:'third',desc:'每晚蛊惑两人'},
-  {id:'angel',name:'天使',icon:'👼',camp:'third',desc:'首日不死独自胜利'}
-];
-
-var cn = {wolf:'狼人',god:'神职',villager:'平民',third:'第三方'};
-var filter = 'all';
-var selected = [];
-
-function renderTabs() {
-  var tabs = [
-    {id:'all',label:'全部'},
-    {id:'wolf',label:'🐺 狼人阵营'},
-    {id:'god',label:'✨ 神职阵营'},
-    {id:'villager',label:'👥 平民阵营'},
-    {id:'third',label:'🎯 第三方'}
-  ];
-  var h = '';
-  tabs.forEach(function(t) {
-    h += '<button class="tab' + (filter === t.id ? ' on' : '') + '" onclick="setFilter('' + t.id + '')">' + t.label + '</button>';
-  });
-  document.getElementById('tabs').innerHTML = h;
-}
-
-function setFilter(f) {
-  filter = f;
-  renderTabs();
-  renderGrid();
-}
-
-function renderGrid() {
-  var list = filter === 'all' ? roles : roles.filter(function(r) { return r.camp === filter; });
-  var h = '';
-  list.forEach(function(r) {
-    var sel = selected.indexOf(r.id) >= 0 ? ' sel' : '';
-    h += '<div class="card' + sel + '" onclick="toggle('' + r.id + '')">';
-    h += '<div class="icon">' + r.icon + '</div>';
-    h += '<div class="name">' + r.name + '</div>';
-    h += '<div class="desc">' + r.desc + '</div>';
-    h += '<div class="tag tag-' + r.camp + '">' + cn[r.camp] + '</div>';
-    h += '</div>';
-  });
-  document.getElementById('grid').innerHTML = h;
-  updateInfo();
-}
-
-function toggle(id) {
-  var i = selected.indexOf(id);
-  if (i >= 0) selected.splice(i, 1);
-  else selected.push(id);
-  renderGrid();
-}
-
-function updateInfo() {
-  var names = selected.map(function(id) {
-    var r = roles.find(function(x) { return x.id === id; });
-    return r ? r.icon + ' ' + r.name : id;
-  });
-  document.getElementById('info').innerHTML = names.length > 0
-    ? '已选：' + names.join('、') + ' （共' + selected.length + '个）'
-    : '点击卡片选择角色';
-}
-
-renderTabs();
-renderGrid();
-</script>
+<h1>🐺 Wolf Killer - Role Cards</h1>
+<div class="grid">
+<div class="card"><div class="icon">🐺</div><div class="name">Wolf</div><div class="desc">Kill one player each night</div><div class="tag tag-wolf">Wolf</div></div>
+<div class="card"><div class="icon">👑</div><div class="name">Wolf King</div><div class="desc">Shoot when voted out</div><div class="tag tag-wolf">Wolf</div></div>
+<div class="card"><div class="icon">🦊</div><div class="name">White Wolf</div><div class="desc">Self-destruct to skip to night</div><div class="tag tag-wolf">Wolf</div></div>
+<div class="card"><div class="icon">💄</div><div class="name">Wolf Beauty</div><div class="desc">Charm one player, take them if killed</div><div class="tag tag-wolf">Wolf</div></div>
+<div class="card"><div class="icon">🗿</div><div class="name">Gargoyle</div><div class="desc">Check identity, hidden from wolves</div><div class="tag tag-wolf">Wolf</div></div>
+<div class="card"><div class="icon">🐗</div><div class="name">Big Bad Wolf</div><div class="desc">Can kill after normal wolf dies</div><div class="tag tag-wolf">Wolf</div></div>
+<div class="card"><div class="icon">🔮</div><div class="name">Seer</div><div class="desc">Check one identity each night</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🧪</div><div class="name">Witch</div><div class="desc">One antidote, one poison</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🔫</div><div class="name">Hunter</div><div class="desc">Shoot when eliminated</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🛡️</div><div class="name">Guard</div><div class="desc">Protect one player each night</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🤡</div><div class="name">Idiot</div><div class="desc">Reveal to survive vote, lose vote right</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">⚔️</div><div class="name">Knight</div><div class="desc">Duel: wolf dies or you die</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">👴</div><div class="name">Elder</div><div class="desc">Two lives, survives first wolf kill</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🎩</div><div class="name">Magician</div><div class="desc">Swap two player numbers each night</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🐻</div><div class="name">Bear</div><div class="desc">Roars if adjacent to wolf</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🦊</div><div class="name">Fox Cub</div><div class="desc">Check one player allegiance</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">🐦</div><div class="name">Crow</div><div class="desc">Curse one player for +1 vote</div><div class="tag tag-god">God</div></div>
+<div class="card"><div class="icon">👥</div><div class="name">Villager</div><div class="desc">No special skill, vote only</div><div class="tag tag-vil">Villager</div></div>
+<div class="card"><div class="icon">🐑</div><div class="name">Scapegoat</div><div class="desc">Dies on tie vote instead</div><div class="tag tag-vil">Villager</div></div>
+<div class="card"><div class="icon">🧒</div><div class="name">Wild Child</div><div class="desc">Becomes wolf if idol dies</div><div class="tag tag-vil">Villager</div></div>
+<div class="card"><div class="icon">💘</div><div class="name">Cupid</div><div class="desc">Link two players as lovers</div><div class="tag tag-3rd">Third</div></div>
+<div class="card"><div class="icon">💣</div><div class="name">Bomber</div><div class="desc">Takes all voters when voted out</div><div class="tag tag-3rd">Third</div></div>
+<div class="card"><div class="icon">🧟</div><div class="name">Thief</div><div class="desc">Pick one of two extra cards</div><div class="tag tag-3rd">Third</div></div>
+<div class="card"><div class="icon">🎵</div><div class="name">Pied Piper</div><div class="desc">Charm two players each night</div><div class="tag tag-3rd">Third</div></div>
+<div class="card"><div class="icon">👼</div><div class="name">Angel</div><div class="desc">Survive first day, win alone</div><div class="tag tag-3rd">Third</div></div>
+</div>
 </body>
 </html>
