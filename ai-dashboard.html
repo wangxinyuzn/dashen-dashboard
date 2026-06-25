@@ -1036,22 +1036,27 @@ var _mvpGhSha = null; // 当前文件的SHA，更新时需要
 function mvpSave(){
   // 同时存localStorage（本地备份）+ GitHub（共享）
   try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
-  // GitHub SHA 未就绪时（数据尚未从 GitHub 同步回来），不写 GitHub，防止用本地空数据覆盖远端数据
-  if(!_mvpGhSha) return;
-  // 图片base64可能很大，存GitHub时只保留非base64或限制
-  var saveData = {
-    cards: _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||'', win:c.win||'win'}; }),
-    counter: _mvpIdCounter
-  };
-  var body = JSON.stringify({
-    message: 'MVP data update',
-    content: btoa(unescape(encodeURIComponent(JSON.stringify(saveData)))),
-    sha: _mvpGhSha
-  });
-  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
-    method: 'PUT',
-    headers: {'Authorization':'token ' + _MVP_GH_TOKEN, 'Content-Type':'application/json'},
-    body: body
+  // 先从 GitHub 读取最新数据，再合并写回，防止覆盖 replay_data 等其他字段
+  fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE + '?t=' + Date.now(), {
+    cache: 'no-cache',
+    headers: {'Authorization':'token ' + _MVP_GH_TOKEN}
+  }).then(function(r){ return r.json(); }).then(function(d){
+    var sha = d.sha;
+    var existing = {};
+    try{ existing = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,''))))); }catch(e){}
+    // 只更新 MVP 相关字段，保留其他字段（如 replay_data）
+    existing.cards = _mvpCards.map(function(c){ return {id:c.id, name:c.name, date:c.date, img:c.img, role:c.role||'', win:c.win||'win'}; });
+    existing.counter = _mvpIdCounter;
+    var body = JSON.stringify({
+      message: 'MVP data update',
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(existing)))),
+      sha: sha
+    });
+    return fetch('https://api.github.com/repos/' + _MVP_GH_OWNER + '/' + _MVP_GH_REPO + '/contents/' + _MVP_GH_FILE, {
+      method: 'PUT',
+      headers: {'Authorization':'token ' + _MVP_GH_TOKEN, 'Content-Type':'application/json'},
+      body: body
+    });
   }).then(function(r){ return r.json(); }).then(function(d){
     if(d.content && d.content.sha) _mvpGhSha = d.content.sha;
   }).catch(function(){});
