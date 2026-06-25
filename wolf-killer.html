@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>狼人杀辅助 · 霓虹版</title>
+<title>狼人杀 · 霓虹</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0a12;color:#e0e0e0;min-height:100vh;overflow:hidden}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(26,10,46,0.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(10,26,46,0.12) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(46,10,26,0.12) 0%,transparent 50%);pointer-events:none;z-index:0}
-#app{position:relative;z-index:1;display:flex;height:100vh}
+#app{display:flex;height:100vh}
 .header{background:linear-gradient(90deg,#0d0d1a,#1a1a2e,#0d0d1a);border-bottom:1px solid rgba(255,45,123,0.2);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.header-left{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#fff;letter-spacing:1px}
-.header-title{background:linear-gradient(90deg,#ff2d7b,#b829f0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-left{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#fff}
+.header-title{background:linear-gradient(90deg,#ff2d7b,#b829f0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .sidebar{width:200px;background:#0d0d18;border-right:1px solid rgba(255,255,255,0.03);flex-shrink:0;overflow-y:auto;padding:12px 0}
 .sidebar-group-label{padding:6px 20px 4px;font-size:10px;color:#555;font-weight:700;letter-spacing:2px;text-transform:uppercase}
 .sidebar-item{padding:10px 20px;font-size:13px;color:#888;cursor:pointer;border-left:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:8px}
@@ -35,63 +34,62 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .badge-villager{background:rgba(0,240,255,0.08);color:#00f0ff;border:1px solid rgba(0,240,255,0.2)}
 .badge-third{background:rgba(255,140,0,0.08);color:#ff8c00;border:1px solid rgba(255,140,0,0.2)}
 .btn{padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid;transition:all .2s;letter-spacing:1px;display:inline-flex;align-items:center;gap:4px;background:transparent;color:#fff}
-.btn-primary{background:rgba(255,45,123,0.08);border-color:#ff2d7b;color:#ff2d7b}
-.btn-primary:hover{background:#ff2d7b;color:#fff;box-shadow:0 0 16px rgba(255,45,123,0.25)}
+.btn-pink{background:rgba(255,45,123,0.08);border-color:#ff2d7b;color:#ff2d7b}
+.btn-pink:hover{background:#ff2d7b;color:#fff}
 .btn-cyan{background:rgba(0,240,255,0.08);border-color:#00f0ff;color:#00f0ff}
 .btn-cyan:hover{background:#00f0ff;color:#0a0a12}
 .btn-purple{background:rgba(184,41,240,0.08);border-color:#b829f0;color:#b829f0}
 .btn-purple:hover{background:#b829f0;color:#fff}
 .btn-sm{padding:4px 12px;font-size:11px}
-.dice-container{display:flex;align-items:center;gap:20px;justify-content:center;padding:20px}
-.dice-cube{width:80px;height:80px;background:#12121e;border:2px solid rgba(255,45,123,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#ff2d7b;cursor:pointer;user-select:none}
-.dice-cube.rolling{animation:roll .1s linear infinite}
-@keyframes roll{0%{transform:rotate(0deg)}25%{transform:rotate(90deg)}50%{transform:rotate(180deg)}75%{transform:rotate(270deg)}100%{transform:rotate(360deg)}}
-.timer-display{font-size:64px;font-weight:900;text-align:center;letter-spacing:4px;padding:10px 0}
-.timer-display.running{color:#ff2d7b;text-shadow:0 0 30px rgba(255,45,123,0.4)}
-.timer-display.warning{color:#ff8c00;text-shadow:0 0 30px rgba(255,140,0,0.4)}
-.timer-display.stopped{color:#00f0ff;text-shadow:0 0 30px rgba(0,240,255,0.25)}
+.dice-box{display:flex;gap:20px;justify-content:center;padding:20px}
+.dice{width:80px;height:80px;background:#12121e;border:2px solid rgba(255,45,123,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#ff2d7b;cursor:pointer;user-select:none}
+.dice.rolling{animation:r .1s linear infinite}
+@keyframes r{0%{transform:rotate(0deg)}25%{transform:rotate(90deg)}50%{transform:rotate(180deg)}75%{transform:rotate(270deg)}100%{transform:rotate(360deg)}}
+.timer-text{font-size:64px;font-weight:900;text-align:center;letter-spacing:4px;padding:10px 0}
+.timer-text.on{color:#ff2d7b;text-shadow:0 0 30px rgba(255,45,123,0.4)}
+.timer-text.warn{color:#ff8c00;text-shadow:0 0 30px rgba(255,140,0,0.4)}
+.timer-text.off{color:#00f0ff;text-shadow:0 0 30px rgba(0,240,255,0.25)}
+.timer-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .death-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .death-card{width:64px;height:88px;border-radius:8px;background:#12121e;border:2px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .death-card.dead{opacity:.4;filter:grayscale(1)}
-.death-card.dead::after{content:'\1F480';position:absolute;font-size:24px;z-index:2}
 .death-card-num{font-size:24px;font-weight:900;color:#ff2d7b}
 .death-card-role{font-size:10px;color:#888;margin-top:2px}
-.input{background:#12121e;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 12px;color:#fff;font-size:13px;outline:none;width:100%}
-.input:focus{border-color:#ff2d7b}
-.input-sm{padding:5px 8px;font-size:11px}
+.inp{background:#12121e;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 12px;color:#fff;font-size:13px;outline:none;width:100%}
+.inp:focus{border-color:#ff2d7b}
+.inp-sm{padding:5px 8px;font-size:11px}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .stat-card{background:#12121e;border:1px solid rgba(255,255,255,0.03);border-radius:10px;padding:14px;text-align:center}
-.stat-card.rank-1{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,0.12)}
-.stat-card.rank-2{border-color:#c0c0c0;box-shadow:0 0 12px rgba(192,192,192,0.12)}
-.stat-card.rank-3{border-color:#cd7f32;box-shadow:0 0 12px rgba(205,127,50,0.12)}
+.stat-card.gold{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,0.12)}
+.stat-card.silver{border-color:#c0c0c0;box-shadow:0 0 12px rgba(192,192,192,0.12)}
+.stat-card.bronze{border-color:#cd7f32;box-shadow:0 0 12px rgba(205,127,50,0.12)}
 .stat-name{font-size:13px;color:#ccc;font-weight:700;margin-bottom:4px}
-.stat-value{font-size:28px;font-weight:900;color:#ff2d7b}
+.stat-val{font-size:28px;font-weight:900;color:#ff2d7b}
 .stat-sub{font-size:11px;color:#666;margin-top:2px}
-.progress{height:6px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;margin:6px 0}
-.progress-bar{height:100%;border-radius:3px;transition:width .5s}
-.progress-bar.pink{background:linear-gradient(90deg,#ff2d7b,#b829f0)}
-.progress-bar.cyan{background:linear-gradient(90deg,#00f0ff,#0088ff)}
+.bar{height:6px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;margin:6px 0}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.bar-pink{background:linear-gradient(90deg,#ff2d7b,#b829f0)}
+.bar-cyan{background:linear-gradient(90deg,#00f0ff,#0088ff)}
 .tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
 .tab{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.06);color:#888;transition:all .2s}
-.tab.active{background:rgba(255,45,123,0.08);border-color:#ff2d7b;color:#ff2d7b}
-.night-phase{display:flex;flex-direction:column;gap:12px}
-.night-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#12121e;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
-.night-row-label{font-size:12px;color:#888;width:80px;flex-shrink:0}
-.night-row-content{flex:1;display:flex;gap:6px;flex-wrap:wrap}
+.tab.on{background:rgba(255,45,123,0.08);border-color:#ff2d7b;color:#ff2d7b}
+.night-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#12121e;border-radius:8px;border:1px solid rgba(255,255,255,0.03);margin-bottom:8px}
+.night-label{font-size:12px;color:#888;width:80px;flex-shrink:0}
+.night-btns{flex:1;display:flex;gap:6px;flex-wrap:wrap}
 .roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
 .roster-card{background:#12121e;border:1px solid rgba(255,255,255,0.03);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px}
-.roster-avatar{width:44px;height:44px;border-radius:50%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,255,255,0.06);flex-shrink:0}
+.roster-av{width:44px;height:44px;border-radius:50%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid rgba(255,255,255,0.06);flex-shrink:0}
 .roster-info{flex:1}
 .roster-name{font-size:13px;color:#ddd;font-weight:600}
 .roster-role{font-size:11px;color:#888}
 .replay-card{background:#12121e;border:1px solid rgba(255,255,255,0.03);border-radius:10px;padding:14px;margin-bottom:10px}
-.replay-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.replay-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .replay-title{font-size:14px;font-weight:700;color:#fff}
 .toast{position:fixed;top:60px;right:20px;z-index:999;background:#12121e;border:1px solid #ff2d7b;color:#ff2d7b;padding:10px 20px;border-radius:8px;font-size:13px;pointer-events:none}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:3px}
-@media(max-width:768px){.sidebar{width:60px}.sidebar-item span{display:none}.main{padding:12px}.timer-display{font-size:40px}}
+@media(max-width:768px){.sidebar{width:60px}.sidebar-item span{display:none}.main{padding:12px}.timer-text{font-size:40px}}
 </style>
 </head>
 <body>
@@ -101,241 +99,401 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
     <span style="font-size:22px">🐺</span>
     <span class="header-title">WOLF KILLER · 狼人杀辅助</span>
   </div>
-  <div class="header-right">
-    <span class="header-badge">NEON EDITION</span>
-  </div>
+  <div style="font-size:12px;color:#888">NEON EDITION</div>
 </div>
 <nav class="sidebar" id="sidebar"></nav>
 <main class="main" id="main"></main>
 </div>
-<div id="toast-container"></div>
+<div id="toast-box"></div>
 <script>
+console.log('=== START ===');
+
 // DATA
-var W=[{id:'wolf',name:'狼人',icon:'🐺',camp:'wolf'},{id:'wolfking',name:'狼王',icon:'👑',camp:'wolf'},{id:'whitewolf',name:'白狼王',icon:'🦊',camp:'wolf'},{id:'wolfbeauty',name:'狼美人',icon:'💄',camp:'wolf'},{id:'stonewolf',name:'石像鬼',icon:'🗿',camp:'wolf'}];
-var G=[{id:'seer',name:'预言家',icon:'🔮',camp:'god'},{id:'witch',name:'女巫',icon:'🧪',camp:'god'},{id:'hunter',name:'猎人',icon:'🔫',camp:'god'},{id:'guard',name:'守卫',icon:'🛡️',camp:'god'},{id:'idiot',name:'白痴',icon:'🤡',camp:'god'},{id:'knight',name:'骑士',icon:'⚔️',camp:'god'},{id:'elder',name:'长老',icon:'👴',camp:'god'}];
-var V=[{id:'villager',name:'平民',icon:'👥',camp:'villager'}];
-var T=[{id:'cupid',name:'丘比特',icon:'💘',camp:'third'},{id:'bomber',name:'炸弹人',icon:'💣',camp:'third'},{id:'thief',name:'盗贼',icon:'🧟',camp:'third'}];
-var R_ALL=W.concat(G).concat(V).concat(T);
+var WL=[{id:'wolf',name:'狼人',icon:'🐺',camp:'wolf'},{id:'wolfking',name:'狼王',icon:'👑',camp:'wolf'},{id:'whitewolf',name:'白狼王',icon:'🦊',camp:'wolf'},{id:'wolfbeauty',name:'狼美人',icon:'💄',camp:'wolf'},{id:'stonewolf',name:'石像鬼',icon:'🗿',camp:'wolf'}];
+var GD=[{id:'seer',name:'预言家',icon:'🔮',camp:'god'},{id:'witch',name:'女巫',icon:'🧪',camp:'god'},{id:'hunter',name:'猎人',icon:'🔫',camp:'god'},{id:'guard',name:'守卫',icon:'🛡️',camp:'god'},{id:'idiot',name:'白痴',icon:'🤡',camp:'god'},{id:'knight',name:'骑士',icon:'⚔️',camp:'god'},{id:'elder',name:'长老',icon:'👴',camp:'god'}];
+var VL=[{id:'villager',name:'平民',icon:'👥',camp:'villager'}];
+var TD=[{id:'cupid',name:'丘比特',icon:'💘',camp:'third'},{id:'bomber',name:'炸弹人',icon:'💣',camp:'third'},{id:'thief',name:'盗贼',icon:'🧟',camp:'third'}];
+var ALL=WL.concat(GD).concat(VL).concat(TD);
 var NAV=[{id:'setup',icon:'⚙️',label:'游戏设置',g:'游戏'},{id:'roles',icon:'🎭',label:'角色选取',g:'游戏'},{id:'battle',icon:'⚔️',label:'对战情况',g:'游戏'},{id:'sheriff',icon:'⭐',label:'警长竞选',g:'游戏'},{id:'dice',icon:'🎲',label:'随机骰子',g:'工具'},{id:'timer',icon:'⏱️',label:'发言计时',g:'工具'},{id:'night',icon:'🌙',label:'天黑请闭眼',g:'游戏'},{id:'death',icon:'💀',label:'死亡情况',g:'记录'},{id:'replay',icon:'📝',label:'对局记录',g:'记录'},{id:'mvp',icon:'🏆',label:'MVP榜',g:'统计'},{id:'winrate',icon:'📈',label:'玩家胜率',g:'统计'},{id:'score',icon:'🌟',label:'积分榜',g:'统计'}];
-var S={page:'setup',n:12,ps:[],roles:[],sf:'',deaths:[],tm:180,tmRun:false,tmId:null,replays:[],mvp:[]};
+
+var ST={page:'setup',n:12,ps:[],roles:[],sf:'',deaths:[],tm:180,tmRun:false,tmId:null,replays:[],mvp:[]};
 var rf='all';
 
-function hdr(icon,title){return '<div class="section"><div class="section-header"><span class="section-header-icon">'+icon+'</span><span class="section-header-title">'+title+'</span></div>';}
-function toast(msg){var c=document.getElementById('toast-container');var d=document.createElement('div');d.className='toast';d.textContent=msg;c.appendChild(d);setTimeout(function(){d.remove();},2500);}
-function cn(camp){var m={wolf:'狼人',god:'神职',villager:'平民',third:'第三方'};return m[camp]||camp;}
-function dc(id){var m={setup:'#ff2d7b',roles:'#b829f0',battle:'#00f0ff',sheriff:'#ffd700',dice:'#ff8c00',timer:'#00f0ff',night:'#ff2d7b',death:'#888',replay:'#b829f0',mvp:'#ffd700',winrate:'#00f0ff',score:'#ff2d7b'};return m[id]||'#888';}
-
-function rsb(){
-  var sb=document.getElementById('sidebar'),h='',lg='';
-  NAV.forEach(function(item){
-    if(item.g!==lg){h+='<div class="sidebar-group-label">'+item.g+'</div>';lg=item.g;}
-    var a=S.page===item.id?' active':'';
-    h+='<div class="sidebar-item'+a+'" onclick="go(\''+item.id+'\')"><span class="sidebar-dot" style="color:'+dc(item.id)+'"></span><span>'+item.icon+' '+item.label+'</span></div>';
-  });
-  sb.innerHTML=h;
+function hdr(icon,title){
+  var s='<div class="section">';
+  s+='<div class="section-header">';
+  s+='<span class="section-header-icon">'+icon+'</span>';
+  s+='<span class="section-header-title">'+title+'</span>';
+  s+='</div>';
+  return s;
 }
 
-function go(id){S.page=id;rsb();rp();}
-function fm(t){var m=Math.floor(t/60);var s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function toast(msg){
+  var c=document.getElementById('toast-box');
+  var d=document.createElement('div');
+  d.className='toast';
+  d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(function(){d.remove();},2500);
+}
 
-function rp(){
+function go(page){
+  console.log('go:',page);
+  ST.page=page;
+  renderSidebar();
+  renderPage();
+}
+
+function renderSidebar(){
+  console.log('renderSidebar');
+  var sb=document.getElementById('sidebar');
+  var h='',lg='';
+  for(var i=0;i<NAV.length;i++){
+    var item=NAV[i];
+    if(item.g!==lg){h+='<div class="sidebar-group-label">'+item.g+'</div>';lg=item.g;}
+    var a=ST.page===item.id?' active':'';
+    var dc={setup:'#ff2d7b',roles:'#b829f0',battle:'#00f0ff',sheriff:'#ffd700',dice:'#ff8c00',timer:'#00f0ff',night:'#ff2d7b',death:'#888',replay:'#b829f0',mvp:'#ffd700',winrate:'#00f0ff',score:'#ff2d7b'};
+    h+='<div class="sidebar-item'+a+'" onclick="go(''+item.id+'')"><span class="sidebar-dot" style="color:'+(dc[item.id]||'#888')+'"></span><span>'+item.icon+' '+item.label+'</span></div>';
+  }
+  sb.innerHTML=h;
+  console.log('sidebar done');
+}
+
+function renderPage(){
+  console.log('renderPage:',ST.page);
   var m=document.getElementById('main');
-  switch(S.page){
-    case'setup':rs(m);break;case'roles':rr(m);break;case'battle':rb(m);break;
-    case'sheriff':rsh(m);break;case'dice':rd(m);break;case'timer':rt(m);break;
-    case'night':rn(m);break;case'death':rde(m);break;case'replay':rrp(m);break;
-    case'mvp':rm(m);break;case'winrate':rw(m);break;case'score':rsc(m);break;
+  try{
+    switch(ST.page){
+      case'setup':renderSetup(m);break;
+      case'roles':renderRoles(m);break;
+      case'battle':renderBattle(m);break;
+      case'sheriff':renderSheriff(m);break;
+      case'dice':renderDice(m);break;
+      case'timer':renderTimer(m);break;
+      case'night':renderNight(m);break;
+      case'death':renderDeath(m);break;
+      case'replay':renderReplay(m);break;
+      case'mvp':renderMvp(m);break;
+      case'winrate':renderWinrate(m);break;
+      case'score':renderScore(m);break;
+    }
+    console.log('renderPage done');
+  }catch(e){
+    console.error('renderPage error:',e);
+    m.innerHTML='<div style="color:red;padding:20px">Error: '+e.message+'</div>';
   }
 }
 
 // SETUP
-function rs(m){
-  var h=hdr('⚙️','游戏设置')+'<div class="section-body">';
+function renderSetup(m){
+  console.log('renderSetup');
+  var h=hdr('⚙️','游戏设置');
+  h+='<div class="section-body">';
   h+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><span style="font-size:13px;color:#888">玩家人数：</span><div style="display:flex;gap:6px;flex-wrap:wrap" id="nbtns"></div></div>';
-  h+='<div id="pns"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-primary" onclick="gen()">🎲 随机生成</button><button class="btn btn-cyan" onclick="startG()">▶️ 开始游戏</button></div></div>';
+  h+='<div id="pns"></div>';
+  h+='<div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-pink" onclick="genPlayers()">🎲 随机生成</button><button class="btn btn-cyan" onclick="startGame()">▶️ 开始游戏</button></div>';
+  h+='</div></div>';
   m.innerHTML=h;
-  var pcb=document.getElementById('nbtns');[6,7,8,9,10,11,12,13,14,15,16].forEach(function(n){var s=S.n===n?' selected':'';pcb.innerHTML+='<button class="btn btn-sm btn-purple'+s+'" onclick="sn('+n+')">'+n+'人</button>';});
-  gen();
+  var pcb=document.getElementById('nbtns');
+  [6,7,8,9,10,11,12,13,14,15,16].forEach(function(n){
+    var s=ST.n===n?' selected':'';
+    pcb.innerHTML+='<button class="btn btn-sm btn-purple'+s+'" onclick="setN('+n+')">'+n+'人</button>';
+  });
+  genPlayers();
+  console.log('setup done');
 }
-function sn(n){S.n=n;rp();}
-function gen(){
-  S.ps=[];for(var i=1;i<=S.n;i++)S.ps.push({id:i,name:'玩家'+i,role:'',camp:'',alive:true});
-  var pn=document.getElementById('pns');if(!pn)return;
+
+function setN(n){ST.n=n;renderPage();}
+
+function genPlayers(){
+  ST.ps=[];
+  for(var i=1;i<=ST.n;i++)ST.ps.push({id:i,name:'玩家'+i,role:'',camp:'',alive:true});
+  var pn=document.getElementById('pns');
+  if(!pn)return;
   var h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">';
-  S.ps.forEach(function(p){h+='<div style="display:flex;align-items:center;gap:8px;background:#12121e;padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.03)"><span style="color:#ff2d7b;font-weight:700;width:28px">#'+p.id+'</span><input class="input input-sm" value="'+p.name+'" onchange="upn('+p.id+',this.value)" style="flex:1"></div>';});
-  h+='</div>';pn.innerHTML=h;
+  ST.ps.forEach(function(p){
+    h+='<div style="display:flex;align-items:center;gap:8px;background:#12121e;padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.03)"><span style="color:#ff2d7b;font-weight:700;width:28px">#'+p.id+'</span><input class="inp inp-sm" value="'+p.name+'" onchange="upn('+p.id+',this.value)" style="flex:1"></div>';
+  });
+  h+='</div>';
+  pn.innerHTML=h;
 }
-function upn(id,v){var p=S.ps.find(function(x){return x.id===id;});if(p)p.name=v;}
-function startG(){toast('✅ 游戏已开始！');go('roles');}
+
+function upn(id,v){var p=ST.ps.find(function(x){return x.id===id;});if(p)p.name=v;}
+function startGame(){toast('✅ 游戏已开始！');go('roles');}
 
 // ROLES
-function rr(m){
-  var h=hdr('🎭','角色选取')+'<div class="section-body"><div class="tabs" id="rtabs"></div><div class="card-grid" id="rg"></div><div style="margin-top:14px;font-size:13px;color:#888" id="sr">已选角色：</div></div>';
+function renderRoles(m){
+  var h=hdr('🎭','角色选取');
+  h+='<div class="section-body"><div class="tabs" id="rtabs"></div><div class="card-grid" id="rg"></div><div style="margin-top:14px;font-size:13px;color:#888" id="sr">已选角色：</div></div></div>';
   m.innerHTML=h;
-  var tabs=[{id:'all',label:'全部'},{id:'wolf',label:'🐺 狼人'},{id:'god',label:'✨ 神职'},{id:'villager',label:'👥 平民'},{id:'third',label:'🎯 第三方'}];
-  var th='';tabs.forEach(function(t){th+='<div class="tab active" onclick="fr(\''+t.id+'\')">'+t.label+'</div>';});
-  document.getElementById('rtabs').innerHTML=th;fr('all');
+  var tabs=[{id:'all',l:'全部'},{id:'wolf',l:'🐺 狼人'},{id:'god',l:'✨ 神职'},{id:'villager',l:'👥 平民'},{id:'third',l:'🎯 第三方'}];
+  var th='';
+  tabs.forEach(function(t){th+='<div class="tab on" onclick="filterR(''+t.id+'')">'+t.l+'</div>';});
+  document.getElementById('rtabs').innerHTML=th;
+  filterR('all');
 }
-function fr(camp){
+
+function filterR(camp){
   rf=camp;
-  var g=document.getElementById('rg'),roles=camp==='all'?R_ALL:R_ALL.filter(function(r){return r.camp===camp;}),h='';
-  roles.forEach(function(r){var s=S.roles.indexOf(r.id)>=0?' selected':'';h+='<div class="card'+s+'" onclick="tr(\''+r.id+'\')"><div class="card-icon">'+r.icon+'</div><div class="card-name">'+r.name+'</div><div class="card-badge badge-'+r.camp+'">'+cn(r.camp)+'</div></div>';});
-  g.innerHTML=h;usr();
-  var tabs=document.querySelectorAll('#rtabs .tab');tabs.forEach(function(t){t.classList.toggle('active',t.textContent.indexOf(camp==='all'?'全部':camp==='wolf'?'狼人':camp==='god'?'神职':camp==='villager'?'平民':'第三方')>=0);});
+  var g=document.getElementById('rg');
+  var roles=camp==='all'?ALL:ALL.filter(function(r){return r.camp===camp;});
+  var h='';
+  roles.forEach(function(r){
+    var s=ST.roles.indexOf(r.id)>=0?' selected':'';
+    h+='<div class="card'+s+'" onclick="toggleR(''+r.id+'')"><div class="card-icon">'+r.icon+'</div><div class="card-name">'+r.name+'</div><div class="card-badge badge-'+r.camp+'">'+cn(r.camp)+'</div></div>';
+  });
+  g.innerHTML=h;
+  updateSR();
 }
-function tr(id){var i=S.roles.indexOf(id);if(i>=0)S.roles.splice(i,1);else S.roles.push(id);fr(rf);}
-function usr(){var e=document.getElementById('sr');if(!e)return;var ns=S.roles.map(function(id){var r=R_ALL.find(function(x){return x.id===id;});return r?r.icon+' '+r.name:id;});e.innerHTML='已选角色：'+ns.join('、')+' （共'+S.roles.length+'个）';}
+
+function cn(camp){var m={wolf:'狼人',god:'神职',villager:'平民',third:'第三方'};return m[camp]||camp;}
+
+function toggleR(id){
+  var i=ST.roles.indexOf(id);
+  if(i>=0)ST.roles.splice(i,1);else ST.roles.push(id);
+  filterR(rf);
+}
+
+function updateSR(){
+  var e=document.getElementById('sr');if(!e)return;
+  var ns=ST.roles.map(function(id){var r=ALL.find(function(x){return x.id===id;});return r?r.icon+' '+r.name:id;});
+  e.innerHTML='已选角色：'+ns.join('、')+' （共'+ST.roles.length+'个）';
+}
 
 // BATTLE
-function rb(m){
-  var h=hdr('⚔️','对战情况')+'<div class="section-body"><div class="roster-grid" id="br"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-primary" onclick="rar()">🎲 随机分配角色</button><button class="btn btn-cyan" onclick="rbt()">🔄 重置</button></div></div>';
-  m.innerHTML=h;rbr();
+function renderBattle(m){
+  var h=hdr('⚔️','对战情况');
+  h+='<div class="section-body"><div class="roster-grid" id="br"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-pink" onclick="randomR()">🎲 随机分配角色</button><button class="btn btn-cyan" onclick="resetB()">🔄 重置</button></div></div></div>';
+  m.innerHTML=h;
+  renderBR();
 }
-function rbr(){
+
+function renderBR(){
   var g=document.getElementById('br');if(!g)return;
-  if(!S.ps.length){g.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">请先在「游戏设置」中创建玩家</div>';return;}
+  if(!ST.ps.length){g.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">请先在「游戏设置」中创建玩家</div>';return;}
   var h='';
-  S.ps.forEach(function(p){var r=R_ALL.find(function(x){return x.id===p.role;});h+='<div class="roster-card"><div class="roster-avatar">'+(r?r.icon:p.id)+'</div><div class="roster-info"><div class="roster-name">#'+p.id+' '+p.name+'</div><div class="roster-role">'+(r?r.name:'未分配')+'</div></div><button class="btn btn-sm btn-cyan" onclick="cpr('+p.id+')">🔄</button></div>';});
+  ST.ps.forEach(function(p){
+    var r=ALL.find(function(x){return x.id===p.role;});
+    h+='<div class="roster-card"><div class="roster-av">'+(r?r.icon:p.id)+'</div><div class="roster-info"><div class="roster-name">#'+p.id+' '+p.name+'</div><div class="roster-role">'+(r?r.name:'未分配')+'</div></div><button class="btn btn-sm btn-cyan" onclick="cycleR('+p.id+')">🔄</button></div>';
+  });
   g.innerHTML=h;
 }
-function rar(){
-  if(S.roles.length<S.ps.length){toast('⚠️ 角色数量不足！');return;}
-  var sh=[].concat(S.roles).sort(function(){return Math.random()-0.5;});
-  S.ps.forEach(function(p,i){p.role=sh[i]||'';var r=R_ALL.find(function(x){return x.id===p.role;});p.camp=r?r.camp:'';});
-  rbr();toast('✅ 角色已随机分配！');
+
+function randomR(){
+  if(ST.roles.length<ST.ps.length){toast('⚠️ 角色数量不足！');return;}
+  var sh=[].concat(ST.roles).sort(function(){return Math.random()-0.5;});
+  ST.ps.forEach(function(p,i){p.role=sh[i]||'';var r=ALL.find(function(x){return x.id===p.role;});p.camp=r?r.camp:'';});
+  renderBR();toast('✅ 角色已随机分配！');
 }
-function cpr(id){var p=S.ps.find(function(x){return x.id===id;});if(!p)return;var i=S.roles.indexOf(p.role),nx=(i+1)%S.roles.length;p.role=S.roles[nx]||'';var r=R_ALL.find(function(x){return x.id===p.role;});p.camp=r?r.camp:'';rbr();}
-function rbt(){S.ps.forEach(function(p){p.role='';p.camp='';p.alive=true;});S.deaths=[];S.sf='';rbr();toast('🔄 已重置');}
+
+function cycleR(id){
+  var p=ST.ps.find(function(x){return x.id===id;});if(!p)return;
+  var i=ST.roles.indexOf(p.role),nx=(i+1)%ST.roles.length;
+  p.role=ST.roles[nx]||'';var r=ALL.find(function(x){return x.id===p.role;});p.camp=r?r.camp:'';
+  renderBR();
+}
+
+function resetB(){ST.ps.forEach(function(p){p.role='';p.camp='';p.alive=true;});ST.deaths=[];ST.sf='';renderBR();toast('🔄 已重置');}
 
 // SHERIFF
-function rsh(m){
-  var h=hdr('⭐','警长竞选')+'<div class="section-body"><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px" id="sc"></div><div style="font-size:13px;color:#888">当前警长：<span style="color:#ffd700;font-weight:700" id="csf">'+(S.sf||'无')+'</span></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary" onclick="rsv()">🎲 随机投票</button><button class="btn btn-cyan" onclick="clsf()">❌ 清除警长</button></div></div>';
+function renderSheriff(m){
+  var h=hdr('⭐','警长竞选');
+  h+='<div class="section-body"><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px" id="sc"></div><div style="font-size:13px;color:#888">当前警长：<span style="color:#ffd700;font-weight:700">'+(ST.sf||'无')+'</span></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-pink" onclick="rsv()">🎲 随机投票</button><button class="btn btn-cyan" onclick="clsf()">❌ 清除</button></div></div></div>';
   m.innerHTML=h;
-  var sc=document.getElementById('sc');S.ps.forEach(function(p){sc.innerHTML+='<button class="btn btn-sm btn-purple" onclick="esf('+p.id+')">#'+p.id+' '+p.name+'</button>';});
+  var sc=document.getElementById('sc');
+  ST.ps.forEach(function(p){sc.innerHTML+='<button class="btn btn-sm btn-purple" onclick="esf('+p.id+')">#'+p.id+' '+p.name+'</button>';});
 }
-function esf(id){var p=S.ps.find(function(x){return x.id===id;});if(!p)return;S.sf=p.name;toast('⭐ 警长：'+p.name);rp();}
-function rsv(){var a=S.ps.filter(function(p){return p.alive;});if(!a.length)return;var w=a[Math.floor(Math.random()*a.length)];S.sf=w.name;toast('🎲 随机选出警长：'+w.name);rp();}
-function clsf(){S.sf='';toast('❌ 警长已清除');rp();}
+
+function esf(id){var p=ST.ps.find(function(x){return x.id===id;});if(!p)return;ST.sf=p.name;toast('⭐ 警长：'+p.name);renderPage();}
+function rsv(){var a=ST.ps.filter(function(p){return p.alive;});if(!a.length)return;var w=a[Math.floor(Math.random()*a.length)];ST.sf=w.name;toast('🎲 警长：'+w.name);renderPage();}
+function clsf(){ST.sf='';toast('❌ 已清除');renderPage();}
 
 // DICE
-function rd(m){
-  var h=hdr('🎲','随机骰子')+'<div class="section-body"><div class="dice-container"><div class="dice-cube" id="d1" onclick="rdl(1)">?</div><div class="dice-cube" id="d2" onclick="rdl(2)">?</div></div><div style="text-align:center;margin-top:10px"><button class="btn btn-primary" onclick="rda()">🎲 全部掷出</button></div></div>';
+function renderDice(m){
+  var h=hdr('🎲','随机骰子');
+  h+='<div class="section-body"><div class="dice-box"><div class="dice" id="d1" onclick="rollD(1)">?</div><div class="dice" id="d2" onclick="rollD(2)">?</div></div><div style="text-align:center;margin-top:10px"><button class="btn btn-pink" onclick="rollAll()">🎲 全部掷出</button></div></div></div>';
   m.innerHTML=h;
 }
-function rdl(n){var e=document.getElementById('d'+n);if(!e)return;e.classList.add('rolling');var r=Math.floor(Math.random()*6)+1;var f=['','⚀','⚁','⚂','⚃','⚄','⚅'];setTimeout(function(){e.classList.remove('rolling');e.textContent=f[r];},500+Math.random()*500);}
-function rda(){rdl(1);rdl(2);}
+
+function rollD(n){
+  var e=document.getElementById('d'+n);if(!e)return;
+  e.classList.add('rolling');
+  var r=Math.floor(Math.random()*6)+1;
+  var f=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+  setTimeout(function(){e.classList.remove('rolling');e.textContent=f[r];},500+Math.random()*500);
+}
+
+function rollAll(){rollD(1);rollD(2);}
 
 // TIMER
-function rt(m){
-  var h=hdr('⏱️','发言计时')+'<div class="section-body"><div class="timer-display stopped" id="td">'+fm(S.tm)+'</div><div class="timer-controls" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-primary" onclick="stm()">▶️ 开始</button><button class="btn btn-cyan" onclick="ptm()">⏸️ 暂停</button><button class="btn btn-purple" onclick="rtm()">🔄 重置</button></div><div style="display:flex;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap">';
-  [60,90,120,150,180,240,300].forEach(function(t){h+='<button class="btn btn-sm btn-purple" onclick="st('+t+')">'+t+'s</button>';});
-  h+='</div></div>';m.innerHTML=h;
+function renderTimer(m){
+  var h=hdr('⏱️','发言计时');
+  h+='<div class="section-body"><div class="timer-text off" id="td">'+fmt(ST.tm)+'</div><div class="timer-btns"><button class="btn btn-pink" onclick="startTm()">▶️ 开始</button><button class="btn btn-cyan" onclick="pauseTm()">⏸️ 暂停</button><button class="btn btn-purple" onclick="resetTm()">🔄 重置</button></div><div style="display:flex;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap">';
+  [60,90,120,150,180,240,300].forEach(function(t){h+='<button class="btn btn-sm btn-purple" onclick="setTm('+t+')">'+t+'s</button>';});
+  h+='</div></div></div>';
+  m.innerHTML=h;
 }
-function st(t){S.tm=t;S.tmRun=false;clearInterval(S.tmId);var e=document.getElementById('td');if(e){e.textContent=fm(t);e.className='timer-display stopped';}}
-function stm(){if(S.tmRun)return;S.tmRun=true;var e=document.getElementById('td');if(e)e.className='timer-display running';S.tmId=setInterval(function(){S.tm--;if(e)e.textContent=fm(S.tm);if(S.tm<=30&&e)e.className='timer-display warning';if(S.tm<=0){ptm();if(e)e.className='timer-display stopped';toast('⏰ 时间到！');}},1000);}
-function ptm(){S.tmRun=false;clearInterval(S.tmId);var e=document.getElementById('td');if(e)e.className='timer-display stopped';}
-function rtm(){ptm();S.tm=180;var e=document.getElementById('td');if(e){e.textContent=fm(180);e.className='timer-display stopped';}}
+
+function fmt(t){var m=Math.floor(t/60),s=t%60;return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function setTm(t){ST.tm=t;ST.tmRun=false;clearInterval(ST.tmId);var e=document.getElementById('td');if(e){e.textContent=fmt(t);e.className='timer-text off';}}
+function startTm(){if(ST.tmRun)return;ST.tmRun=true;var e=document.getElementById('td');if(e)e.className='timer-text on';ST.tmId=setInterval(function(){ST.tm--;if(e)e.textContent=fmt(ST.tm);if(ST.tm<=30&&e)e.className='timer-text warn';if(ST.tm<=0){pauseTm();if(e)e.className='timer-text off';toast('⏰ 时间到！');}},1000);}
+function pauseTm(){ST.tmRun=false;clearInterval(ST.tmId);var e=document.getElementById('td');if(e)e.className='timer-text off';}
+function resetTm(){pauseTm();ST.tm=180;var e=document.getElementById('td');if(e){e.textContent=fmt(180);e.className='timer-text off';}}
 
 // NIGHT
-function rn(m){
-  var h=hdr('🌙','天黑请闭眼')+'<div class="section-body"><div class="night-phase"><div class="night-row"><div class="night-row-label">🐺 狼人刀</div><div class="night-row-content" id="wk"></div></div><div class="night-row"><div class="night-row-label">🔮 预言家验</div><div class="night-row-content" id="sc"></div></div><div class="night-row"><div class="night-row-label">🧪 女巫</div><div class="night-row-content" id="ws"></div></div><div class="night-row"><div class="night-row-label">🛡️ 守卫</div><div class="night-row-content" id="gp"></div></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-primary" onclick="an()">☀️ 天亮了</button></div></div>';
-  m.innerHTML=h;rns();
+function renderNight(m){
+  var h=hdr('🌙','天黑请闭眼');
+  h+='<div class="section-body"><div class="night-row"><div class="night-label">🐺 狼人刀</div><div class="night-btns" id="wk"></div></div><div class="night-row"><div class="night-label">🔮 预言家验</div><div class="night-btns" id="sc"></div></div><div class="night-row"><div class="night-label">🧪 女巫</div><div class="night-btns" id="ws"></div></div><div class="night-row"><div class="night-label">🛡️ 守卫</div><div class="night-btns" id="gp"></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-pink" onclick="advN()">☀️ 天亮了</button></div></div></div>';
+  m.innerHTML=h;
+  renderNightBtns();
 }
-function rns(){
-  var a=S.ps.filter(function(p){return p.alive;});
-  function mb(id){var h='';a.forEach(function(p){h+='<button class="btn btn-sm btn-purple" onclick="ns(\''+id+'\','+p.id+')">#'+p.id+' '+p.name+'</button>';});return h;}
+
+function renderNightBtns(){
+  var a=ST.ps.filter(function(p){return p.alive;});
+  function mb(id){var h='';a.forEach(function(p){h+='<button class="btn btn-sm btn-purple" onclick="ns(''+id+'','+p.id+')">#'+p.id+' '+p.name+'</button>';});return h;}
   ['wk','sc','ws','gp'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML=mb(id);});
 }
-function ns(type,pid){var p=S.ps.find(function(x){return x.id===pid;});if(!p)return;var a={wk:'被狼人击杀',sc:'被预言家查验',ws:'被女巫关注',gp:'被守卫守护'};toast('🌙 '+a[type]+'：#'+pid+' '+p.name);}
-function an(){S.deaths.forEach(function(d){var p=S.ps.find(function(x){return x.id===d;});if(p)p.alive=false;});toast('☀️ 天亮了！');go('battle');}
+
+function ns(type,pid){var p=ST.ps.find(function(x){return x.id===pid;});if(!p)return;var a={wk:'被狼人击杀',sc:'被预言家查验',ws:'被女巫关注',gp:'被守卫守护'};toast('🌙 '+a[type]+'：#'+pid+' '+p.name);}
+function advN(){ST.deaths.forEach(function(d){var p=ST.ps.find(function(x){return x.id===d;});if(p)p.alive=false;});toast('☀️ 天亮了！');go('battle');}
 
 // DEATH
-function rde(m){
-  var h=hdr('💀','死亡情况')+'<div class="section-body"><div class="death-grid" id="dg"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-primary" onclick="rds()">🔄 重置死亡</button></div></div>';
-  m.innerHTML=h;rdg();
+function renderDeath(m){
+  var h=hdr('💀','死亡情况');
+  h+='<div class="section-body"><div class="death-grid" id="dg"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-pink" onclick="resetDeaths()">🔄 重置死亡</button></div></div></div>';
+  m.innerHTML=h;
+  renderDG();
 }
-function rdg(){
+
+function renderDG(){
   var g=document.getElementById('dg');if(!g)return;
-  if(!S.ps.length){g.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无玩家</div>';return;}
-  var h='';S.ps.forEach(function(p){var d=S.deaths.indexOf(p.id)>=0;var r=R_ALL.find(function(x){return x.id===p.role;});h+='<div class="death-card'+(d?' dead':'')+'" onclick="td('+p.id+')"><div class="death-card-num">'+p.id+'</div><div class="death-card-role">'+(r?r.name:'?')+'</div></div>';});
+  if(!ST.ps.length){g.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无玩家</div>';return;}
+  var h='';
+  ST.ps.forEach(function(p){
+    var d=ST.deaths.indexOf(p.id)>=0;
+    var r=ALL.find(function(x){return x.id===p.role;});
+    h+='<div class="death-card'+(d?' dead':'')+'" onclick="toggleD('+p.id+')"><div class="death-card-num">'+p.id+'</div><div class="death-card-role">'+(r?r.name:'?')+'</div></div>';
+  });
   g.innerHTML=h;
 }
-function td(id){var i=S.deaths.indexOf(id);if(i>=0)S.deaths.splice(i,1);else S.deaths.push(id);rdg();}
-function rds(){S.deaths=[];S.ps.forEach(function(p){p.alive=true;});rdg();toast('🔄 死亡状态已重置');}
+
+function toggleD(id){var i=ST.deaths.indexOf(id);if(i>=0)ST.deaths.splice(i,1);else ST.deaths.push(id);renderDG();}
+function resetDeaths(){ST.deaths=[];ST.ps.forEach(function(p){p.alive=true;});renderDG();toast('🔄 已重置');}
 
 // REPLAY
-function rrp(m){
-  var h=hdr('📝','对局记录')+'<div class="section-body"><div id="rl"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-primary" onclick="svr()">💾 保存当前对局</button><button class="btn btn-cyan" onclick="exr()">📤 导出</button><button class="btn btn-purple" onclick="clr()">🗑️ 清空</button></div></div>';
-  m.innerHTML=h;rrl();
+function renderReplay(m){
+  var h=hdr('📝','对局记录');
+  h+='<div class="section-body"><div id="rl"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-pink" onclick="saveR()">💾 保存</button><button class="btn btn-cyan" onclick="exportR()">📤 导出</button><button class="btn btn-purple" onclick="clearR()">🗑️ 清空</button></div></div></div>';
+  m.innerHTML=h;
+  renderRL();
 }
-function rrl(){
+
+function renderRL(){
   var l=document.getElementById('rl');if(!l)return;
-  if(!S.replays.length){l.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无对局记录</div>';return;}
+  if(!ST.replays.length){l.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无对局记录</div>';return;}
   var h='',wm={wolf:'🐺狼人',good:'👥好人',third:'🎯第三方'};
-  S.replays.forEach(function(r,i){h+='<div class="replay-card"><div class="replay-header"><div class="replay-title">#'+(i+1)+' '+r.date+'</div><div style="color:#ffd700">'+(wm[r.winner]||'?')+' 胜利</div></div><div style="font-size:12px;color:#888;margin-bottom:4px">'+r.ps.length+'人局 | 警长：'+(r.sf||'无')+'</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+r.ps.map(function(p){return '<span style="font-size:11px;background:#12121e;padding:2px 8px;border-radius:4px;color:#ccc">#'+p.id+' '+p.name+' ('+(p.role||'?')+')</span>';}).join('')+'</div><button class="btn btn-sm btn-cyan" onclick="dr('+i+')">🗑️</button></div>';});
+  ST.replays.forEach(function(r,i){
+    h+='<div class="replay-card"><div class="replay-hd"><div class="replay-title">#'+(i+1)+' '+r.date+'</div><div style="color:#ffd700">'+(wm[r.winner]||'?')+' 胜利</div></div><div style="font-size:12px;color:#888;margin-bottom:4px">'+r.ps.length+'人局 | 警长：'+(r.sf||'无')+'</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+r.ps.map(function(p){return '<span style="font-size:11px;background:#12121e;padding:2px 8px;border-radius:4px;color:#ccc">#'+p.id+' '+p.name+' ('+(p.role||'?')+')</span>';}).join('')+'</div><button class="btn btn-sm btn-cyan" onclick="delR('+i+')">🗑️</button></div>';
+  });
   l.innerHTML=h;
 }
-function svr(){
-  var ps=S.ps.map(function(p){return{id:p.id,name:p.name,role:p.role,camp:p.camp};});
-  var r={date:new Date().toISOString().slice(0,10),ps:ps,sf:S.sf,winner:'',deaths:[].concat(S.deaths)};
-  S.replays.unshift(r);ls();rrl();toast('💾 对局已保存！');
+
+function saveR(){
+  var ps=ST.ps.map(function(p){return{id:p.id,name:p.name,role:p.role,camp:p.camp};});
+  var r={date:new Date().toISOString().slice(0,10),ps:ps,sf:ST.sf,winner:'',deaths:[].concat(ST.deaths)};
+  ST.replays.unshift(r);
+  try{localStorage.setItem('wolf_r',JSON.stringify(ST.replays));}catch(e){}
+  renderRL();toast('💾 已保存！');
 }
-function dr(i){S.replays.splice(i,1);ls();rrl();}
-function clr(){S.replays=[];ls();rrl();toast('🗑️ 已清空');}
-function exr(){var d=JSON.stringify(S.replays,null,2);var b=new Blob([d],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='wolf-replays.json';a.click();URL.revokeObjectURL(u);toast('📤 导出成功');}
-function ls(){try{localStorage.setItem('wolf_r',JSON.stringify(S.replays));}catch(e){}}
+
+function delR(i){ST.replays.splice(i,1);try{localStorage.setItem('wolf_r',JSON.stringify(ST.replays));}catch(e){}renderRL();}
+function clearR(){ST.replays=[];try{localStorage.setItem('wolf_r','[]');}catch(e){}renderRL();toast('🗑️ 已清空');}
+function exportR(){var d=JSON.stringify(ST.replays,null,2);var b=new Blob([d],{type:'application/json'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='wolf-replays.json';a.click();URL.revokeObjectURL(u);toast('📤 导出成功');}
 
 // MVP
-function rm(m){
-  var h=hdr('🏆','MVP榜')+'<div class="section-body"><div class="card-grid" id="mg"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-primary" onclick="am()">➕ 添加MVP</button></div></div>';
-  m.innerHTML=h;rmc();
+function renderMvp(m){
+  var h=hdr('🏆','MVP榜');
+  h+='<div class="section-body"><div class="card-grid" id="mg"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-pink" onclick="addM()">➕ 添加MVP</button></div></div></div>';
+  m.innerHTML=h;renderMC();
 }
-function rmc(){
+
+function renderMC(){
   var g=document.getElementById('mg');if(!g)return;
-  if(!S.mvp.length){g.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center;grid-column:1/-1">暂无MVP记录</div>';return;}
-  var h='';S.mvp.forEach(function(c,i){var m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';h+='<div class="stat-card'+(i<3?' rank-'+(i+1):'')+'"><div style="font-size:24px">'+m+'</div><div class="stat-name">'+c.name+'</div><div class="stat-value">'+c.count+'</div><div class="stat-sub">MVP次数</div><button class="btn btn-sm btn-cyan" style="margin-top:6px" onclick="dmv('+i+')">🗑️</button></div>';});
+  if(!ST.mvp.length){g.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center;grid-column:1/-1">暂无MVP记录</div>';return;}
+  var h='';
+  ST.mvp.forEach(function(c,i){
+    var m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    var rc=i===0?' gold':i===1?' silver':i===2?' bronze':'';
+    h+='<div class="stat-card'+rc+'"><div style="font-size:24px">'+m+'</div><div class="stat-name">'+c.name+'</div><div class="stat-val">'+c.count+'</div><div class="stat-sub">MVP次数</div><button class="btn btn-sm btn-cyan" style="margin-top:6px" onclick="delM('+i+')">🗑️</button></div>';
+  });
   g.innerHTML=h;
 }
-function am(){var n=prompt('MVP玩家名称：');if(!n)return;var e=S.mvp.find(function(c){return c.name===n;});if(e)e.count++;else S.mvp.push({name:n,count:1});S.mvp.sort(function(a,b){return b.count-a.count;});lm();rmc();toast('🏆 '+n+' MVP +1！');}
-function dmv(i){S.mvp.splice(i,1);lm();rmc();}
-function lm(){try{localStorage.setItem('wolf_m',JSON.stringify(S.mvp));}catch(e){}}
+
+function addM(){var n=prompt('MVP玩家名称：');if(!n)return;var e=ST.mvp.find(function(c){return c.name===n;});if(e)e.count++;else ST.mvp.push({name:n,count:1});ST.mvp.sort(function(a,b){return b.count-a.count;});try{localStorage.setItem('wolf_m',JSON.stringify(ST.mvp));}catch(e){}renderMC();toast('🏆 '+n+' MVP +1！');}
+function delM(i){ST.mvp.splice(i,1);try{localStorage.setItem('wolf_m',JSON.stringify(ST.mvp));}catch(e){}renderMC();}
 
 // WINRATE
-function rw(m){
-  var h=hdr('📈','玩家胜率')+'<div class="section-body"><div id="ws"></div></div>';
-  m.innerHTML=h;rws();
+function renderWinrate(m){
+  var h=hdr('📈','玩家胜率');
+  h+='<div class="section-body"><div id="ws"></div></div></div>';
+  m.innerHTML=h;renderWS();
 }
-function rws(){
+
+function renderWS(){
   var e=document.getElementById('ws');if(!e)return;
-  if(!S.replays.length){e.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无对局记录</div>';return;}
+  if(!ST.replays.length){e.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无对局记录</div>';return;}
   var pm={};
-  S.replays.forEach(function(g){var w=g.winner;g.ps.forEach(function(p){if(!pm[p.name])pm[p.name]={win:0,total:0};pm[p.name].total++;if((w==='wolf'&&p.camp==='wolf')||(w==='good'&&(p.camp==='god'||p.camp==='villager'))||(w==='third'&&p.camp==='third'))pm[p.name].win++;});});
+  ST.replays.forEach(function(g){var w=g.winner;g.ps.forEach(function(p){if(!pm[p.name])pm[p.name]={win:0,total:0};pm[p.name].total++;if((w==='wolf'&&p.camp==='wolf')||(w==='good'&&(p.camp==='god'||p.camp==='villager'))||(w==='third'&&p.camp==='third'))pm[p.name].win++;});});
   var st=Object.keys(pm).sort(function(a,b){return pm[b].win/pm[b].total-pm[a].win/pm[a].total;});
   var h='<div class="stat-grid">';
-  st.forEach(function(name,i){var d=pm[name];var p=Math.round(d.win/d.total*100);var c=p>=60?'#ff2d7b':p>=40?'#00f0ff':'#888';var rc=i<3?' rank-'+(i+1):'';h+='<div class="stat-card'+rc+'"><div class="stat-name">'+name+'</div><div class="stat-value" style="color:'+c+'">'+p+'%</div><div class="progress"><div class="progress-bar '+(p>=60?'pink':'cyan')+'" style="width:'+p+'%"></div></div><div class="stat-sub">'+d.win+'胜 / '+d.total+'局</div></div>';});
+  st.forEach(function(name,i){
+    var d=pm[name];var p=Math.round(d.win/d.total*100);
+    var c=p>=60?'#ff2d7b':p>=40?'#00f0ff':'#888';
+    var rc=i===0?' gold':i===1?' silver':i===2?' bronze':'';
+    h+='<div class="stat-card'+rc+'"><div class="stat-name">'+name+'</div><div class="stat-val" style="color:'+c+'">'+p+'%</div><div class="bar"><div class="bar-fill '+(p>=60?'bar-pink':'bar-cyan')+'" style="width:'+p+'%"></div></div><div class="stat-sub">'+d.win+'胜 / '+d.total+'局</div></div>';
+  });
   h+='</div>';e.innerHTML=h;
 }
 
 // SCORE
-function rsc(m){
-  var h=hdr('🌟','积分榜')+'<div class="section-body"><div id="ss"></div></div>';
-  m.innerHTML=h;rss();
+function renderScore(m){
+  var h=hdr('🌟','积分榜');
+  h+='<div class="section-body"><div id="ss"></div></div></div>';
+  m.innerHTML=h;renderSS();
 }
-function rss(){
+
+function renderSS(){
   var e=document.getElementById('ss');if(!e)return;
   var sm={};
-  S.replays.forEach(function(g){var w=g.winner;g.ps.forEach(function(p){if(!sm[p.name])sm[p.name]=0;var iw=(w==='wolf'&&p.camp==='wolf')||(w==='good'&&(p.camp==='god'||p.camp==='villager'))||(w==='third'&&p.camp==='third');sm[p.name]+=iw?2:1;});});
-  S.mvp.forEach(function(c){if(!sm[c.name])sm[c.name]=0;sm[c.name]+=c.count;});
+  ST.replays.forEach(function(g){var w=g.winner;g.ps.forEach(function(p){if(!sm[p.name])sm[p.name]=0;var iw=(w==='wolf'&&p.camp==='wolf')||(w==='good'&&(p.camp==='god'||p.camp==='villager'))||(w==='third'&&p.camp==='third');sm[p.name]+=iw?2:1;});});
+  ST.mvp.forEach(function(c){if(!sm[c.name])sm[c.name]=0;sm[c.name]+=c.count;});
   var st=Object.keys(sm).sort(function(a,b){return sm[b]-sm[a];});
   if(!st.length){e.innerHTML='<div style="color:#666;font-size:13px;padding:20px;text-align:center">暂无数据</div>';return;}
   var h='<div class="stat-grid">';
-  st.forEach(function(name,i){var rc=i<3?' rank-'+(i+1):'';var m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';var c=i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#ff2d7b';h+='<div class="stat-card'+rc+'"><div style="font-size:20px">'+m+'</div><div class="stat-name">'+name+'</div><div class="stat-value" style="color:'+c+'">'+sm[name]+'</div><div class="stat-sub">积分</div></div>';});
+  st.forEach(function(name,i){
+    var rc=i===0?' gold':i===1?' silver':i===2?' bronze':'';
+    var m=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    var c=i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#ff2d7b';
+    h+='<div class="stat-card'+rc+'"><div style="font-size:20px">'+m+'</div><div class="stat-name">'+name+'</div><div class="stat-val" style="color:'+c+'">'+sm[name]+'</div><div class="stat-sub">积分</div></div>';
+  });
   h+='</div>';e.innerHTML=h;
 }
 
 // INIT
-function ld(){try{var r=JSON.parse(localStorage.getItem('wolf_r'));if(r)S.replays=r;}catch(e){}try{var m=JSON.parse(localStorage.getItem('wolf_m'));if(m)S.mvp=m;}catch(e){}}
-function init(){ld();rsb();rp();}
+function init(){
+  console.log('init');
+  try{var r=JSON.parse(localStorage.getItem('wolf_r'));if(r)ST.replays=r;}catch(e){}
+  try{var m=JSON.parse(localStorage.getItem('wolf_m'));if(m)ST.mvp=m;}catch(e){}
+  renderSidebar();
+  renderPage();
+  console.log('init done');
+}
+
+window.onerror=function(msg,url,line,col,err){
+  console.error('GLOBAL ERROR:',msg,'at line',line);
+  document.getElementById('main').innerHTML='<div style="color:red;padding:20px"><b>JS Error:</b><br>'+msg+'<br>Line: '+line+'</div>';
+};
+
 init();
 </script>
 </body>
