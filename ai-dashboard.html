@@ -8,148 +8,343 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#1a1f2e url('page-bg.jpeg') center top/cover fixed;min-height:100vh}
 
-/* Header */
-.header{background:linear-gradient(135deg,#4f6ef7,#6c8bff);color:#fff;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(79,110,247,.3)}
-.header-left{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.5px}
-.header-left span{font-size:22px}
+/* ========== 霓虹赛博朋克全局 ========== */
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  background-color:#0a0a12;
+  background-image:
+    url('page-bg.jpeg'),
+    linear-gradient(rgba(0,240,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,240,255,.025) 1px,transparent 1px);
+  background-size:cover,40px 40px,40px 40px;
+  background-position:center top,0 0,0 0;
+  background-attachment:fixed,fixed,fixed;
+  min-height:100vh;
+  color:#c8d0e8;
+}
+
+/* ========== Header ========== */
+.header{
+  background:linear-gradient(135deg,#0d0d1a 0%,#12081e 60%,#0a0d1a 100%);
+  color:#fff;
+  padding:0 24px;
+  height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  border-bottom:1px solid rgba(0,240,255,.25);
+  box-shadow:0 0 24px rgba(0,240,255,.12),0 2px 0 rgba(255,45,123,.08);
+}
+.header-left{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.5px;
+  color:#fff;
+  text-shadow:0 0 12px rgba(0,240,255,.8),0 0 24px rgba(0,240,255,.4);
+}
+.header-left span{font-size:22px;filter:drop-shadow(0 0 8px rgba(255,45,123,.8))}
 .header-right{display:flex;align-items:center;gap:14px;font-size:13px;opacity:.9}
-.header-tag{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:2px 10px;font-size:12px}
-.admin-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer}
+.header-tag{background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.35);border-radius:12px;padding:2px 10px;font-size:12px;color:#00f0ff}
+.admin-btn{
+  background:transparent;
+  border:1px solid rgba(184,41,240,.5);
+  color:#b829f0;
+  padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer;
+  transition:all .2s;
+  text-shadow:0 0 8px rgba(184,41,240,.6);
+}
+.admin-btn:hover{background:rgba(184,41,240,.15);box-shadow:0 0 10px rgba(184,41,240,.4)}
 
-/* Layout */
+/* ========== Layout ========== */
 .layout{display:flex;min-height:calc(100vh - 52px)}
 
-/* Sidebar */
-.sidebar{width:180px;background:rgba(255,255,255,0.82);backdrop-filter:blur(8px);padding:20px 0;flex-shrink:0;border-right:1px solid #eef0f6;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
-.sidebar-section{padding:8px 16px 4px;font-size:11px;color:#bbb;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.sidebar-item{padding:9px 20px;font-size:13px;color:#555;cursor:pointer;border-left:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px}
-.sidebar-item:hover{background:#f5f7ff;color:#4f6ef7}
-.sidebar-item.active{background:#f0f3ff;color:#4f6ef7;border-left-color:#4f6ef7;font-weight:600}
+/* ========== Sidebar ========== */
+.sidebar{
+  width:180px;
+  background:rgba(10,8,20,0.92);
+  backdrop-filter:blur(12px);
+  padding:20px 0;flex-shrink:0;
+  border-right:1px solid rgba(184,41,240,.2);
+  position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;
+}
+.sidebar-section{padding:8px 16px 4px;font-size:11px;color:rgba(0,240,255,.4);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.sidebar-item{padding:9px 20px;font-size:13px;color:#8898b0;cursor:pointer;border-left:3px solid transparent;transition:all .15s;display:flex;align-items:center;gap:7px}
+.sidebar-item:hover{background:rgba(255,45,123,.06);color:#ff2d7b;text-shadow:0 0 8px rgba(255,45,123,.5)}
+.sidebar-item.active{
+  background:rgba(255,45,123,.1);
+  color:#ff2d7b;
+  border-left-color:#ff2d7b;
+  font-weight:600;
+  box-shadow:inset 3px 0 12px rgba(255,45,123,.2);
+  text-shadow:0 0 8px rgba(255,45,123,.6);
+}
 .sidebar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
-/* Main */
+/* ========== Main ========== */
 .main{flex:1;padding:20px 32px;overflow-y:auto;max-width:100%}
 
-/* Card */
-.card{background:rgba(255,255,255,0.82);backdrop-filter:blur(8px);border-radius:0 0 12px 12px;padding:20px 22px;margin-bottom:16px;box-shadow:0 2px 16px rgba(0,0,0,.18)}
+/* ========== Card ========== */
+.card{
+  background:rgba(13,13,24,0.88);
+  backdrop-filter:blur(8px);
+  border-radius:0 0 12px 12px;
+  padding:20px 22px;
+  margin-bottom:16px;
+  border:1px solid rgba(0,240,255,.1);
+  border-top:none;
+  box-shadow:0 4px 24px rgba(0,0,0,.5),inset 0 0 40px rgba(0,0,0,.3);
+  transition:box-shadow .25s;
+}
+.card:hover{box-shadow:0 4px 24px rgba(0,0,0,.5),0 0 18px rgba(0,240,255,.06),inset 0 0 40px rgba(0,0,0,.3)}
 .card-title{display:none}
 .card-icon{display:none}
-/* 板块外部标题 */
-.section-wrap{margin-bottom:16px}
-.section-header{display:flex;align-items:center;gap:10px;padding:9px 18px;border-radius:12px 12px 0 0;background:linear-gradient(135deg,#1a0a2e 0%,#2d1554 50%,#1a0a2e 100%);border:1px solid #c9a84c55;border-bottom:none;box-shadow:0 -2px 12px rgba(201,168,76,.15),inset 0 1px 0 rgba(201,168,76,.2);position:relative;overflow:hidden}
-.section-header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(201,168,76,.03) 8px,rgba(201,168,76,.03) 9px);pointer-events:none}
-.section-header-icon{font-size:18px;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(201,168,76,.6))}
-.section-header-title{font-size:15px;font-weight:800;color:#e8c96a;letter-spacing:2px;text-shadow:0 0 12px rgba(201,168,76,.5),0 1px 0 rgba(0,0,0,.8);flex:1}
-.section-header-extra{margin-left:auto;display:flex;align-items:center;gap:8px}
-.section-header .admin-btn,.section-header button{background:rgba(201,168,76,.15)!important;border:1px solid rgba(201,168,76,.4)!important;color:#e8c96a!important;border-radius:6px;padding:3px 12px;font-size:12px;cursor:pointer;transition:background .15s}
-.section-header button:hover{background:rgba(201,168,76,.3)!important}
 
-/* 7天日历 */
+/* ========== 板块标题 section-header 通用 ========== */
+.section-wrap{margin-bottom:16px}
+.section-header{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 18px;
+  border-radius:12px 12px 0 0;
+  background:linear-gradient(90deg,#1a0820 0%,#200a2e 40%,#0d1020 100%);
+  border:1px solid rgba(184,41,240,.3);
+  border-bottom:none;
+  box-shadow:0 -1px 16px rgba(184,41,240,.15),inset 0 1px 0 rgba(184,41,240,.2);
+  position:relative;overflow:hidden;
+}
+.section-header::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(184,41,240,.02) 8px,rgba(184,41,240,.02) 9px);
+  pointer-events:none;
+}
+.section-header::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(184,41,240,.5),rgba(0,240,255,.3),transparent);
+}
+.section-header-icon{font-size:18px;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(184,41,240,.7))}
+.section-header-title{
+  font-size:15px;font-weight:800;
+  color:#b829f0;
+  letter-spacing:2px;
+  text-shadow:0 0 14px rgba(184,41,240,.7),0 0 30px rgba(184,41,240,.3);
+  flex:1;
+}
+.section-header-extra{margin-left:auto;display:flex;align-items:center;gap:8px}
+.section-header .admin-btn,
+.section-header button{
+  background:transparent!important;
+  border:1px solid rgba(184,41,240,.45)!important;
+  color:#b829f0!important;
+  border-radius:6px;padding:3px 12px;font-size:12px;cursor:pointer;
+  transition:all .15s;
+  text-shadow:0 0 6px rgba(184,41,240,.5)!important;
+}
+.section-header button:hover{
+  background:rgba(184,41,240,.18)!important;
+  box-shadow:0 0 10px rgba(184,41,240,.35)!important;
+}
+
+/* ─── 狼区专属：粉红/红 ─── */
+.section-header.wolf-theme{
+  background:linear-gradient(90deg,#1e0010 0%,#280818 40%,#0e0a14 100%);
+  border-color:rgba(255,45,123,.35);
+  box-shadow:0 -1px 16px rgba(255,45,123,.15),inset 0 1px 0 rgba(255,45,123,.25);
+}
+.section-header.wolf-theme::after{background:linear-gradient(90deg,transparent,rgba(255,45,123,.6),rgba(184,41,240,.3),transparent)}
+.section-header.wolf-theme .section-header-title{color:#ff2d7b;text-shadow:0 0 14px rgba(255,45,123,.8),0 0 30px rgba(255,45,123,.3)}
+.section-header.wolf-theme .section-header-icon{filter:drop-shadow(0 0 6px rgba(255,45,123,.8))}
+.section-header.wolf-theme button{border-color:rgba(255,45,123,.45)!important;color:#ff2d7b!important;text-shadow:0 0 6px rgba(255,45,123,.5)!important}
+.section-header.wolf-theme button:hover{background:rgba(255,45,123,.18)!important;box-shadow:0 0 10px rgba(255,45,123,.35)!important}
+
+/* ─── 好人/青 ─── */
+.section-header.good-theme{
+  background:linear-gradient(90deg,#001820 0%,#011e28 40%,#0a0e14 100%);
+  border-color:rgba(0,240,255,.35);
+  box-shadow:0 -1px 16px rgba(0,240,255,.12),inset 0 1px 0 rgba(0,240,255,.2);
+}
+.section-header.good-theme::after{background:linear-gradient(90deg,transparent,rgba(0,240,255,.6),rgba(0,180,220,.3),transparent)}
+.section-header.good-theme .section-header-title{color:#00f0ff;text-shadow:0 0 14px rgba(0,240,255,.8),0 0 30px rgba(0,240,255,.3)}
+.section-header.good-theme .section-header-icon{filter:drop-shadow(0 0 6px rgba(0,240,255,.8))}
+.section-header.good-theme button{border-color:rgba(0,240,255,.45)!important;color:#00f0ff!important;text-shadow:0 0 6px rgba(0,240,255,.5)!important}
+.section-header.good-theme button:hover{background:rgba(0,240,255,.12)!important;box-shadow:0 0 10px rgba(0,240,255,.3)!important}
+
+/* ─── MVP/金 ─── */
+.section-header.mvp-theme{
+  background:linear-gradient(90deg,#160e00 0%,#1e1400 40%,#0e0a00 100%);
+  border-color:rgba(240,192,64,.4);
+  box-shadow:0 -1px 16px rgba(240,192,64,.18),inset 0 1px 0 rgba(240,192,64,.25);
+}
+.section-header.mvp-theme::after{background:linear-gradient(90deg,transparent,rgba(240,192,64,.7),rgba(201,168,76,.4),transparent)}
+.section-header.mvp-theme .section-header-title{color:#f0c040;text-shadow:0 0 14px rgba(240,192,64,.8),0 0 30px rgba(240,192,64,.3)}
+.section-header.mvp-theme .section-header-icon{filter:drop-shadow(0 0 6px rgba(240,192,64,.8))}
+.section-header.mvp-theme button{border-color:rgba(240,192,64,.45)!important;color:#f0c040!important;text-shadow:0 0 6px rgba(240,192,64,.5)!important}
+.section-header.mvp-theme button:hover{background:rgba(240,192,64,.15)!important;box-shadow:0 0 10px rgba(240,192,64,.35)!important}
+
+/* ─── 复盘/蓝紫 ─── */
+.section-header.replay-theme{
+  background:linear-gradient(90deg,#0a0820 0%,#100a28 40%,#080a18 100%);
+  border-color:rgba(129,140,248,.4);
+  box-shadow:0 -1px 16px rgba(129,140,248,.15),inset 0 1px 0 rgba(129,140,248,.2);
+}
+.section-header.replay-theme::after{background:linear-gradient(90deg,transparent,rgba(129,140,248,.6),rgba(100,80,220,.3),transparent)}
+.section-header.replay-theme .section-header-title{color:#818cf8;text-shadow:0 0 14px rgba(129,140,248,.8),0 0 30px rgba(129,140,248,.3)}
+.section-header.replay-theme .section-header-icon{filter:drop-shadow(0 0 6px rgba(129,140,248,.8))}
+.section-header.replay-theme button{border-color:rgba(129,140,248,.45)!important;color:#818cf8!important;text-shadow:0 0 6px rgba(129,140,248,.5)!important}
+.section-header.replay-theme button:hover{background:rgba(129,140,248,.18)!important;box-shadow:0 0 10px rgba(129,140,248,.35)!important}
+
+/* ========== 7天日历 ========== */
 .week-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:4px}
-.week-day{border-radius:10px;padding:10px 6px;text-align:center;border:1px solid #eef0f6;transition:background .15s}
-.week-day.today{background:linear-gradient(135deg,#4f6ef7,#6c8bff);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(79,110,247,.3)}
-.week-day:not(.today){background:#f8f9ff}
+.week-day{border-radius:10px;padding:10px 6px;text-align:center;border:1px solid rgba(0,240,255,.15);transition:background .15s;background:rgba(13,13,28,.8)}
+.week-day.today{background:linear-gradient(135deg,rgba(0,240,255,.18),rgba(0,180,200,.1));color:#00f0ff;border-color:rgba(0,240,255,.5);box-shadow:0 0 14px rgba(0,240,255,.25)}
+.week-day:not(.today){background:rgba(13,13,22,.6)}
 .week-day .wd-week{font-size:11px;opacity:.7;margin-bottom:4px}
 .week-day .wd-date{font-size:22px;font-weight:700;line-height:1;margin-bottom:2px}
 .week-day .wd-month{font-size:11px;opacity:.7}
 .week-day.today .wd-week,.week-day.today .wd-month{opacity:.85}
-.week-day:not(.today) .wd-week{color:#888}
-.week-day:not(.today) .wd-date{color:#333}
-.week-day:not(.today) .wd-month{color:#aaa}
+.week-day:not(.today) .wd-week{color:#667}
+.week-day:not(.today) .wd-date{color:#aab0c4}
+.week-day:not(.today) .wd-month{color:#556}
 
-/* Q2目标进度 */
+/* ========== Q2目标进度 ========== */
 .goal-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .goal-row:last-child{margin-bottom:0}
-.goal-name{font-size:13px;color:#555;width:190px;flex-shrink:0}
-.goal-bar-wrap{flex:1;background:#f0f0f0;border-radius:6px;height:10px;overflow:hidden}
+.goal-name{font-size:13px;color:#8898b0;width:190px;flex-shrink:0}
+.goal-bar-wrap{flex:1;background:rgba(255,255,255,.05);border-radius:6px;height:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
 .goal-bar{height:100%;border-radius:6px;transition:width .6s ease}
-.bar-blue{background:linear-gradient(90deg,#4f6ef7,#6c8bff)}
-.bar-orange{background:linear-gradient(90deg,#fa8c16,#ffc53d)}
-.bar-red{background:linear-gradient(90deg,#ff4d4f,#ff7875)}
-.bar-green{background:linear-gradient(90deg,#52c41a,#95de64)}
-.goal-value{font-size:12px;color:#888;width:110px;text-align:right;flex-shrink:0;white-space:nowrap}
-.goal-pct{font-size:12px;font-weight:600;width:44px;text-align:right;flex-shrink:0}
+.bar-blue{background:linear-gradient(90deg,#00f0ff,#0080ff)}
+.bar-orange{background:linear-gradient(90deg,#ff7020,#ff2d7b)}
+.bar-red{background:linear-gradient(90deg,#ff2d7b,#b829f0)}
+.bar-green{background:linear-gradient(90deg,#00f0ff,#00c880)}
+.goal-value{font-size:12px;color:#667;width:110px;text-align:right;flex-shrink:0;white-space:nowrap}
+.goal-pct{font-size:12px;font-weight:600;width:44px;text-align:right;flex-shrink:0;color:#00f0ff}
 
-/* KPI Cards */
+/* ========== KPI Cards ========== */
 .kpi-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:4px}
-.kpi-card{border:1px solid #e0e3ea;border-radius:10px;padding:8px 10px;min-height:80px;display:flex;align-items:center;justify-content:center;background:transparent}
-.kpi-num{font-size:48px;font-weight:800;color:#4f6ef7;letter-spacing:-2px;line-height:1}
-/* 角色选取 */
+.kpi-card{
+  border:1px solid rgba(0,240,255,.15);
+  border-radius:10px;padding:8px 10px;min-height:80px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,240,255,.03);
+  transition:box-shadow .2s;
+}
+.kpi-card:hover{box-shadow:0 0 14px rgba(0,240,255,.12)}
+.kpi-num{font-size:48px;font-weight:800;color:#00f0ff;letter-spacing:-2px;line-height:1;text-shadow:0 0 18px rgba(0,240,255,.7)}
+
+/* ========== 角色选取 ========== */
 .role-pick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .role-pick-col{display:flex;flex-direction:column;flex:1}
 .role-pick-label{font-size:14px;font-weight:700;text-align:center;padding:5px 0;margin-bottom:8px;border-radius:6px}
-.role-pick-box{border:1px solid #e8eaf0;border-radius:0 0 8px 8px;flex:1;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;background:rgba(240,242,247,0.7)}
-/* 角色图片卡片 */
+.role-pick-box{
+  border:1px solid rgba(184,41,240,.2);
+  border-radius:0 0 8px 8px;flex:1;padding:10px;
+  display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;
+  background:rgba(10,8,20,.7);
+}
 .rp-img-card{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .15s}
 .rp-img-card:hover{transform:scale(1.06)}
-.rp-img-card img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:2px solid rgba(109,40,217,.4)}
+.rp-img-card img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:2px solid rgba(184,41,240,.4)}
+.rp-img-card:hover img{border-color:#b829f0;box-shadow:0 0 12px rgba(184,41,240,.5)}
 .rp-img-card span{font-size:11px;color:#c4b5fd;text-align:center;line-height:1.2}
-/* 选中预览长条 */
-.rp-preview-bar{height:180px;border:1px solid #e8eaf0;border-radius:8px;background:rgba(240,242,247,0.7);padding:14px 16px;display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;overflow:hidden}
-.rp-preview-bar .rp-prev-empty{color:#aaa;font-size:13px;margin:auto}
+.rp-preview-bar{
+  height:180px;border:1px solid rgba(184,41,240,.2);border-radius:8px;
+  background:rgba(10,8,20,.7);
+  padding:14px 16px;display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;overflow:hidden;
+}
+.rp-preview-bar .rp-prev-empty{color:#556;font-size:13px;margin:auto}
 .rp-prev-group{display:flex;flex-wrap:wrap;gap:10px;padding:6px 10px;border-radius:8px;margin-right:10px;margin-bottom:4px}
 .rp-prev-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px}
-.rp-prev-item img{width:96px;height:96px;border-radius:10px;object-fit:cover;border:2px solid rgba(251,191,36,.5);box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.rp-prev-item span{font-size:11px;color:#444;text-align:center}
-.rp-prev-item .rp-prev-count{position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.rp-prev-item .rp-prev-del{position:absolute;bottom:-6px;right:-6px;background:#374151;color:#9ca3af;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
-.rp-prev-item .rp-prev-del:hover{background:#c0392b;color:#fff}
-.rp-img-card.rp-selected img{border-color:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.5)}
+.rp-prev-item img{width:96px;height:96px;border-radius:10px;object-fit:cover;border:2px solid rgba(240,192,64,.5);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.rp-prev-item span{font-size:11px;color:#8898b0;text-align:center}
+.rp-prev-item .rp-prev-count{position:absolute;top:-6px;right:-6px;background:#ff2d7b;color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.rp-prev-item .rp-prev-del{position:absolute;bottom:-6px;right:-6px;background:#1a1428;color:#667;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.rp-prev-item .rp-prev-del:hover{background:#ff2d7b;color:#fff}
+.rp-img-card.rp-selected img{border-color:#f0c040;box-shadow:0 0 10px rgba(240,192,64,.5)}
 
-/* 角色选取 tag */
+/* ========== 角色选取 tag ========== */
 .rp-tag{font-size:12px;padding:3px 10px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
 .rp-tag:hover{opacity:.8}
 
-/* 数字选号按钮 */
+/* ========== 数字选号 / 上警 ========== */
 .num-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;min-height:112px;align-content:flex-start}
-.kpi-num{font-size:32px;font-weight:800;color:#4f6ef7;letter-spacing:-1px;line-height:1.4;word-break:break-all;text-align:center}
+.kpi-num{font-size:32px;font-weight:800;color:#00f0ff;letter-spacing:-1px;line-height:1.4;word-break:break-all;text-align:center;text-shadow:0 0 16px rgba(0,240,255,.6)}
 .kpi-num-wrap{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:8px}
-/* 上警池卡片样式 */
-.num-circle{position:relative;width:46px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:default;font-size:20px;font-weight:900;background:#0a0010;border:2px solid #c9a84c;box-shadow:0 0 6px rgba(201,168,76,.25)}
+.num-circle{
+  position:relative;width:46px;height:64px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  cursor:default;font-size:20px;font-weight:900;
+  background:#070712;border:2px solid rgba(0,240,255,.4);
+  box-shadow:0 0 8px rgba(0,240,255,.2);
+  color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,.6);
+}
 .num-circle-bg{display:none}
 .num-circle-label{position:relative;z-index:2}
-.kpi-num-dash{font-size:28px;font-weight:700;color:#ccc}
-/* 方框标签 */
+.kpi-num-dash{font-size:28px;font-weight:700;color:#334}
 .box-wrap{display:flex;flex-direction:column}
 .box-label{display:block;padding:5px 16px;border-radius:8px 8px 0 0;font-size:16px;font-weight:700;text-align:center}
 
-/* 分析卡片 */
+/* ========== 分析卡片 ========== */
 .analysis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.analysis-item{background:#f8f9ff;border-radius:8px;padding:14px 16px}
-.analysis-tag{font-size:11px;font-weight:700;color:#4f6ef7;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.analysis-title{font-size:13px;font-weight:600;color:#333;margin-bottom:6px}
-.analysis-text{font-size:12px;color:#666;line-height:1.7}
+.analysis-item{background:rgba(13,13,28,.8);border:1px solid rgba(0,240,255,.12);border-radius:8px;padding:14px 16px}
+.analysis-tag{font-size:11px;font-weight:700;color:#00f0ff;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.analysis-title{font-size:13px;font-weight:600;color:#c8d0e8;margin-bottom:6px}
+.analysis-text{font-size:12px;color:#8898b0;line-height:1.7}
 
-/* TODO */
+/* ========== TODO ========== */
 .todo-list{list-style:none}
-.todo-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;font-size:13px;color:#444}
+.todo-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;color:#8898b0}
 .todo-item:last-child{border-bottom:none}
-.todo-check{width:18px;height:18px;border:2px solid #d9d9d9;border-radius:4px;flex-shrink:0;margin-top:1px}
+.todo-check{width:18px;height:18px;border:2px solid rgba(184,41,240,.4);border-radius:4px;flex-shrink:0;margin-top:1px}
 
-/* 卡牌展示 */
+/* ========== 卡牌展示 ========== */
 .role-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.role-tab{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #d9d9d9;background:#f5f5f5;color:#666;transition:all .15s}
-.role-tab.active{background:#4f6ef7;color:#fff;border-color:#4f6ef7}
+.role-tab{
+  padding:5px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;
+  border:1px solid rgba(184,41,240,.35);
+  background:transparent;color:#8898b0;transition:all .15s;
+}
+.role-tab:hover{border-color:#b829f0;color:#b829f0;box-shadow:0 0 10px rgba(184,41,240,.25)}
+.role-tab.active{
+  background:rgba(184,41,240,.2);color:#b829f0;
+  border-color:#b829f0;
+  box-shadow:0 0 14px rgba(184,41,240,.3),inset 0 0 8px rgba(184,41,240,.1);
+  text-shadow:0 0 8px rgba(184,41,240,.6);
+}
 .role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px}
-.role-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:10px;background:#f8f9ff;border:1px solid #eef0f6;cursor:pointer;transition:all .15s;text-align:center}
-.role-card:hover{border-color:#4f6ef7;background:#f0f3ff;transform:translateY(-2px)}
-.role-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#2d0a5e,#4f6ef7);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid #c4b5fd;overflow:hidden;flex-shrink:0}
+.role-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:10px 6px;border-radius:10px;
+  background:rgba(13,13,24,.8);
+  border:1px solid rgba(184,41,240,.2);
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.role-card:hover{
+  border-color:#b829f0;
+  background:rgba(184,41,240,.1);
+  transform:translateY(-2px);
+  box-shadow:0 4px 18px rgba(184,41,240,.3);
+}
+.role-avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#2d0a5e,#0a1040);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  border:2px solid rgba(184,41,240,.4);overflow:hidden;flex-shrink:0;
+}
 .role-avatar img{width:100%;height:100%;object-fit:cover}
-.role-name{font-size:11px;color:#444;font-weight:600;line-height:1.3}
+.role-name{font-size:11px;color:#aab0c4;font-weight:600;line-height:1.3}
 .role-camp{font-size:10px;padding:1px 6px;border-radius:8px;margin-top:2px}
-.camp-wolf{background:#fff1f0;color:#cf1322}
-.camp-good{background:#f0f3ff;color:#4f6ef7}
-.camp-third{background:#fffbe6;color:#d48806}
+.camp-wolf{background:rgba(255,45,123,.15);color:#ff2d7b;border:1px solid rgba(255,45,123,.3)}
+.camp-good{background:rgba(0,240,255,.1);color:#00f0ff;border:1px solid rgba(0,240,255,.25)}
+.camp-third{background:rgba(240,192,64,.1);color:#f0c040;border:1px solid rgba(240,192,64,.25)}
 
-/* 死亡情况 */
+/* ========== 在场情况 / 死亡卡片 ========== */
 .death-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
-/* 骰子样式 */
 .dice-wrap{width:80px;height:80px;perspective:300px}
-.dice{width:80px;height:80px;border-radius:14px;background:linear-gradient(145deg,#1e0035,#0a0010);border:2px solid #c9a84c;box-shadow:0 0 16px rgba(201,168,76,.3),inset 0 0 20px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;transform-origin:center center;transition:transform .1s;position:relative;overflow:hidden}
-.dice::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.08) 0%,transparent 60%);border-radius:12px;pointer-events:none}
-.dice-face{font-size:40px;font-weight:900;color:#e8d5a3;text-shadow:0 0 10px rgba(201,168,76,.6);line-height:1;user-select:none}
+.dice{
+  width:80px;height:80px;border-radius:14px;
+  background:linear-gradient(145deg,#0d0820,#070712);
+  border:2px solid rgba(0,240,255,.4);
+  box-shadow:0 0 18px rgba(0,240,255,.2),inset 0 0 20px rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;
+  transform-origin:center center;transition:transform .1s;position:relative;overflow:hidden;
+}
+.dice::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,240,255,.06) 0%,transparent 60%);border-radius:12px;pointer-events:none}
+.dice-face{font-size:40px;font-weight:900;color:#00f0ff;text-shadow:0 0 14px rgba(0,240,255,.7);line-height:1;user-select:none}
 .dice.rolling{animation:diceRoll .08s linear infinite}
 @keyframes diceRoll{
   0%{transform:rotate(0deg) scale(1)}
@@ -159,141 +354,205 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   100%{transform:rotate(360deg) scale(1)}
 }
 .death-card{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;aspect-ratio:2/3;transition:transform .2s,box-shadow .2s;user-select:none}
-.death-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(107,33,168,.6)}
+.death-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(255,45,123,.5),0 0 18px rgba(184,41,240,.3)}
 .death-card-back{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background-image:url('card-wolf-bg.jpg');background-size:cover;background-position:center;position:relative;overflow:hidden}
-/* 死亡卡片狼人线条 */
 .wolf-line-svg{position:absolute;inset:0;width:100%;height:100%;opacity:1;pointer-events:none}
-/* 数字覆盖层 */
 .death-card-pattern{display:none}
-.death-card-number{font-size:clamp(42px,5vw,64px);font-weight:900;color:#c9a84c;z-index:3;text-shadow:0 0 12px rgba(0,0,0,1),0 0 4px rgba(0,0,0,1),0 2px 8px rgba(201,168,76,.8);letter-spacing:1px}
+.death-card-number{font-size:clamp(42px,5vw,64px);font-weight:900;color:#ff2d7b;z-index:3;text-shadow:0 0 14px rgba(255,45,123,1),0 0 4px rgba(0,0,0,1),0 2px 10px rgba(184,41,240,.6);letter-spacing:1px}
 .death-card-wolf{display:none}
-/* 死亡状态 */
-.death-card.dead .death-card-back{filter:grayscale(1) brightness(1.8)}
-.death-card.dead::after{content:'';position:absolute;inset:0;background:rgba(200,200,200,.55);z-index:4;border-radius:10px}
+.death-card.dead .death-card-back{filter:grayscale(1) brightness(1.2)}
+.death-card.dead::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:4;border-radius:10px}
 .death-card.dead .death-skull{display:flex!important}
 .death-skull{display:none;position:absolute;inset:0;z-index:5;align-items:center;justify-content:center;font-size:30px;filter:drop-shadow(0 0 8px rgba(255,0,0,.8))}
-/* 上警数字卡片 */
-.num-btn{width:38px;height:52px;border-radius:7px;border:2px solid #c9a84c;background:#0a0010;color:#c9a84c;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;box-shadow:0 0 4px rgba(201,168,76,.15)}
-.num-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(201,168,76,.3)}
-.num-btn.selected{background:#3730a3;border-color:#818cf8;color:#fff;box-shadow:0 0 10px rgba(129,140,248,.5)}
-.num-btn.tuishui{background:#7f1d1d;border-color:#f87171;color:#fca5a5;box-shadow:0 0 10px rgba(248,113,113,.3)}
 
-/* 角色介绍 */
-.ri-tab{flex:1;padding:16px 8px;text-align:center;font-size:15px;font-weight:700;color:#888;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent}
+/* ========== 上警数字按钮 ========== */
+.num-btn{
+  width:38px;height:52px;border-radius:7px;
+  border:1px solid rgba(0,240,255,.35);
+  background:rgba(0,240,255,.04);
+  color:#00f0ff;font-size:16px;font-weight:700;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;
+  text-shadow:0 0 8px rgba(0,240,255,.5);
+}
+.num-btn:hover{
+  transform:translateY(-2px);
+  border-color:#00f0ff;
+  box-shadow:0 4px 14px rgba(0,240,255,.25);
+  background:rgba(0,240,255,.1);
+}
+.num-btn.selected{
+  background:rgba(184,41,240,.2);
+  border-color:#b829f0;
+  color:#b829f0;
+  box-shadow:0 0 12px rgba(184,41,240,.45);
+  text-shadow:0 0 8px rgba(184,41,240,.7);
+}
+.num-btn.tuishui{
+  background:rgba(255,45,123,.12);
+  border-color:rgba(255,45,123,.5);
+  color:#ff2d7b;
+  box-shadow:0 0 10px rgba(255,45,123,.2);
+  text-shadow:0 0 8px rgba(255,45,123,.6);
+}
 
-/* 对战阵容 */
+/* ========== 角色介绍 tab ========== */
+.ri-tab{flex:1;padding:16px 8px;text-align:center;font-size:15px;font-weight:700;color:#667;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent}
+.ri-tab:hover{color:#b829f0;background:rgba(184,41,240,.05)}
+.ri-tab.active{
+  color:#b829f0;
+  border-bottom-color:#b829f0;
+  background:rgba(184,41,240,.08);
+  text-shadow:0 0 10px rgba(184,41,240,.5);
+}
+.ri-role-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;transition:transform .15s}
+.ri-role-item:hover{transform:scale(1.08)}
+.ri-role-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid rgba(184,41,240,.5);box-shadow:0 0 10px rgba(184,41,240,.25)}
+.ri-role-name{font-size:12px;color:#8898b0;text-align:center;font-weight:600}
+
+/* ========== 对战阵容 ========== */
 .battle-faction-row{display:flex;align-items:flex-start;gap:8px}
 .battle-faction-label{font-size:12px;font-weight:800;padding:5px 8px;border-radius:6px;border:1.5px solid;white-space:nowrap;margin-top:2px;min-width:32px;text-align:center}
 .battle-cards-wrap{display:flex;flex-wrap:wrap;gap:7px;flex:1;min-height:36px;align-items:flex-start}
-.battle-add-btn{width:34px;height:66px;border-radius:8px;border:1.5px dashed #444;background:transparent;color:#555;font-size:20px;cursor:pointer;transition:all .15s;flex-shrink:0;margin-top:2px}
-.battle-add-btn:hover{border-color:#c9a84c;color:#c9a84c;background:rgba(201,168,76,.08)}
-.battle-card{width:50px;height:66px;border-radius:8px;border:1.5px solid #c9a84c;background:#0a0010;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;transition:all .15s}
-.battle-card:hover{box-shadow:0 0 8px rgba(201,168,76,.35)}
-.battle-card-num{font-size:18px;font-weight:900;color:#c9a84c;cursor:pointer;line-height:1;width:100%;text-align:center;padding:2px 0}
-.battle-card-num:hover{color:#fff}
-.battle-card-role{font-size:10px;color:#e8d5a3;font-weight:600;text-align:center;word-break:break-all;padding:0 3px;cursor:pointer;line-height:1.2;width:100%}
-.battle-card-role:empty::before{content:'身份';color:#444}
-.battle-card-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:#7f1d1d;color:#fca5a5;font-size:10px;display:none;align-items:center;justify-content:center;cursor:pointer;font-weight:900;z-index:10;border:1px solid #b91c1c}
+.battle-add-btn{
+  width:34px;height:66px;border-radius:8px;
+  border:1.5px dashed rgba(0,240,255,.25);
+  background:transparent;color:#334;font-size:20px;cursor:pointer;
+  transition:all .15s;flex-shrink:0;margin-top:2px;
+}
+.battle-add-btn:hover{border-color:#00f0ff;color:#00f0ff;background:rgba(0,240,255,.06)}
+.battle-card{
+  width:50px;height:66px;border-radius:8px;
+  border:1.5px solid rgba(0,240,255,.3);
+  background:rgba(5,5,18,.8);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  position:relative;transition:all .15s;
+}
+.battle-card:hover{box-shadow:0 0 12px rgba(0,240,255,.3);border-color:#00f0ff}
+.battle-card-num{font-size:18px;font-weight:900;color:#00f0ff;cursor:pointer;line-height:1;width:100%;text-align:center;padding:2px 0;text-shadow:0 0 8px rgba(0,240,255,.5)}
+.battle-card-num:hover{color:#fff;text-shadow:0 0 12px rgba(0,240,255,.8)}
+.battle-card-role{font-size:10px;color:#c8d0e8;font-weight:600;text-align:center;word-break:break-all;padding:0 3px;cursor:pointer;line-height:1.2;width:100%}
+.battle-card-role:empty::before{content:'身份';color:#334}
+.battle-card-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:rgba(255,45,123,.3);color:#ff2d7b;font-size:10px;display:none;align-items:center;justify-content:center;cursor:pointer;font-weight:900;z-index:10;border:1px solid rgba(255,45,123,.5)}
 .battle-card:hover .battle-card-del{display:flex}
 
-/* 复盘记录 */
-.replay-tab-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #444;background:#111;color:#888;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
-.replay-tab-btn.active{border-color:#c9a84c;background:rgba(201,168,76,.15);color:#c9a84c}
-.replay-tab-btn:hover{border-color:#c9a84c88;color:#c9a84c}
-.replay-seat-card{width:60px;height:72px;border-radius:8px;border:1.5px solid #c9a84c;background:#0a0010;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:4px;transition:all .15s;flex-shrink:0}
-.replay-seat-card:hover{background:#1a0a2e;box-shadow:0 0 8px rgba(201,168,76,.3)}
-.replay-seat-num{font-size:11px;color:#c9a84c88;font-weight:700}
-.replay-seat-role{font-size:11px;color:#e8d5a3;font-weight:600;text-align:center;word-break:break-all;padding:0 4px}
-.replay-round-row{display:flex;align-items:center;gap:8px;margin-bottom:0;padding:10px 0;border-bottom:1.5px dashed rgba(201,168,76,.2)}
+/* ========== 复盘记录 ========== */
+.replay-tab-btn{
+  padding:7px 18px;border-radius:20px;
+  border:1.5px solid rgba(129,140,248,.3);
+  background:rgba(10,10,20,.8);
+  color:#667;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;
+}
+.replay-tab-btn.active{
+  border-color:#818cf8;
+  background:rgba(129,140,248,.15);
+  color:#818cf8;
+  box-shadow:0 0 10px rgba(129,140,248,.25);
+  text-shadow:0 0 8px rgba(129,140,248,.5);
+}
+.replay-tab-btn:hover{border-color:rgba(129,140,248,.6);color:#818cf8}
+.replay-seat-card{
+  width:60px;height:72px;border-radius:8px;
+  border:1.5px solid rgba(0,240,255,.3);
+  background:rgba(5,5,18,.8);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:4px;transition:all .15s;flex-shrink:0;
+}
+.replay-seat-card:hover{background:rgba(0,240,255,.06);box-shadow:0 0 12px rgba(0,240,255,.2);border-color:#00f0ff}
+.replay-seat-num{font-size:11px;color:rgba(0,240,255,.4);font-weight:700}
+.replay-seat-role{font-size:11px;color:#c8d0e8;font-weight:600;text-align:center;word-break:break-all;padding:0 4px}
+.replay-round-row{display:flex;align-items:center;gap:8px;margin-bottom:0;padding:10px 0;border-bottom:1.5px dashed rgba(184,41,240,.15)}
 .replay-round-row:last-child{border-bottom:none}
-.replay-round-label{font-size:12px;color:#c9a84c;font-weight:700;width:44px;flex-shrink:0;text-align:center}
+.replay-round-label{font-size:12px;color:#818cf8;font-weight:700;width:44px;flex-shrink:0;text-align:center;text-shadow:0 0 6px rgba(129,140,248,.4)}
 .replay-round-inputs{flex:1;display:flex;flex-direction:column;gap:4px}
-.replay-round-input{width:100%;background:rgba(255,255,255,0.82);border:1px solid #d1d5db;border-radius:6px;color:#1a1a1a;font-size:12px;padding:6px 8px;resize:none;font-family:inherit;box-sizing:border-box;overflow:hidden;min-height:30px}
-.replay-round-input:focus{outline:none;border-color:#c9a84c;background:#fff}
-.replay-winner-btn{padding:7px 20px;border-radius:20px;border:1.5px solid #444;background:#111;color:#888;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
-.replay-winner-btn.active-good{border-color:#4ade80;background:rgba(74,222,128,.15);color:#4ade80}
-.replay-winner-btn.active-wolf{border-color:#f87171;background:rgba(248,113,113,.15);color:#f87171}
-.replay-winner-btn.active-god{border-color:#818cf8;background:rgba(129,140,248,.15);color:#818cf8}
-.replay-winner-btn:hover{border-color:#c9a84c88}
-.ri-tab:hover{color:#c9a84c;background:rgba(201,168,76,.05)}
-.ri-tab.active{color:#c9a84c;border-bottom-color:#c9a84c;background:rgba(201,168,76,.08)}
-.ri-role-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default;transition:transform .15s}
-.ri-role-item:hover{transform:scale(1.08)}
-.ri-role-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid rgba(201,168,76,.5);box-shadow:0 0 8px rgba(201,168,76,.2)}
-.ri-role-name{font-size:12px;color:#555;text-align:center;font-weight:600}
+.replay-round-input{
+  width:100%;
+  background:rgba(13,13,28,.9);
+  border:1px solid rgba(184,41,240,.25);
+  border-radius:6px;
+  color:#c8d0e8;font-size:12px;padding:6px 8px;resize:none;font-family:inherit;box-sizing:border-box;overflow:hidden;min-height:30px;
+}
+.replay-round-input:focus{outline:none;border-color:#b829f0;background:rgba(20,10,36,.95);box-shadow:0 0 8px rgba(184,41,240,.2)}
+.replay-winner-btn{
+  padding:7px 20px;border-radius:20px;
+  border:1.5px solid rgba(100,100,130,.3);
+  background:rgba(10,10,20,.8);
+  color:#667;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;
+}
+.replay-winner-btn.active-good{border-color:#00f0ff;background:rgba(0,240,255,.1);color:#00f0ff;box-shadow:0 0 10px rgba(0,240,255,.2);text-shadow:0 0 8px rgba(0,240,255,.5)}
+.replay-winner-btn.active-wolf{border-color:#ff2d7b;background:rgba(255,45,123,.1);color:#ff2d7b;box-shadow:0 0 10px rgba(255,45,123,.2);text-shadow:0 0 8px rgba(255,45,123,.5)}
+.replay-winner-btn.active-god{border-color:#b829f0;background:rgba(184,41,240,.1);color:#b829f0;box-shadow:0 0 10px rgba(184,41,240,.2);text-shadow:0 0 8px rgba(184,41,240,.5)}
+.replay-winner-btn:hover{border-color:rgba(184,41,240,.5)}
 
-/* MVP榜卡片 */
+/* ========== MVP 榜卡片 ========== */
 .mvp-card{width:140px;flex-shrink:0}
-.mvp-card-inner{position:relative;width:140px;border-radius:12px;overflow:visible;background:linear-gradient(160deg,#1a0a2e,#2d1060,#1a0a2e);border:2px solid #c9a84c;box-shadow:0 0 16px rgba(201,168,76,.25),inset 0 0 20px rgba(109,40,217,.15)}
-/* 四角装饰 */
-.mvp-card-inner::before{content:'';position:absolute;inset:4px;border:1px solid rgba(201,168,76,.3);border-radius:8px;pointer-events:none;z-index:2}
-.mvp-badge{position:absolute;top:-20px;left:50%;transform:translateX(-50%);z-index:5;filter:drop-shadow(0 0 6px rgba(201,168,76,.8))}
-.mvp-img-area{width:100%;height:160px;background:linear-gradient(180deg,#2a1060 0%,#1a0535 100%);cursor:pointer;border-radius:10px 10px 0 0;overflow:hidden;position:relative}
-.mvp-name-bar{background:rgba(0,0,0,.85);border-top:1px solid rgba(201,168,76,.4);padding:8px 10px;text-align:center;border-radius:0 0 10px 10px}
-.mvp-name{font-size:13px;font-weight:700;color:#e8c96a;letter-spacing:1px;cursor:pointer;text-shadow:0 0 8px rgba(201,168,76,.5)}
-.mvp-name:hover{color:#fff}
-.mvp-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#888;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;line-height:1}
-.mvp-del:hover{background:#c0392b;color:#fff}
+.mvp-card-inner{
+  position:relative;width:140px;border-radius:12px;overflow:visible;
+  background:linear-gradient(160deg,#0d0820,#180a30,#0d0820);
+  border:2px solid rgba(240,192,64,.5);
+  box-shadow:0 0 20px rgba(240,192,64,.2),0 0 40px rgba(184,41,240,.08),inset 0 0 20px rgba(0,0,0,.4);
+  transition:box-shadow .25s;
+}
+.mvp-card-inner:hover{box-shadow:0 0 28px rgba(240,192,64,.35),0 0 50px rgba(184,41,240,.15)}
+.mvp-card-inner::before{content:'';position:absolute;inset:4px;border:1px solid rgba(240,192,64,.2);border-radius:8px;pointer-events:none;z-index:2}
+.mvp-badge{position:absolute;top:-20px;left:50%;transform:translateX(-50%);z-index:5;filter:drop-shadow(0 0 8px rgba(240,192,64,.8))}
+.mvp-img-area{width:100%;height:160px;background:linear-gradient(180deg,#1a0840 0%,#0d0320 100%);cursor:pointer;border-radius:10px 10px 0 0;overflow:hidden;position:relative}
+.mvp-name-bar{background:rgba(0,0,0,.9);border-top:1px solid rgba(240,192,64,.35);padding:8px 10px;text-align:center;border-radius:0 0 10px 10px}
+.mvp-name{font-size:13px;font-weight:700;color:#f0c040;letter-spacing:1px;cursor:pointer;text-shadow:0 0 10px rgba(240,192,64,.6)}
+.mvp-name:hover{color:#fff;text-shadow:0 0 14px rgba(240,192,64,.8)}
+.mvp-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#667;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;line-height:1}
+.mvp-del:hover{background:#ff2d7b;color:#fff}
 
-/* 趋势图 */
+/* ========== 趋势图 ========== */
 .chart-wrap{position:relative;height:220px}
 
-/* 分隔线 */
-.divider{border:none;border-top:1px solid #f0f2f7;margin:16px 0}
-/* ===== 移动端响应式 ===== */
+/* ========== 分隔线 ========== */
+.divider{border:none;border-top:1px solid rgba(255,255,255,.05);margin:16px 0}
+
+/* ========== 玩家胜率数字 ========== */
+#winrate-grid > div > div:nth-child(2){
+  text-shadow:0 0 18px rgba(0,240,255,.7),0 0 32px rgba(0,240,255,.3) !important;
+}
+#score-grid > div > div:nth-child(3){
+  text-shadow:0 0 18px rgba(184,41,240,.7),0 0 32px rgba(184,41,240,.3) !important;
+}
+
+/* ========== 输入框通用深色 ========== */
+input,textarea,select{
+  background:rgba(13,13,28,.9) !important;
+  color:#c8d0e8 !important;
+  border-color:rgba(184,41,240,.25) !important;
+}
+input:focus,textarea:focus{
+  border-color:#b829f0 !important;
+  box-shadow:0 0 8px rgba(184,41,240,.2) !important;
+}
+
+/* ========== 移动端响应式 ========== */
 @media (max-width: 768px) {
   .layout { padding: 10px 8px; }
-
-  /* Header */
   .header { padding: 0 12px; height: 48px; }
   .header-left { font-size: 13px; gap: 6px; }
   .header-right { gap: 6px; }
   #today-label { display: none; }
   #manual-save-btn { padding: 3px 10px; font-size: 11px; }
   .admin-btn { display: none; }
-
-  /* section-header */
   .section-header { padding: 8px 12px; }
   .section-header-title { font-size: 13px; letter-spacing: 2px; }
   .card { padding: 10px; }
-
-  /* 并排容器 → 纵向堆叠 */
   .flex-row-wrap { flex-direction: column !important; }
-
-  /* 上警情况固定宽度取消 */
-  .shangjing-col {
-    width: 100% !important;
-    flex-shrink: unset !important;
-  }
-
-  /* num-picker 按钮更小 */
+  .shangjing-col { width: 100% !important; flex-shrink: unset !important; }
   .num-btn { width: 34px; height: 44px; font-size: 14px; }
   .num-picker { gap: 6px; }
-
-  /* kpi-grid */
   .kpi-grid { gap: 8px; }
   .kpi-card { min-height: 60px; }
-
-  /* MVP 榜卡片 */
   .mvp-card { width: 110px !important; }
-
-  /* 胜率/积分榜卡片 wrap 时更小 */
   #winrate-grid, #score-grid { gap: 8px; }
   #winrate-grid > div, #score-grid > div { width: 90px !important; min-height: 90px !important; }
   #winrate-grid > div > div:nth-child(2),
   #score-grid > div > div:nth-child(3) { font-size: 22px !important; }
-
-  /* 复盘 tab 按钮 */
   #replay-tabs { gap: 6px; padding-bottom: 8px; }
-
-  /* 对战情况 header 按钮换行 */
   #replay-section .section-header { flex-wrap: wrap; gap: 6px; }
   #replay-section .section-header > div:last-child { flex-wrap: wrap; gap: 6px; }
-
-  /* 玩家座位卡片 */
   .battle-seat-card { min-width: 70px !important; }
-
-  /* 角色选取 flex 列改行 */
   .role-pick-box { flex-wrap: wrap; }
 }
 
@@ -312,7 +571,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </div>
   <div class="header-right">
     <span id="today-label"></span>
-    <button id="manual-save-btn" onclick="replaySave()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#e8c96a;padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:700;transition:all .2s">💾 保存同步</button>
+    <button id="manual-save-btn" onclick="replaySave()" style="background:transparent;border:1.5px solid #00f0ff;color:#00f0ff;padding:3px 14px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:700;transition:all .2s;text-shadow:0 0 6px rgba(0,240,255,.5)">💾 保存同步</button>
     <button class="admin-btn">🔒 管理员</button>
   </div>
 </div>
@@ -372,7 +631,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
       <!-- 上警情况 -->
       <div style="flex:1;min-width:220px;display:flex;flex-direction:column">
-        <div class="section-header">
+        <div class="section-header wolf-theme">
           <span class="section-header-icon">🐺</span>
           <span class="section-header-title">上 警 情 况</span>
           <div class="section-header-extra">
@@ -383,19 +642,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
           <div class="num-picker" id="num-picker"></div>
           <div class="kpi-grid">
             <div class="box-wrap">
-              <span class="box-label" style="background:rgba(240,242,247,0.7);color:#4f6ef7">上警</span>
+              <span class="box-label" style="background:rgba(0,240,255,.1);color:#00f0ff;border:1px solid rgba(0,240,255,.25)">上警</span>
               <div class="kpi-card" id="kpi-box-1" style="border-top-left-radius:0;border-top-right-radius:0">
                 <div class="kpi-num-wrap" id="kpi-num-1"></div>
               </div>
             </div>
             <div class="box-wrap">
-              <span class="box-label" style="background:rgba(240,242,247,0.7);color:#fa8c16">退水</span>
+              <span class="box-label" style="background:rgba(255,45,123,.1);color:#ff2d7b;border:1px solid rgba(255,45,123,.25)">退水</span>
               <div class="kpi-card" id="kpi-box-2" style="border-top-left-radius:0;border-top-right-radius:0">
                 <div class="kpi-num-wrap" id="kpi-num-2"></div>
               </div>
             </div>
             <div class="box-wrap">
-              <span class="box-label" style="background:rgba(240,242,247,0.7);color:#52c41a">警下</span>
+              <span class="box-label" style="background:rgba(184,41,240,.1);color:#b829f0;border:1px solid rgba(184,41,240,.25)">警下</span>
               <div class="kpi-card" id="kpi-box-3" style="border-top-left-radius:0;border-top-right-radius:0">
                 <div class="kpi-num-wrap" id="kpi-num-3"></div>
               </div>
@@ -406,7 +665,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
       <!-- 警长竞选 -->
       <div style="flex:2;display:flex;flex-direction:column">
-        <div class="section-header">
+        <div class="section-header mvp-theme">
           <span class="section-header-icon">👑</span>
           <span class="section-header-title">警 长 竞 选</span>
           <div class="section-header-extra">
@@ -422,14 +681,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
       <!-- 警长 -->
       <div style="flex:0.6;min-width:110px;display:flex;flex-direction:column">
-        <div class="section-header">
+        <div class="section-header mvp-theme">
           <span class="section-header-icon">🎖️</span>
           <span class="section-header-title">警 长</span>
         </div>
         <div class="card" style="flex:1;margin-bottom:0;border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center">
           <div id="jingzhang-card" style="display:flex;flex-direction:column;align-items:center;gap:4px">
-            <div id="jingzhang-num" style="width:80px;height:110px;border-radius:12px;background:#0a0010;border:2px solid #c9a84c;box-shadow:0 0 16px rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;cursor:pointer" onclick="pickJingzhang()" title="点击选择警长">
-              <span id="jingzhang-num-text" style="color:#555;font-size:18px">?</span>
+            <div id="jingzhang-num" style="width:80px;height:110px;border-radius:12px;background:rgba(5,5,20,.9);border:2px solid #f0c040;box-shadow:0 0 18px rgba(240,192,64,.35),inset 0 0 15px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;cursor:pointer" onclick="pickJingzhang()" title="点击选择警长">
+              <span id="jingzhang-num-text" style="color:rgba(240,192,64,.4);font-size:18px">?</span>
             </div>
           </div>
         </div>
@@ -442,7 +701,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
       <!-- 随机骰子 -->
       <div style="flex:1;min-width:220px;display:flex;flex-direction:column">
-        <div class="section-header">
+        <div class="section-header wolf-theme">
           <span class="section-header-icon">🎲</span>
           <span class="section-header-title">随 机 骰 子</span>
         </div>
@@ -451,21 +710,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
             <div class="dice-wrap" id="dice1-wrap"><div class="dice" id="dice1"><div class="dice-face">1</div></div></div>
             <div class="dice-wrap" id="dice2-wrap"><div class="dice" id="dice2"><div class="dice-face">1</div></div></div>
             <div class="dice-wrap" id="dice3-wrap"><div class="dice" id="dice3"><div class="dice-face">1</div></div></div>
-            <button onclick="rollDice()" id="dice-btn" style="background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1));border:2px solid #c9a84c;color:#e8d5a3;padding:10px 22px;border-radius:20px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px;white-space:nowrap">🎲 掷骰</button>
+            <button onclick="rollDice()" id="dice-btn" style="background:transparent;border:2px solid #00f0ff;color:#00f0ff;padding:10px 22px;border-radius:20px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px;white-space:nowrap;text-shadow:0 0 8px rgba(0,240,255,.6);box-shadow:0 0 10px rgba(0,240,255,.15)" onmouseover="this.style.background='rgba(0,240,255,.12)';this.style.boxShadow='0 0 18px rgba(0,240,255,.35)'" onmouseout="this.style.background='transparent';this.style.boxShadow='0 0 10px rgba(0,240,255,.15)'">🎲 掷骰</button>
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
               <span style="font-size:11px;color:#aaa;letter-spacing:1px">合 计</span>
-              <div id="dice-sum" style="font-size:42px;font-weight:900;color:#c9a84c;min-width:52px;text-align:center;line-height:1;text-shadow:0 0 12px rgba(201,168,76,.5)">—</div>
+              <div id="dice-sum" style="font-size:42px;font-weight:900;color:#00f0ff;min-width:52px;text-align:center;line-height:1;text-shadow:0 0 18px rgba(0,240,255,.8),0 0 32px rgba(0,240,255,.3)">—</div>
               <div id="dice-sum-hint" style="font-size:11px;color:#888;text-align:center;min-height:16px"></div>
             </div>
             <!-- 顺/逆方块 -->
-            <div id="dice-direction" style="width:64px;height:64px;border-radius:10px;background:#0a0010;border:2px solid #c9a84c;display:none;align-items:center;justify-content:center;font-size:32px;font-weight:900;letter-spacing:0;box-shadow:0 0 12px rgba(201,168,76,.25)"></div>
+            <div id="dice-direction" style="width:64px;height:64px;border-radius:10px;background:rgba(5,5,20,.9);border:2px solid #00f0ff;display:none;align-items:center;justify-content:center;font-size:32px;font-weight:900;letter-spacing:0;box-shadow:0 0 16px rgba(0,240,255,.3);color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,.7)"></div>
           </div>
         </div>
       </div>
 
       <!-- 天黑请闭眼 -->
       <div style="flex:1;min-width:160px;display:flex;flex-direction:column">
-        <div class="section-header">
+        <div class="section-header good-theme">
           <span class="section-header-icon">🌙</span>
           <span class="section-header-title">天 黑 请 闭 眼</span>
         </div>
@@ -473,28 +732,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
           <audio id="night-audio" src="bgm-night.mp3" preload="auto"></audio>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:8px">
             <!-- 重播 -->
-            <button onclick="nightReplay()" title="从头重播" style="width:44px;height:44px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">重</button>
+            <button onclick="nightReplay()" title="从头重播" style="width:44px;height:44px;border-radius:50%;background:transparent;border:1.5px solid rgba(0,240,255,.4);color:#00f0ff;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;text-shadow:0 0 6px rgba(0,240,255,.5)" onmouseover="this.style.background='rgba(0,240,255,.12)';this.style.boxShadow='0 0 12px rgba(0,240,255,.3)'" onmouseout="this.style.background='transparent';this.style.boxShadow='none'">重</button>
             <!-- 播放/暂停 -->
-            <button id="night-play-btn" onclick="nightToggle()" title="播放/暂停" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,rgba(201,168,76,.35),rgba(201,168,76,.15));border:2.5px solid #c9a84c;color:#e8c96a;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 0 14px rgba(201,168,76,.3)" onmouseover="this.style.background='linear-gradient(135deg,rgba(201,168,76,.55),rgba(201,168,76,.3))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(201,168,76,.35),rgba(201,168,76,.15))'">播</button>
+            <button id="night-play-btn" onclick="nightToggle()" title="播放/暂停" style="width:54px;height:54px;border-radius:50%;background:rgba(0,240,255,.1);border:2.5px solid #00f0ff;color:#00f0ff;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 0 18px rgba(0,240,255,.3);text-shadow:0 0 8px rgba(0,240,255,.7)" onmouseover="this.style.background='rgba(0,240,255,.22)';this.style.boxShadow='0 0 26px rgba(0,240,255,.5)'" onmouseout="this.style.background='rgba(0,240,255,.1)';this.style.boxShadow='0 0 18px rgba(0,240,255,.3)'">播</button>
             <!-- 音量减 -->
-            <button onclick="nightVolDown()" title="音量减" style="width:44px;height:44px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔉</button>
+            <button onclick="nightVolDown()" title="音量减" style="width:44px;height:44px;border-radius:50%;background:transparent;border:1.5px solid rgba(0,240,255,.35);color:#00f0ff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(0,240,255,.1)'" onmouseout="this.style.background='transparent'">🔉</button>
             <!-- 音量加 -->
-            <button onclick="nightVolUp()" title="音量加" style="width:44px;height:44px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.4);color:#c9a84c;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(201,168,76,.28)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">🔊</button>
+            <button onclick="nightVolUp()" title="音量加" style="width:44px;height:44px;border-radius:50%;background:transparent;border:1.5px solid rgba(0,240,255,.35);color:#00f0ff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(0,240,255,.1)'" onmouseout="this.style.background='transparent'">🔊</button>
           </div>
         </div>
       </div>
 
       <!-- 发言时间 -->
       <div style="flex:1;min-width:160px;display:flex;flex-direction:column">
-        <div class="section-header">
+        <div class="section-header wolf-theme">
           <span class="section-header-icon">⏱️</span>
           <span class="section-header-title">发 言 时 间</span>
         </div>
         <div class="card" style="flex:1;margin-bottom:0;border-radius:0 0 12px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px">
           <!-- 倒计时数字 -->
-          <div id="speech-timer" style="font-size:72px;font-weight:900;color:#c9a84c;line-height:1;text-shadow:0 0 20px rgba(201,168,76,.5);letter-spacing:-2px;min-width:120px;text-align:center">120</div>
+          <div id="speech-timer" style="font-size:72px;font-weight:900;color:#ff2d7b;line-height:1;text-shadow:0 0 20px rgba(255,45,123,.7),0 0 40px rgba(255,45,123,.3);letter-spacing:-2px;min-width:120px;text-align:center">120</div>
           <!-- 开始/重置按钮 -->
-          <button id="speech-btn" onclick="speechToggle()" style="padding:10px 32px;border-radius:20px;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1));border:2px solid #c9a84c;color:#e8d5a3;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px" onmouseover="this.style.background='linear-gradient(135deg,rgba(201,168,76,.4),rgba(201,168,76,.2))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1))'">开 始</button>
+          <button id="speech-btn" onclick="speechToggle()" style="padding:10px 32px;border-radius:20px;background:transparent;border:2px solid #ff2d7b;color:#ff2d7b;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:2px;text-shadow:0 0 8px rgba(255,45,123,.5)" onmouseover="this.style.background='rgba(255,45,123,.18)';this.style.boxShadow='0 0 14px rgba(255,45,123,.4)'" onmouseout="this.style.background='transparent';this.style.boxShadow='none'">开 始</button>
         </div>
       </div>
 
@@ -583,10 +842,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
       function updateDisplay(){
         timerEl.textContent = _remain;
-        timerEl.style.color = _remain <= 10 ? '#f87171' : '#c9a84c';
+        timerEl.style.color = _remain <= 10 ? '#ff2d7b' : '#ff2d7b';
         timerEl.style.textShadow = _remain <= 10
-          ? '0 0 20px rgba(248,113,113,.6)'
-          : '0 0 20px rgba(201,168,76,.5)';
+          ? '0 0 24px rgba(255,45,123,.9),0 0 48px rgba(255,45,123,.4)'
+          : '0 0 20px rgba(255,45,123,.7),0 0 40px rgba(255,45,123,.3)';
       }
 
       window.speechToggle = function(){
@@ -621,7 +880,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     <!-- 在场情况 -->
     <div class="section-wrap">
-      <div class="section-header">
+      <div class="section-header good-theme">
         <span class="section-header-icon">🟢</span>
         <span class="section-header-title">在 场 情 况</span>
         <div class="section-header-extra">
@@ -639,15 +898,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
       <!-- 对战情况 -->
       <div style="flex:1;min-width:0" id="replay-section">
-        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+        <div class="section-header replay-theme" style="display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:10px">
             <span class="section-header-icon">⚔️</span>
             <span class="section-header-title">对 战 情 况</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <button onclick="replayQuickSeats(9)" style="background:rgba(129,140,248,.15);border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">9人局</button>
-            <button onclick="replayQuickSeats(12)" style="background:rgba(129,140,248,.15);border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">12人局</button>
-            <button onclick="replayAddTab()" style="background:rgba(201,168,76,.15);border:1.5px solid #c9a84c;color:#c9a84c;padding:4px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">＋ 新增一局</button>
+            <button onclick="replayQuickSeats(9)" style="background:transparent;border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap;text-shadow:0 0 6px rgba(129,140,248,.5)">9人局</button>
+            <button onclick="replayQuickSeats(12)" style="background:transparent;border:1.5px solid #818cf8;color:#818cf8;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap;text-shadow:0 0 6px rgba(129,140,248,.5)">12人局</button>
+            <button onclick="replayAddTab()" style="background:transparent;border:1.5px solid #f0c040;color:#f0c040;padding:4px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap;text-shadow:0 0 6px rgba(240,192,64,.5)">＋ 新增一局</button>
           </div>
         </div>
         <div class="card" style="margin-bottom:0;border-radius:0 0 12px 12px">
@@ -660,7 +919,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     <!-- MVP榜 -->
     <div class="section-wrap">
-      <div class="section-header">
+      <div class="section-header mvp-theme">
         <span class="section-header-icon">🏆</span>
         <span class="section-header-title">M V P 榜</span>
         <div class="section-header-extra">
@@ -674,7 +933,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     <!-- 玩家胜率 -->
     <div class="section-wrap" id="winrate-section">
-      <div class="section-header">
+      <div class="section-header good-theme">
         <span class="section-header-icon">📊</span>
         <span class="section-header-title">玩 家 胜 率</span>
         <div class="section-header-extra">
@@ -688,7 +947,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     <!-- 积分榜 -->
     <div class="section-wrap" id="score-section">
-      <div class="section-header">
+      <div class="section-header mvp-theme">
         <span class="section-header-icon">🎖️</span>
         <span class="section-header-title">积 分 榜</span>
       </div>
@@ -702,7 +961,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     <!-- 角色介绍 -->
     <div class="section-wrap">
-      <div class="section-header">
+      <div class="section-header replay-theme">
         <span class="section-header-icon">📖</span>
         <span class="section-header-title">角 色 介 绍</span>
       </div>
