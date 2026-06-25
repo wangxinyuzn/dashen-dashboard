@@ -1189,14 +1189,14 @@ function renderMvpCards(){
 function addMvpCard(){
   _mvpCards.push({id: ++_mvpIdCounter, name:'', img:'', date:_todayStr(), role:''});
   renderMvpCards();
-  mvpSave();
+  try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
   SFX.shangJing();
 }
 
 function mvpDelete(id){
   _mvpCards = _mvpCards.filter(function(c){ return c.id !== id; });
   renderMvpCards();
-  mvpSave();
+  try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
 }
 
 function clearMvpCards(){
@@ -1213,12 +1213,11 @@ function mvpInlineBlur(el){
   var field = el.dataset.mvpField;
   var card = _mvpCards.find(function(c){ return c.id===id; });
   if(!card) return;
-  // 去掉 placeholder span，取纯文本
   var val = el.innerText.trim();
   card[field] = val;
-  // 重新渲染（同步 placeholder 显示）
   renderMvpCards();
-  mvpSave();
+  // 只存本地，不自动写 GitHub（防止空数据覆盖）
+  try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
 }
 
 function mvpEditName(id){
