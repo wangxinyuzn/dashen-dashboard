@@ -964,8 +964,50 @@ input:focus,textarea:focus{
       </div>
     </div>
 
-    <!-- 角色介绍 -->
-    <div class="section-wrap">
+    <!-- 角色摸牌统计 -->
+    <div class="section-wrap" id="rolecount-section">
+      <div class="section-header replay-theme">
+        <span class="section-header-icon">🎭</span>
+        <span class="section-header-title">角 色 摸 牌 统 计</span>
+        <div class="section-header-extra">
+          <span id="rolecount-total-tag" style="font-size:11px;color:rgba(232,201,106,.7)"></span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="rolecount-grid" style="display:flex;flex-wrap:wrap;gap:12px;min-height:60px;align-items:flex-start"></div>
+      </div>
+    </div>
+
+    <!-- 阵营分布统计 -->
+    <div class="section-wrap" id="factiondist-section">
+      <div class="section-header good-theme">
+        <span class="section-header-icon">🧭</span>
+        <span class="section-header-title">阵 营 分 布 统 计</span>
+        <div class="section-header-extra">
+          <span id="factiondist-total-tag" style="font-size:11px;color:rgba(232,201,106,.7)"></span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="factiondist-grid" style="display:flex;flex-wrap:wrap;gap:12px;min-height:60px;align-items:flex-start"></div>
+      </div>
+    </div>
+
+    <!-- 玩家角色画像 -->
+    <div class="section-wrap" id="roleprofile-section">
+      <div class="section-header mvp-theme">
+        <span class="section-header-icon">🪪</span>
+        <span class="section-header-title">玩 家 角 色 画 像</span>
+        <div class="section-header-extra">
+          <span id="roleprofile-total-tag" style="font-size:11px;color:rgba(232,201,106,.7)"></span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div id="roleprofile-grid" style="display:flex;flex-wrap:wrap;gap:12px;min-height:60px;align-items:flex-start"></div>
+      </div>
+    </div>
+
+    <!-- 角色介绍（隐藏） -->
+    <div class="section-wrap" style="display:none">
       <div class="section-header replay-theme">
         <span class="section-header-icon">📖</span>
         <span class="section-header-title">角 色 介 绍</span>
@@ -1100,6 +1142,8 @@ document.addEventListener('click', function unlock(){
     {name:'盗贼',  img:imgPath('盗贼','jpg')},
     {name:'丘比特',img:imgPath('丘比特','jpg')},
     {name:'暗恋者',img:imgPath('暗恋者','jpg')},
+    {name:'混子',  img:imgPath('混子','jpg')},
+    {name:'混血儿',img:imgPath('混血儿','jpg')},
     {name:'炸弹人',img:imgPath('炸弹人','jpg')}
   ];
 
@@ -1362,6 +1406,7 @@ function mvpLoad(){
       try{ localStorage.setItem(_MVP_KEY, JSON.stringify({cards:_mvpCards, counter:_mvpIdCounter})); }catch(e){}
       renderMvpCards();
       try{ renderScoreBoard(); }catch(e){}
+      try{ renderRoleCountBoard(); }catch(e){}
     }
   }).catch(function(){}); // GitHub失败就保持localStorage的数据
 }
@@ -1603,6 +1648,7 @@ var _roleSkills = {
   '盗贼': '游戏开始时可偷取另一名玩家的身份牌，以偷取身份的胜利条件为准。',
   '丘比特': '首夜在狼人之前行动，可选择任意两名玩家成为情侣。若情侣中存在狼人，则丘比特和情侣成为第三方阵营，胜利条件为屠城。情侣其中之一出局，另外一方殉情且不可发动技能，丘比特不殉情。丘比特可以选择连自己。',
   '炸弹人': '白天被投票放逐后，所有给他上票的玩家全部死亡，其他方式死亡无法发动技能。如果炸弹人被放逐时炸死了场上所有人，则炸弹人单独获得胜利。',
+  '混子': '首夜选择一名榜样玩家，混子的胜负与榜样玩家阵营保持一致；榜样出局不代表混子立即出局。',
 };
 
 var _factionLabel = {
@@ -2298,7 +2344,7 @@ function replayRender(){
   var _factionCycle = ['', '平民', '狼人', '神职', '三方'];
   var _factionColor = {'平民':'#4f6ef7','狼人':'#ef4444','神职':'#a855f7','三方':'#f59e0b','':''};
   var _wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
-  var _thirdRoles = ['丘比特','炸弹人','盗贼'];
+  var _thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼'];
   var _shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴','守墓人','摄梦人'];
 
   // 座位行（带身份按钮）
@@ -2539,7 +2585,7 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   var cycle = ['', '平民', '狼人', '神职', '三方'];
   var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
   var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴','守墓人','摄梦人'];
-  var thirdRoles = ['丘比特','炸弹人','盗贼'];
+  var thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼'];
   var idx = cycle.indexOf(seat.faction || '');
   var next = cycle[(idx + 1) % cycle.length];
   seat.faction = next;
@@ -2556,7 +2602,7 @@ function replaySeatNextRole(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
   var wolfRoles = ['狼人','狼王','机械狼','狼美人','石像鬼'];
   var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴','守墓人','摄梦人'];
-  var thirdRoles = ['丘比特','炸弹人','盗贼'];
+  var thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼'];
   if(seat.faction === '狼人'){
     var idx = wolfRoles.indexOf(seat.role);
     seat.role = wolfRoles[(idx + 1) % wolfRoles.length];
@@ -2777,6 +2823,9 @@ replayRender = function(){
   try{ _origReplayRender(); }catch(e){ console.error('replayRender err:', e); }
   try{ renderWinRate(); }catch(e){ console.error('renderWinRate err:', e); }
   try{ renderScoreBoard(); }catch(e){ console.error('renderScoreBoard err:', e); }
+  try{ renderRoleCountBoard(); }catch(e){ console.error('renderRoleCountBoard err:', e); }
+  try{ renderFactionDistBoard(); }catch(e){ console.error('renderFactionDistBoard err:', e); }
+  try{ renderRoleProfileBoard(); }catch(e){ console.error('renderRoleProfileBoard err:', e); }
   // 上警数量跟随当前局座位数
   try{
     var tab = _replayData[_replayCurTab];
@@ -2787,7 +2836,241 @@ replayRender = function(){
 };
 renderWinRate();
 renderScoreBoard();
+renderRoleCountBoard();
+renderFactionDistBoard();
+renderRoleProfileBoard();
 
+
+// ===================== 角色摸牌统计 =====================
+function _roleCountNormalizeRole(seat){
+  var faction = (seat && seat.faction ? String(seat.faction).trim() : '');
+  var role = (seat && seat.role ? String(seat.role).trim() : '');
+  if(role) return role;
+  // 平民通常没有子角色，直接按阵营统计为「平民」；其他未细分则用阵营名兜底
+  return faction || '';
+}
+
+function _roleCountFactionOf(role){
+  var wolf = {'狼人':1,'狼王':1,'机械狼':1,'狼美人':1,'石像鬼':1,'白狼王':1,'恶灵骑士':1,'隐狼':1};
+  var shen = {'预言家':1,'通灵师':1,'女巫':1,'守卫':1,'猎人':1,'骑士':1,'白痴':1,'守墓人':1,'摄梦人':1,'禁言长老':1,'猎魔人':1,'乌鸦':1};
+  var third = {'丘比特':1,'暗恋者':1,'混子':1,'混血儿':1,'炸弹人':1,'盗贼':1};
+  if(role === '平民') return 'good';
+  if(wolf[role]) return 'wolf';
+  if(shen[role] || role === '神职') return 'shen';
+  if(third[role] || role === '三方') return 'third';
+  return 'other';
+}
+
+function renderRoleCountBoard(){
+  var grid = document.getElementById('rolecount-grid');
+  var totalTag = document.getElementById('rolecount-total-tag');
+  if(!grid) return;
+
+  var playerMap = {};
+  var roleTotalMap = {};
+  var totalRecords = 0;
+
+  (_replayData || []).forEach(function(tab){
+    if(!tab || !tab.seats) return;
+    tab.seats.forEach(function(seat){
+      var name = (seat.name || '').trim();
+      var role = _roleCountNormalizeRole(seat);
+      if(!name || !role) return;
+      if(!playerMap[name]) playerMap[name] = {total:0, roles:{}};
+      playerMap[name].total += 1;
+      playerMap[name].roles[role] = (playerMap[name].roles[role] || 0) + 1;
+      roleTotalMap[role] = (roleTotalMap[role] || 0) + 1;
+      totalRecords += 1;
+    });
+  });
+
+  if(totalTag) totalTag.textContent = totalRecords ? ('共 ' + totalRecords + ' 次摸牌') : '';
+
+  var players = Object.keys(playerMap).sort(function(a,b){
+    if(playerMap[b].total !== playerMap[a].total) return playerMap[b].total - playerMap[a].total;
+    return a.localeCompare(b, 'zh-Hans-CN');
+  });
+
+  if(!players.length){
+    grid.innerHTML = '<span style="color:#555;font-size:13px;padding:8px 0">复盘记录中暂无玩家角色数据</span>';
+    return;
+  }
+
+  var roleColors = {
+    '平民':'#4f6ef7','狼人':'#ef4444','狼王':'#ef4444','机械狼':'#ef4444','狼美人':'#ef4444','石像鬼':'#ef4444','白狼王':'#ef4444','恶灵骑士':'#ef4444','隐狼':'#ef4444',
+    '预言家':'#a855f7','通灵师':'#a855f7','女巫':'#a855f7','守卫':'#a855f7','猎人':'#a855f7','骑士':'#a855f7','白痴':'#a855f7','守墓人':'#a855f7','摄梦人':'#a855f7','禁言长老':'#a855f7','猎魔人':'#a855f7','乌鸦':'#a855f7',
+    '丘比特':'#f59e0b','暗恋者':'#f59e0b','混子':'#f59e0b','混血儿':'#f59e0b','炸弹人':'#f59e0b','盗贼':'#f59e0b','神职':'#a855f7','三方':'#f59e0b'
+  };
+  var factionMeta = {
+    good:{label:'平民', color:'#4f6ef7'},
+    shen:{label:'神职', color:'#a855f7'},
+    wolf:{label:'狼人', color:'#ef4444'},
+    third:{label:'三方', color:'#f59e0b'},
+    other:{label:'其他', color:'#818cf8'}
+  };
+  var factionOrder = ['good','shen','wolf','third','other'];
+  var maxPlayerTotal = players.reduce(function(mx, name){ return Math.max(mx, playerMap[name].total); }, 1);
+  var roleRanking = Object.keys(roleTotalMap).sort(function(a,b){
+    if(roleTotalMap[b] !== roleTotalMap[a]) return roleTotalMap[b] - roleTotalMap[a];
+    return a.localeCompare(b, 'zh-Hans-CN');
+  });
+
+  var rankingHtml = '<div style="width:100%;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(129,140,248,.06));border:1px solid rgba(201,168,76,.28);border-radius:12px;padding:12px;margin-bottom:2px">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">' +
+      '<div style="font-size:13px;font-weight:900;color:#e8d5a3;letter-spacing:1px">🔥 角色次数排行</div>' +
+      '<div style="font-size:11px;color:#777">颜色越亮代表次数越多</div>' +
+    '</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:7px">' + roleRanking.map(function(role, idx){
+      var count = roleTotalMap[role];
+      var color = roleColors[role] || '#818cf8';
+      var opacity = Math.min(0.36, 0.10 + count / Math.max(totalRecords, 1) * 1.2);
+      return '<span title="排行 #' + (idx+1) + '" style="display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;border:1px solid ' + color + '88;background:' + color + Math.round(opacity*255).toString(16).padStart(2,'0') + ';color:' + color + ';box-shadow:0 0 ' + Math.min(14, 4 + count * 2) + 'px ' + color + '33;font-size:12px;font-weight:900;white-space:nowrap">#' + (idx+1) + ' ' + _esc(role) + '<b style="color:#e8d5a3">×' + count + '</b></span>';
+    }).join('') + '</div></div>';
+
+  var cardsHtml = players.map(function(name){
+    var d = playerMap[name];
+    var heatPct = Math.max(8, Math.round(d.total / maxPlayerTotal * 100));
+    var grouped = {good:[], shen:[], wolf:[], third:[], other:[]};
+    Object.keys(d.roles).forEach(function(role){ grouped[_roleCountFactionOf(role)].push(role); });
+    factionOrder.forEach(function(f){
+      grouped[f].sort(function(a,b){
+        if(d.roles[b] !== d.roles[a]) return d.roles[b] - d.roles[a];
+        return a.localeCompare(b, 'zh-Hans-CN');
+      });
+    });
+
+    var groupsHtml = factionOrder.map(function(f){
+      if(!grouped[f].length) return '';
+      var meta = factionMeta[f];
+      var chips = grouped[f].map(function(role){
+        var color = roleColors[role] || meta.color;
+        return '<span title="' + _esc(role) + ' ' + d.roles[role] + ' 次" style="display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;border:1px solid ' + color + '66;background:' + color + '18;color:' + color + ';font-size:11px;font-weight:800;white-space:nowrap">' +
+          _esc(role) + '<b style="color:#e8d5a3">×' + d.roles[role] + '</b></span>';
+      }).join('');
+      return '<div style="display:flex;gap:7px;align-items:flex-start">' +
+        '<div style="width:34px;flex-shrink:0;text-align:center;font-size:10px;font-weight:900;color:' + meta.color + ';border:1px solid ' + meta.color + '55;background:' + meta.color + '14;border-radius:6px;padding:3px 0;margin-top:1px">' + meta.label + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:5px;min-width:0">' + chips + '</div>' +
+      '</div>';
+    }).join('');
+
+    return '<div style="width:260px;min-height:118px;background:#111;border:1.5px solid #333;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden">' +
+      '<div style="position:absolute;left:0;top:0;bottom:0;width:' + heatPct + '%;background:linear-gradient(90deg,rgba(201,168,76,.16),rgba(201,168,76,0));pointer-events:none"></div>' +
+      '<div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+        '<div style="font-size:14px;font-weight:900;color:#e8d5a3;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + _esc(name) + '</div>' +
+        '<div style="font-size:11px;color:#888;white-space:nowrap">共 <span style="color:#c9a84c;font-weight:900">' + d.total + '</span> 次</div>' +
+      '</div>' +
+      '<div style="position:relative;display:flex;flex-direction:column;gap:6px">' + groupsHtml + '</div>' +
+      '</div>';
+  }).join('');
+
+  grid.innerHTML = rankingHtml + cardsHtml;
+}
+
+
+function _roleCountCollectStats(){
+  var playerMap = {}, roleTotalMap = {}, factionTotalMap = {good:0, shen:0, wolf:0, third:0, other:0};
+  var totalRecords = 0;
+  (_replayData || []).forEach(function(tab){
+    if(!tab || !tab.seats) return;
+    tab.seats.forEach(function(seat){
+      var name = (seat.name || '').trim();
+      var role = _roleCountNormalizeRole(seat);
+      if(!name || !role) return;
+      var faction = _roleCountFactionOf(role);
+      if(!playerMap[name]) playerMap[name] = {total:0, roles:{}, factions:{good:0, shen:0, wolf:0, third:0, other:0}};
+      playerMap[name].total += 1;
+      playerMap[name].roles[role] = (playerMap[name].roles[role] || 0) + 1;
+      playerMap[name].factions[faction] = (playerMap[name].factions[faction] || 0) + 1;
+      roleTotalMap[role] = (roleTotalMap[role] || 0) + 1;
+      factionTotalMap[faction] = (factionTotalMap[faction] || 0) + 1;
+      totalRecords += 1;
+    });
+  });
+  return {players:playerMap, roles:roleTotalMap, factions:factionTotalMap, total:totalRecords};
+}
+
+function renderFactionDistBoard(){
+  var grid = document.getElementById('factiondist-grid');
+  var totalTag = document.getElementById('factiondist-total-tag');
+  if(!grid) return;
+  var data = _roleCountCollectStats();
+  if(totalTag) totalTag.textContent = data.total ? ('共 ' + data.total + ' 次摸牌') : '';
+  if(!data.total){
+    grid.innerHTML = '<span style="color:#555;font-size:13px;padding:8px 0">复盘记录中暂无阵营数据</span>';
+    return;
+  }
+  var meta = {
+    good:{label:'平民', icon:'👤', color:'#4f6ef7'}, shen:{label:'神职', icon:'🔮', color:'#a855f7'},
+    wolf:{label:'狼人', icon:'🐺', color:'#ef4444'}, third:{label:'三方', icon:'🃏', color:'#f59e0b'},
+    other:{label:'其他', icon:'❔', color:'#818cf8'}
+  };
+  var order = ['good','shen','wolf','third','other'].filter(function(k){ return data.factions[k] > 0; });
+  var max = order.reduce(function(m,k){ return Math.max(m, data.factions[k]); }, 1);
+  grid.innerHTML = order.map(function(k){
+    var count = data.factions[k], pct = Math.round(count / data.total * 100), m = meta[k];
+    var width = Math.max(6, Math.round(count / max * 100));
+    return '<div style="width:220px;background:#111;border:1.5px solid ' + m.color + '66;border-radius:12px;padding:12px;box-shadow:0 0 12px ' + m.color + '18">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+        '<div style="font-size:15px;font-weight:900;color:' + m.color + '">' + m.icon + ' ' + m.label + '</div>' +
+        '<div style="font-size:24px;font-weight:900;color:#e8d5a3;line-height:1">' + pct + '<span style="font-size:12px">%</span></div>' +
+      '</div>' +
+      '<div style="height:9px;background:#222;border-radius:99px;overflow:hidden;margin-bottom:8px"><div style="height:100%;width:' + width + '%;background:linear-gradient(90deg,' + m.color + ',' + m.color + '88);box-shadow:0 0 10px ' + m.color + '"></div></div>' +
+      '<div style="font-size:12px;color:#888">' + count + ' 次 / ' + data.total + ' 次</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderRoleProfileBoard(){
+  var grid = document.getElementById('roleprofile-grid');
+  var totalTag = document.getElementById('roleprofile-total-tag');
+  if(!grid) return;
+  var data = _roleCountCollectStats();
+  var names = Object.keys(data.players).sort(function(a,b){
+    if(data.players[b].total !== data.players[a].total) return data.players[b].total - data.players[a].total;
+    return a.localeCompare(b, 'zh-Hans-CN');
+  });
+  if(totalTag) totalTag.textContent = names.length ? ('共 ' + names.length + ' 名玩家') : '';
+  if(!names.length){
+    grid.innerHTML = '<span style="color:#555;font-size:13px;padding:8px 0">复盘记录中暂无玩家画像数据</span>';
+    return;
+  }
+  var factionMeta = {
+    good:{label:'平民', color:'#22c55e', glow:'#22c55e'}, shen:{label:'神职', color:'#facc15', glow:'#facc15'},
+    wolf:{label:'狼人', color:'#ef4444', glow:'#ef4444'}, third:{label:'三方', color:'#f59e0b', glow:'#f59e0b'}, other:{label:'其他', color:'#818cf8', glow:'#818cf8'}
+  };
+  grid.innerHTML = names.map(function(name){
+    var d = data.players[name];
+    var topRole = Object.keys(d.roles).sort(function(a,b){ return d.roles[b] - d.roles[a] || a.localeCompare(b, 'zh-Hans-CN'); })[0];
+    // 阵营高亮标准：民最多=绿色，神职最多=黄色，狼最多=红色；三方/其他用兜底色。并列时按民→神→狼→三方→其他稳定取色。
+    var factionPriority = ['good','shen','wolf','third','other'];
+    var topFaction = factionPriority.slice().sort(function(a,b){
+      var diff = (d.factions[b] || 0) - (d.factions[a] || 0);
+      if(diff) return diff;
+      return factionPriority.indexOf(a) - factionPriority.indexOf(b);
+    })[0] || 'other';
+    var fm = factionMeta[topFaction] || factionMeta.other;
+    var rolePct = topRole ? Math.round(d.roles[topRole] / d.total * 100) : 0;
+    var factionPct = Math.round((d.factions[topFaction] || 0) / d.total * 100);
+    var rareRoles = Object.keys(d.roles).filter(function(r){ return d.roles[r] === 1; }).slice(0,3);
+    var rareText = rareRoles.length ? rareRoles.map(_esc).join('、') : '暂无';
+    var glowStrong = topFaction === 'good' || topFaction === 'shen' || topFaction === 'wolf';
+    var borderStyle = '2px solid ' + fm.glow + (glowStrong ? '' : '88');
+    var shadowStyle = glowStrong ? ('0 0 16px ' + fm.glow + '88, inset 0 0 18px ' + fm.glow + '18') : ('0 0 10px ' + fm.glow + '33');
+    return '<div style="width:230px;min-height:132px;background:linear-gradient(135deg,#111,#151515);border:' + borderStyle + ';box-shadow:' + shadowStyle + ';border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+        '<div style="font-size:15px;font-weight:900;color:#e8d5a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + _esc(name) + '</div>' +
+        '<div style="font-size:11px;color:#888;white-space:nowrap">' + d.total + ' 次</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#aaa;line-height:1.7">最常阵营：<span style="color:' + fm.color + ';font-weight:900">' + fm.label + '</span> <span style="color:#666">' + factionPct + '%</span><br>' +
+      '本命角色：<span style="color:#c9a84c;font-weight:900">' + _esc(topRole || '-') + '</span> <span style="color:#666">' + rolePct + '%</span><br>' +
+      '稀有摸牌：<span style="color:#818cf8;font-weight:700">' + rareText + '</span></div>' +
+      '<div style="display:flex;height:7px;border-radius:99px;overflow:hidden;background:#222;margin-top:auto">' + ['good','shen','wolf','third','other'].map(function(k){
+        var c = factionMeta[k].color, pct = d.total ? (d.factions[k] || 0) / d.total * 100 : 0;
+        return pct ? '<div title="' + factionMeta[k].label + ' ' + Math.round(pct) + '%" style="width:' + pct + '%;background:' + c + '"></div>' : '';
+      }).join('') + '</div>' +
+      '</div>';
+  }).join('');
+}
 
 // ===================== 积分榜 =====================
 function renderScoreBoard(){
