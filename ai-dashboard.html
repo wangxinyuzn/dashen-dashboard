@@ -1222,7 +1222,7 @@ document.addEventListener('click', function unlock(){
 
   window.rpAdd = function(img, name){ addToPreview({img:img, name:name}); };
 
-  // 角色数量变化时同步数字选号，在场情况卡片由 buildNumPicker 内部的 refresh() 联动
+  // 角色数量变化时同步数字选号；在场情况卡片数量优先跟随对战情况里的玩家信息
   function syncCount(){
     var n = previewList.length;
     buildNumPicker(n);
@@ -1246,7 +1246,15 @@ document.addEventListener('click', function unlock(){
   // 暴露默认配置函数给外部（在所有函数定义完后调用）
 })();
 
-// 死亡情况卡片（数量由角色选取动态决定）
+// 死亡情况卡片（数量优先由「对战情况 > 玩家信息」决定）
+function getReplaySeatCount(){
+  try{
+    var tab = _replayData && _replayData[_replayCurTab];
+    if(tab && tab.seats) return tab.seats.length || 0;
+  }catch(e){}
+  return 0;
+}
+
 function buildDeathCards(count){
   const grid = document.getElementById('death-grid');
   grid.innerHTML = '';
@@ -1954,8 +1962,9 @@ function buildNumPicker(count){
       ? jingXia.map(n=>makeCard(n,'#c9a84c',false)).join('')
       : '<span class="kpi-num-dash">—</span>';
     renderJingzhang();
-    // 在场情况卡片数量 = 上警 + 警下（排除退水）
-    buildDeathCards(shangJing.length + jingXia.length);
+    // 在场情况卡片数量只跟随「对战情况 > 玩家信息」的玩家数；
+    // 没有玩家信息时才回退到当前选号总数。不要随上警/退水状态变化。
+    buildDeathCards(getReplaySeatCount() || n);
   }
 
   window.moveToTuishui = function(n){
@@ -2830,12 +2839,13 @@ replayRender = function(){
   try{ renderRoleCountBoard(); }catch(e){ console.error('renderRoleCountBoard err:', e); }
   try{ renderFactionDistBoard(); }catch(e){ console.error('renderFactionDistBoard err:', e); }
   try{ renderRoleProfileBoard(); }catch(e){ console.error('renderRoleProfileBoard err:', e); }
-  // 上警数量跟随当前局座位数
+  // 上警数字按钮和在场情况卡片数量跟随当前局「玩家信息」人数
   try{
     var tab = _replayData[_replayCurTab];
     var seatCount = (tab && tab.seats) ? tab.seats.length : 0;
     var curBtnCount = document.querySelectorAll('.num-btn').length;
     if(seatCount !== curBtnCount) buildNumPicker(seatCount);
+    else buildDeathCards(seatCount);
   }catch(e){}
 };
 renderWinRate();
