@@ -1146,7 +1146,8 @@ document.addEventListener('click', function unlock(){
     {name:'暗恋者',img:imgPath('暗恋者','jpg')},
     {name:'混子',  img:imgPath('混子','jpg')},
     {name:'混血儿',img:imgPath('混血儿','jpg')},
-    {name:'炸弹人',img:imgPath('炸弹人','jpg')}
+    {name:'炸弹人',img:imgPath('炸弹人','jpg')},
+    {name:'鬼新娘',img:imgPath('鬼新娘','svg')}
   ];
 
   // 预览列表：每次点击追加一项，支持同一角色多次独立显示
@@ -2357,7 +2358,7 @@ function replayRender(){
   var _factionCycle = ['', '平民', '狼人', '神职', '三方'];
   var _factionColor = {'平民':'#4f6ef7','狼人':'#ef4444','神职':'#a855f7','三方':'#f59e0b','':''};
   var _wolfRoles = ['狼人','狼王','机械狼','假面','狼美人','石像鬼'];
-  var _thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼'];
+  var _thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼','鬼新娘'];
   var _shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴','守墓人','摄梦人','舞者'];
 
   // 座位行（带身份按钮）
@@ -2598,7 +2599,7 @@ function replaySeatNextFaction(tabIdx, seatIdx){
   var cycle = ['', '平民', '狼人', '神职', '三方'];
   var wolfRoles = ['狼人','狼王','机械狼','假面','狼美人','石像鬼'];
   var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴','守墓人','摄梦人','舞者'];
-  var thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼'];
+  var thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼','鬼新娘'];
   var idx = cycle.indexOf(seat.faction || '');
   var next = cycle[(idx + 1) % cycle.length];
   seat.faction = next;
@@ -2615,7 +2616,7 @@ function replaySeatNextRole(tabIdx, seatIdx){
   var seat = _replayData[tabIdx].seats[seatIdx];
   var wolfRoles = ['狼人','狼王','机械狼','假面','狼美人','石像鬼'];
   var shenRoles = ['预言家','通灵师','女巫','守卫','猎人','骑士','白痴','守墓人','摄梦人','舞者'];
-  var thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼'];
+  var thirdRoles = ['丘比特','混子','混血儿','炸弹人','盗贼','鬼新娘'];
   if(seat.faction === '狼人'){
     var idx = wolfRoles.indexOf(seat.role);
     seat.role = wolfRoles[(idx + 1) % wolfRoles.length];
@@ -2867,7 +2868,7 @@ function _roleCountNormalizeRole(seat){
 function _roleCountFactionOf(role){
   var wolf = {'狼人':1,'狼王':1,'机械狼':1,'狼美人':1,'石像鬼':1,'假面':1,'白狼王':1,'恶灵骑士':1,'隐狼':1};
   var shen = {'预言家':1,'通灵师':1,'女巫':1,'守卫':1,'猎人':1,'骑士':1,'白痴':1,'守墓人':1,'摄梦人':1,'舞者':1,'禁言长老':1,'猎魔人':1,'乌鸦':1};
-  var third = {'丘比特':1,'暗恋者':1,'混子':1,'混血儿':1,'炸弹人':1,'盗贼':1};
+  var third = {'丘比特':1,'暗恋者':1,'混子':1,'混血儿':1,'炸弹人':1,'盗贼':1,'鬼新娘':1};
   if(role === '平民') return 'good';
   if(wolf[role]) return 'wolf';
   if(shen[role] || role === '神职') return 'shen';
@@ -2913,7 +2914,7 @@ function renderRoleCountBoard(){
   var roleColors = {
     '平民':'#4f6ef7','狼人':'#ef4444','狼王':'#ef4444','机械狼':'#ef4444','狼美人':'#ef4444','石像鬼':'#ef4444','假面':'#ef4444','白狼王':'#ef4444','恶灵骑士':'#ef4444','隐狼':'#ef4444',
     '预言家':'#a855f7','通灵师':'#a855f7','女巫':'#a855f7','守卫':'#a855f7','猎人':'#a855f7','骑士':'#a855f7','白痴':'#a855f7','守墓人':'#a855f7','摄梦人':'#a855f7','舞者':'#a855f7','禁言长老':'#a855f7','猎魔人':'#a855f7','乌鸦':'#a855f7',
-    '丘比特':'#f59e0b','暗恋者':'#f59e0b','混子':'#f59e0b','混血儿':'#f59e0b','炸弹人':'#f59e0b','盗贼':'#f59e0b','神职':'#a855f7','三方':'#f59e0b'
+    '丘比特':'#f59e0b','暗恋者':'#f59e0b','混子':'#f59e0b','混血儿':'#f59e0b','炸弹人':'#f59e0b','盗贼':'#f59e0b','鬼新娘':'#f59e0b','神职':'#a855f7','三方':'#f59e0b'
   };
   var factionMeta = {
     good:{label:'平民', color:'#4f6ef7'},
