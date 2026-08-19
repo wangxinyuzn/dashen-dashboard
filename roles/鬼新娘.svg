@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-labelledby="title desc">
+  <title id="title">鬼新娘</title><desc id="desc">鬼新娘角色卡</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1f102b"/><stop offset="1" stop-color="#64142b"/></linearGradient></defs>
+  <rect width="480" height="640" rx="28" fill="url(#bg)"/>
+  <path d="M55 600C95 370 142 255 240 155c98 100 145 215 185 445" fill="#f6e8e6" opacity=".95"/>
+  <circle cx="240" cy="212" r="79" fill="#f3d4cf"/>
+  <path d="M155 217c10-106 160-112 170 0-48-33-122-33-170 0Z" fill="#160b1d"/>
+  <path d="M172 173c50-75 125-53 153 18-46-36-109-42-153-18Z" fill="#2b1022"/>
+  <circle cx="210" cy="218" r="9" fill="#3c1426"/><circle cx="270" cy="218" r="9" fill="#3c1426"/>
+  <path d="M210 262q30 20 60 0" fill="none" stroke="#a64660" stroke-width="7" stroke-linecap="round"/>
+  <path d="M116 420q124-70 248 0" fill="none" stroke="#9d233d" stroke-width="24" opacity=".9"/>
+  <text x="240" y="555" text-anchor="middle" fill="#fff7ed" font-size="53" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">鬼新娘</text>
+  <text x="240" y="599" text-anchor="middle" fill="#fbbf24" font-size="25" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="8">三 方</text>
+</svg>
